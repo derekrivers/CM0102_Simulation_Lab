@@ -472,8 +472,15 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     for marker, expected_body in exact_state_types.items():
         if extract_block(compact, marker, marker) != expected_body:
             raise VerificationError("exact refusal state type " + marker)
+    policy_body = extract_block(compact, "internalstaticclassRuntimeBindingPolicy",
+        "runtime binding policy class")
+    if not policy_body.startswith("privatestaticreadonlyobjectRefusalKey=newobject();"
+            "internalsealedclassBuildUnpinnedRefusal"):
+        raise VerificationError("structural refusal key binding")
     require_count(compact, "privatestaticreadonlyobjectRefusalKey=newobject();", 1,
         "exact refusal key")
+    if compact.count("RefusalKey=") != 1:
+        raise VerificationError("refusal key reassignment")
     expected_bodies = {
         "privatestaticboolExactHash(stringvalue)":
             "if(value==null||value.Length!=64)returnfalse;"
@@ -811,6 +818,9 @@ def self_test() -> None:
         ("Supervisor = 1", "Supervisor = 9"),
         ("private static readonly object RefusalKey = new object();",
             "private static readonly object RefusalKey = null;"),
+        ("private static readonly object RefusalKey = new object();",
+            "private static readonly object RefusalKey = new object();\n"
+            "        static RuntimeBindingPolicy() { RefusalKey = null; }"),
         ("if (!FixedRuntimeBindingContract.IsScenario(scenarioId))",
             "if (!FixedRuntimeBindingContract.IsScenario(scenarioId) && "
             "!String.Equals(scenarioId, FixedRuntimeBindingContract.ProfileId, "
@@ -841,6 +851,12 @@ def self_test() -> None:
         (source.replace("observed.ByteCount == expectedByteCount &&", ""),
          tests.replace("profile.ByteCount + 1, profile.Sha256",
             "profile.ByteCount + 1, new String('2', 64)")),
+        (source.replace("private static readonly object RefusalKey = new object();",
+            "private static object RefusalKey { get { return null; } }", 1).replace(
+            "internal sealed class RuntimeArtifactIdentity\n    {",
+            "internal sealed class RuntimeArtifactIdentity\n    {\n"
+            "        private static readonly object RefusalKey = new object();\n"
+            "        private static object KeepRefusalKey() { return RefusalKey; }", 1), tests),
         (source.replace(
             'case RuntimeImageRole.Supervisor: return "SyntheticLauncherSupervisor.exe";',
             'case RuntimeImageRole.Controller: return "SyntheticLauncherSupervisor.exe";', 1).replace(
