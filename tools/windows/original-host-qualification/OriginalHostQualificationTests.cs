@@ -480,13 +480,29 @@ namespace Cm0102.OriginalHostQualification
             Assert(!String.IsNullOrEmpty(windows));
             Assert(!String.IsNullOrEmpty(actualSystem));
             Assert(String.Equals(actualSystem, expectedSystem, StringComparison.OrdinalIgnoreCase));
-            Dictionary<string, string> tools = CapabilityCatalog.ToolPaths(windows, actualSystem);
+            Dictionary<string, string> tools = CapabilityCatalog.ToolPaths();
+            Dictionary<string, string> expectedTools = CapabilityCatalog.ToolPaths(windows, actualSystem);
             foreach (string id in new string[] { "cmd", "powershell" })
             {
+                Assert(String.Equals(tools[id], expectedTools[id], StringComparison.OrdinalIgnoreCase));
                 Assert(File.Exists(tools[id]));
                 FileIdentity identity = FileIdentity.Read(tools[id]);
                 Assert(identity.Bytes > 0);
                 Assert(identity.Sha256.Length == 64);
+            }
+
+            string redirectedSystem = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            if (!String.Equals(redirectedSystem, actualSystem, StringComparison.OrdinalIgnoreCase))
+            {
+                Dictionary<string, string> redirectedTools = CapabilityCatalog.ToolPaths(windows, redirectedSystem);
+                foreach (string id in new string[] { "cmd", "powershell" })
+                {
+                    Assert(File.Exists(redirectedTools[id]));
+                    bool rejected = false;
+                    try { FileIdentity.Read(redirectedTools[id]); }
+                    catch (InvalidDataException) { rejected = true; }
+                    Assert(rejected);
+                }
             }
         }
 
