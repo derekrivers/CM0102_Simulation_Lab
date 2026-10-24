@@ -5,18 +5,19 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import dataclasses
 import hashlib
+import importlib.util
 import json
 import os
 import pathlib
 import re
+import secrets
 import stat
 import struct
 import sys
 import tempfile
-
-import verify_output
-
+import types
 
 SCHEMA_VERSION = 1
 COMPARATOR_ID = "cm0102-original-host-qualification-stability"
@@ -29,6 +30,14 @@ PROBE_ID = "cm0102-original-host-qualification"
 PROBE_VERSION = "1.1.0"
 STREAM_CAP_BYTES = 4 * 1024 * 1024
 TIMEOUT_SECONDS = 30 * 60
+PUBLIC_EXPECTATIONS_IDENTITY = {
+    "byte_count": 1382,
+    "sha256": "1d4af10dba7a85c74c58620eba074b667e2804120aac07930602ad88db1ba5d6",
+}
+RUNTIME_VERIFIER_IDENTITY = {
+    "byte_count": 69268,
+    "sha256": "36d52b8b7cee6949fe4c7fbbac709178c1eefbbc9cc8396cf16c1a0f0be3b211",
+}
 EMPTY_IDENTITY = {
     "byte_count": 0,
     "sha256": hashlib.sha256(b"").hexdigest(),
@@ -98,8 +107,159 @@ BOUND_SOURCES = (
 )
 
 
+@dataclasses.dataclass(frozen=True)
+class ComparisonProfile:
+    profile_id: str
+    source_revision: str
+    expectations_identity: dict[str, object]
+    bound_sources: tuple[tuple[str, dict[str, object]], ...]
+
+
+PRODUCTION_PROFILE = ComparisonProfile(
+    profile_id=PROFILE_ID,
+    source_revision=SOURCE_REVISION,
+    expectations_identity=PUBLIC_EXPECTATIONS_IDENTITY,
+    bound_sources=BOUND_SOURCES,
+)
+
+
 class ComparisonError(Exception):
     pass
+
+
+def _fingerprint(value: os.stat_result) -> tuple[int, int, int, int, int, int, int]:
+    return (
+        value.st_dev,
+        value.st_ino,
+        value.st_mode,
+        value.st_nlink,
+        value.st_size,
+        value.st_mtime_ns,
+        value.st_ctime_ns,
+    )
+
+
+def _read_descriptor(descriptor: int, maximum: int) -> tuple[bytes, os.stat_result]:
+    before = os.fstat(descriptor)
+    if (
+        not stat.S_ISREG(before.st_mode)
+        or before.st_nlink != 1
+        or before.st_size < 0
+        or before.st_size > maximum
+    ):
+        raise ComparisonError("input is not a bounded single-link regular file")
+    chunks: list[bytes] = []
+    observed = 0
+    while True:
+        chunk = os.read(descriptor, min(65536, maximum + 1 - observed))
+        if not chunk:
+            break
+        observed += len(chunk)
+        if observed > maximum:
+            raise ComparisonError("input grew beyond byte limit")
+        chunks.append(chunk)
+    after = os.fstat(descriptor)
+    if _fingerprint(before) != _fingerprint(after) or observed != before.st_size:
+        raise ComparisonError("input changed during bounded read")
+    return b"".join(chunks), before
+
+
+def _read_exact_path(path: pathlib.Path, maximum: int) -> bytes:
+    absolute = path.absolute()
+    _parent, parent_descriptors, _objects = _open_absolute_directory(absolute.parent)
+    try:
+        before = os.stat(
+            absolute.name, dir_fd=parent_descriptors[-1], follow_symlinks=False
+        )
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
+            raise ComparisonError("input path is not a single-link regular file")
+        descriptor = os.open(
+            absolute.name,
+            os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+            dir_fd=parent_descriptors[-1],
+        )
+        try:
+            raw, opened = _read_descriptor(descriptor, maximum)
+        finally:
+            os.close(descriptor)
+        after = os.stat(
+            absolute.name, dir_fd=parent_descriptors[-1], follow_symlinks=False
+        )
+        if _fingerprint(before) != _fingerprint(opened) or _fingerprint(before) != _fingerprint(after):
+            raise ComparisonError("input path changed during bounded read")
+        return raw
+    finally:
+        for held in reversed(parent_descriptors):
+            os.close(held)
+
+
+def _open_absolute_directory(
+    path: pathlib.Path,
+) -> tuple[pathlib.Path, list[int], list[tuple[int, int]]]:
+    if (
+        not hasattr(os, "O_NOFOLLOW")
+        or not hasattr(os, "O_DIRECTORY")
+        or os.open not in os.supports_dir_fd
+        or os.stat not in os.supports_dir_fd
+    ):
+        raise ComparisonError("required descriptor-relative no-follow APIs unavailable")
+    absolute = path.absolute()
+    if not absolute.is_absolute() or ".." in absolute.parts:
+        raise ComparisonError("directory path is not normalized absolute")
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptors = [os.open("/", flags)]
+    objects = [(os.fstat(descriptors[0]).st_dev, os.fstat(descriptors[0]).st_ino)]
+    try:
+        for component in absolute.parts[1:]:
+            before = os.stat(component, dir_fd=descriptors[-1], follow_symlinks=False)
+            if not stat.S_ISDIR(before.st_mode):
+                raise ComparisonError("directory path component is not a plain directory")
+            child = os.open(component, flags, dir_fd=descriptors[-1])
+            opened = os.fstat(child)
+            after = os.stat(component, dir_fd=descriptors[-1], follow_symlinks=False)
+            if (
+                not stat.S_ISDIR(opened.st_mode)
+                or (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino)
+                or (opened.st_dev, opened.st_ino) != (after.st_dev, after.st_ino)
+            ):
+                os.close(child)
+                raise ComparisonError("directory path changed during open")
+            descriptors.append(child)
+            objects.append((opened.st_dev, opened.st_ino))
+    except Exception:
+        for descriptor in reversed(descriptors):
+            os.close(descriptor)
+        raise
+    return absolute, descriptors, objects
+
+
+def _load_bound_verifier_from(
+    script: pathlib.Path,
+    verifier: pathlib.Path,
+    expected_identity: dict[str, object],
+) -> types.ModuleType:
+    script_path = script.absolute()
+    _read_exact_path(script_path, STREAM_CAP_BYTES)
+    verifier_path = verifier.absolute()
+    if verifier_path != script_path.with_name("verify_output.py"):
+        raise ComparisonError("runtime verifier is not the canonical sibling")
+    verifier_raw = _read_exact_path(verifier_path, 1024 * 1024)
+    if identity(verifier_raw) != expected_identity:
+        raise ComparisonError("runtime verifier identity does not match profile")
+    module = types.ModuleType("cm0102_bound_verify_output")
+    module.__file__ = str(verifier_path)
+    module.__spec__ = importlib.util.spec_from_loader(module.__name__, loader=None)
+    exec(compile(verifier_raw, str(verifier_path), "exec"), module.__dict__)
+    if pathlib.Path(module.__file__).absolute() != verifier_path:
+        raise ComparisonError("runtime verifier path mismatch")
+    return module
+
+
+def _load_bound_verifier() -> types.ModuleType:
+    script = pathlib.Path(__file__)
+    return _load_bound_verifier_from(
+        script, script.absolute().with_name("verify_output.py"), RUNTIME_VERIFIER_IDENTITY
+    )
 
 
 def canonical(value: object) -> bytes:
@@ -111,6 +271,9 @@ def canonical(value: object) -> bytes:
 
 def identity(raw: bytes) -> dict[str, object]:
     return {"byte_count": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+verify_output = _load_bound_verifier()
 
 
 def strict_object(value: object, keys: set[str], name: str) -> dict[str, object]:
@@ -130,30 +293,120 @@ def text(value: object, name: str) -> str:
 
 
 def read_plain(path: pathlib.Path, maximum: int = STREAM_CAP_BYTES) -> bytes:
-    return verify_output.read_bounded_plain(path, maximum)
+    return _read_exact_path(path, maximum)
 
 
-def ensure_retained_root(path: pathlib.Path) -> pathlib.Path:
-    before = path.stat(follow_symlinks=False)
-    if path.is_symlink() or not stat.S_ISDIR(before.st_mode):
-        raise ComparisonError("retained root is not a plain directory")
-    resolved = path.resolve(strict=True)
-    after = resolved.stat(follow_symlinks=False)
-    if (before.st_dev, before.st_ino) != (after.st_dev, after.st_ino):
-        raise ComparisonError("retained root changed during resolution")
-    return resolved
+class RetainedRoot:
+    def __init__(self, path: pathlib.Path):
+        self.path, self.absolute_descriptors, self.ancestor_objects = _open_absolute_directory(path)
+        self.descriptor = self.absolute_descriptors[-1]
+        opened = os.fstat(self.descriptor)
+        self.root_object = (opened.st_dev, opened.st_ino)
+        self.directories: dict[tuple[str, ...], int] = {(): self.descriptor}
+        self.directory_fingerprints: dict[tuple[str, ...], tuple[int, int, int, int, int, int, int]] = {
+            (): _fingerprint(opened)
+        }
+        self.files: dict[str, tuple[int, tuple[int, int, int, int, int, int, int]]] = {}
+
+    def close(self) -> None:
+        for descriptor in [item[0] for item in self.files.values()]:
+            os.close(descriptor)
+        for parts, descriptor in sorted(self.directories.items(), key=lambda item: len(item[0]), reverse=True):
+            if parts:
+                os.close(descriptor)
+        for descriptor in reversed(self.absolute_descriptors):
+            os.close(descriptor)
+        self.files.clear()
+        self.directories.clear()
+        self.directory_fingerprints.clear()
+        self.absolute_descriptors.clear()
+
+    @staticmethod
+    def _parts(relative: str) -> tuple[str, ...]:
+        pure = pathlib.PurePosixPath(relative)
+        parts = pure.parts
+        if pure.is_absolute() or not parts or any(item in ("", ".", "..") for item in parts):
+            raise ComparisonError("invalid retained artifact path")
+        return parts
+
+    def _directory(self, parts: tuple[str, ...]) -> int:
+        if parts in self.directories:
+            return self.directories[parts]
+        parent = self._directory(parts[:-1])
+        descriptor = os.open(
+            parts[-1],
+            os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0),
+            dir_fd=parent,
+        )
+        opened = os.fstat(descriptor)
+        if not stat.S_ISDIR(opened.st_mode):
+            os.close(descriptor)
+            raise ComparisonError("retained path component is not a directory")
+        self.directories[parts] = descriptor
+        self.directory_fingerprints[parts] = _fingerprint(opened)
+        return descriptor
+
+    def read(self, relative: str, maximum: int = STREAM_CAP_BYTES) -> bytes:
+        if relative in self.files:
+            raise ComparisonError("retained artifact read more than once")
+        parts = self._parts(relative)
+        parent = self._directory(parts[:-1])
+        descriptor = os.open(
+            parts[-1], os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=parent
+        )
+        try:
+            raw, opened = _read_descriptor(descriptor, maximum)
+        except Exception:
+            os.close(descriptor)
+            raise
+        self.files[relative] = (descriptor, _fingerprint(opened))
+        return raw
+
+    def object_id(self, relative: str) -> tuple[int, int]:
+        descriptor, _fingerprint_value = self.files[relative]
+        observed = os.fstat(descriptor)
+        return (observed.st_dev, observed.st_ino)
+
+    def revalidate(self) -> None:
+        current_root = os.fstat(self.descriptor)
+        if (current_root.st_dev, current_root.st_ino) != self.root_object:
+            raise ComparisonError("retained root changed during comparison")
+        if len(self.absolute_descriptors) > 1:
+            root_name = self.path.parts[-1]
+            path_root = os.stat(
+                root_name,
+                dir_fd=self.absolute_descriptors[-2],
+                follow_symlinks=False,
+            )
+            if (path_root.st_dev, path_root.st_ino) != self.root_object:
+                raise ComparisonError("retained root path changed during comparison")
+        for parts, descriptor in self.directories.items():
+            if not parts:
+                continue
+            parent = self.directories[parts[:-1]]
+            observed = os.stat(parts[-1], dir_fd=parent, follow_symlinks=False)
+            if (
+                _fingerprint(os.fstat(descriptor)) != self.directory_fingerprints[parts]
+                or _fingerprint(observed) != self.directory_fingerprints[parts]
+            ):
+                raise ComparisonError("retained directory changed during comparison")
+        for relative, (descriptor, expected) in self.files.items():
+            if _fingerprint(os.fstat(descriptor)) != expected:
+                raise ComparisonError("retained artifact changed during comparison")
+            parts = self._parts(relative)
+            parent = self._directory(parts[:-1])
+            check = os.open(
+                parts[-1], os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=parent
+            )
+            try:
+                if _fingerprint(os.fstat(check)) != expected:
+                    raise ComparisonError("retained artifact path changed during comparison")
+            finally:
+                os.close(check)
 
 
-def read_artifact(root: pathlib.Path, relative: str, maximum: int = STREAM_CAP_BYTES) -> bytes:
-    candidate = root / pathlib.PurePosixPath(relative)
-    resolved = candidate.resolve(strict=True)
-    try:
-        resolved.relative_to(root)
-    except ValueError as error:
-        raise ComparisonError("retained artifact escaped root") from error
-    if resolved != candidate:
-        raise ComparisonError("retained artifact is an alias")
-    return read_plain(candidate, maximum)
+def read_artifact(root: RetainedRoot, relative: str, maximum: int = STREAM_CAP_BYTES) -> bytes:
+    return root.read(relative, maximum)
 
 
 def parse_command(value: object, expected_roles: tuple[str, ...], name: str) -> dict[str, object]:
@@ -166,11 +419,13 @@ def parse_command(value: object, expected_roles: tuple[str, ...], name: str) -> 
     return command
 
 
-def parse_sources(value: object) -> list[dict[str, object]]:
-    if not isinstance(value, list) or len(value) != len(BOUND_SOURCES):
+def parse_sources(
+    value: object, bound_sources: tuple[tuple[str, dict[str, object]], ...] = BOUND_SOURCES
+) -> list[dict[str, object]]:
+    if not isinstance(value, list) or len(value) != len(bound_sources):
         raise ComparisonError("manifest sources")
     result: list[dict[str, object]] = []
-    for item, expected in zip(value, BOUND_SOURCES):
+    for item, expected in zip(value, bound_sources):
         source = strict_object(item, {"id", "identity"}, "manifest source")
         if source["id"] != expected[0]:
             raise ComparisonError("manifest source order")
@@ -181,7 +436,9 @@ def parse_sources(value: object) -> list[dict[str, object]]:
     return result
 
 
-def parse_manifest(raw: bytes) -> dict[str, object]:
+def parse_manifest(
+    raw: bytes, profile: ComparisonProfile = PRODUCTION_PROFILE
+) -> dict[str, object]:
     if len(raw) > STREAM_CAP_BYTES or not raw.endswith(b"\n") or raw.startswith(b"\xef\xbb\xbf"):
         raise ComparisonError("manifest framing")
     value = verify_output.decode_json(raw)
@@ -252,9 +509,9 @@ def parse_manifest(raw: bytes) -> dict[str, object]:
     parse_command(bindings["probe_command"], PROBE_ROLES, "probe command")
     for key in ("compiler", "compiler_ui", "expectations", "private_locator", "probe_executable"):
         identity_value(bindings[key], "manifest " + key)
-    if text(bindings["source_commit"], "manifest source commit") != SOURCE_REVISION:
+    if text(bindings["source_commit"], "manifest source commit") != profile.source_revision:
         raise ComparisonError("manifest source commit")
-    parse_sources(bindings["sources"])
+    parse_sources(bindings["sources"], profile.bound_sources)
     execution = strict_object(
         manifest["execution"],
         {
@@ -329,6 +586,9 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
         raise ComparisonError("truncated PE optional header")
     if u16(raw, optional) != 0x10B:
         raise ComparisonError("PE is not PE32")
+    size_of_headers = u32(raw, optional + 60, section_table)
+    if size_of_headers < section_table + section_count * 40 or size_of_headers > len(raw):
+        raise ComparisonError("invalid PE header span")
     directory_count = u32(raw, optional + 92, section_table)
     if directory_count < 15 or 96 + directory_count * 8 > optional_size:
         raise ComparisonError("missing CLI data directory")
@@ -336,20 +596,45 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
     cli_size = u32(raw, optional + 96 + 14 * 8 + 4, section_table)
     if cli_rva == 0 or cli_size < 0x48:
         raise ComparisonError("missing CLI header")
-    sections: list[tuple[int, int, int]] = []
+    sections: list[tuple[int, int, int, int]] = []
+    raw_ranges: list[tuple[int, int]] = []
+    virtual_ranges: list[tuple[int, int]] = []
     for index in range(section_count):
         header = section_table + index * 40
+        virtual_size = u32(raw, header + 8)
         virtual_address = u32(raw, header + 12)
         raw_size = u32(raw, header + 16)
         raw_offset = u32(raw, header + 20)
-        if raw_size and (raw_offset > len(raw) or raw_size > len(raw) - raw_offset):
-            raise ComparisonError("section outside image")
-        sections.append((virtual_address, raw_size, raw_offset))
+        if raw_size:
+            if (
+                raw_offset < size_of_headers
+                or raw_offset > len(raw)
+                or raw_size > len(raw) - raw_offset
+            ):
+                raise ComparisonError("section outside image or overlaps headers")
+            raw_ranges.append((raw_offset, raw_offset + raw_size))
+        mapped_size = max(virtual_size, raw_size)
+        if mapped_size:
+            if virtual_address == 0 or virtual_address + mapped_size > 1 << 32:
+                raise ComparisonError("invalid virtual section range")
+            virtual_ranges.append((virtual_address, virtual_address + mapped_size))
+        sections.append((virtual_address, virtual_size, raw_size, raw_offset))
+    for ranges, label in ((raw_ranges, "raw"), (virtual_ranges, "virtual")):
+        ordered = sorted(ranges)
+        for first, second in zip(ordered, ordered[1:]):
+            if first[1] > second[0]:
+                raise ComparisonError("overlapping PE " + label + " sections")
 
     def rva_to_offset(rva: int, size: int) -> int:
         matches = []
-        for virtual_address, raw_size, raw_offset in sections:
-            if rva >= virtual_address and size <= raw_size and rva - virtual_address <= raw_size - size:
+        for virtual_address, virtual_size, raw_size, raw_offset in sections:
+            relative = rva - virtual_address
+            if (
+                rva >= virtual_address
+                and size <= raw_size
+                and relative <= raw_size - size
+                and (virtual_size == 0 or (size <= virtual_size and relative <= virtual_size - size))
+            ):
                 matches.append(raw_offset + (rva - virtual_address))
         if len(matches) != 1:
             raise ComparisonError("ambiguous or unmapped RVA")
@@ -367,12 +652,36 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
         raise ComparisonError("missing CLI metadata")
     metadata = rva_to_offset(metadata_rva, metadata_size)
     metadata_end = metadata + metadata_size
+    if not (cli + cli_header_size <= metadata or metadata_end <= cli):
+        raise ComparisonError("CLI header overlaps metadata")
     if u32(raw, metadata, metadata_end) != 0x424A5342:
         raise ComparisonError("invalid CLI metadata signature")
+    if (
+        u16(raw, metadata + 4, metadata_end) != 1
+        or u16(raw, metadata + 6, metadata_end) != 1
+        or u32(raw, metadata + 8, metadata_end) != 0
+    ):
+        raise ComparisonError("invalid CLI metadata version header")
     version_size = u32(raw, metadata + 12, metadata_end)
-    cursor = align4(metadata + 16 + version_size)
+    if version_size < 1 or version_size > 256:
+        raise ComparisonError("invalid CLI metadata version size")
+    version_end = metadata + 16 + version_size
+    aligned_version_end = align4(version_end)
+    if aligned_version_end > metadata_end:
+        raise ComparisonError("CLI metadata version outside metadata")
+    version = raw[metadata + 16 : version_end]
+    terminator = version.find(b"\0")
+    if (
+        terminator < 1
+        or any(item < 0x20 or item > 0x7E for item in version[:terminator])
+        or any(raw[metadata + 16 + terminator : aligned_version_end])
+    ):
+        raise ComparisonError("invalid CLI metadata version string")
+    cursor = aligned_version_end
     if cursor + 4 > metadata_end:
         raise ComparisonError("truncated CLI stream header")
+    if u16(raw, cursor, metadata_end) != 0:
+        raise ComparisonError("invalid CLI metadata flags")
     stream_count = u16(raw, cursor + 2, metadata_end)
     if stream_count < 1 or stream_count > 32:
         raise ComparisonError("invalid CLI stream count")
@@ -389,9 +698,14 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
             name = raw[name_start:name_end].decode("ascii", "strict")
         except UnicodeDecodeError as error:
             raise ComparisonError("non-ASCII CLI stream name") from error
-        cursor = align4(name_end + 1)
+        aligned_name_end = align4(name_end + 1)
+        if any(raw[name_end + 1 : aligned_name_end]):
+            raise ComparisonError("nonzero CLI stream-name padding")
+        cursor = aligned_name_end
         if cursor > metadata_end or relative > metadata_size or size > metadata_size - relative:
             raise ComparisonError("CLI stream outside metadata")
+        if relative % 4:
+            raise ComparisonError("unaligned CLI stream")
         if name in streams:
             raise ComparisonError("duplicate CLI stream")
         streams[name] = (metadata + relative, size)
@@ -404,12 +718,32 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
     table_names = [name for name in ("#~", "#-") if name in streams]
     if len(table_names) != 1 or "#GUID" not in streams:
         raise ComparisonError("missing or ambiguous CLI tables")
+    if streams["#GUID"][1] == 0 or streams["#GUID"][1] % 16:
+        raise ComparisonError("invalid CLI GUID heap size")
     tables, tables_size = streams[table_names[0]]
     tables_end = tables + tables_size
     if tables_size < 24:
         raise ComparisonError("truncated CLI tables")
+    if (
+        u32(raw, tables, tables_end) != 0
+        or raw[tables + 4] != 2
+        or raw[tables + 5] != 0
+        or raw[tables + 6] & ~0x07
+        or raw[tables + 7] != 1
+    ):
+        raise ComparisonError("invalid CLI tables header")
     heap_sizes = raw[tables + 6]
     valid = u64(raw, tables + 8, tables_end)
+    sorted_tables = u64(raw, tables + 16, tables_end)
+    if valid >> 45:
+        raise ComparisonError("invalid CLI table masks")
+    sortable_mask = sum(
+        1 << item for item in (9, 11, 12, 13, 14, 15, 16, 18, 21, 24, 25, 28, 29, 41, 42, 44)
+    )
+    if sorted_tables & ~sortable_mask:
+        raise ComparisonError("invalid CLI sorted mask")
+    if table_names[0] == "#~" and valid & sum(1 << item for item in (3, 5, 7, 19, 22, 30, 31)):
+        raise ComparisonError("optimized CLI tables contain pointer or ENC table")
     if (valid & 1) == 0:
         raise ComparisonError("missing CLI Module table")
     row_cursor = tables + 24
@@ -495,17 +829,18 @@ def json_differences(left: object, right: object, path: str = "") -> list[str]:
 
 
 def load_attempt(
-    root: pathlib.Path,
+    root: RetainedRoot,
     expectations_raw: bytes,
     private_raw: bytes,
     expectations: dict[str, object],
+    profile: ComparisonProfile = PRODUCTION_PROFILE,
 ) -> dict[str, object]:
     report_raw = read_artifact(root, "probe-output.json")
     manifest_raw = read_artifact(root, "retained-run-v1.json")
     executable_raw = read_artifact(root, "build/OriginalHostQualification.exe")
     verify_output.verify_bytes(report_raw, private_raw, expectations_raw)
     report = verify_output.decode_json(report_raw)
-    manifest = parse_manifest(manifest_raw)
+    manifest = parse_manifest(manifest_raw, profile)
     if report["summary"] != {
         "comparison_verdict": "not-run",
         "completeness": "complete",
@@ -520,7 +855,7 @@ def load_attempt(
         raise ComparisonError("report is not fully eligible")
     if any(item["outcome"] != "pass" for item in report["checks"]):
         raise ComparisonError("report has a non-pass check")
-    if report["probe"]["id"] != PROBE_ID or report["probe"]["version"] != PROBE_VERSION or report["probe"]["source_revision"] != SOURCE_REVISION:
+    if report["probe"]["id"] != PROBE_ID or report["probe"]["version"] != PROBE_VERSION or report["probe"]["source_revision"] != profile.source_revision:
         raise ComparisonError("report producer profile")
     elapsed = integer(report["run"]["elapsed_ms"], "run.elapsed_ms")
     if elapsed > TIMEOUT_SECONDS * 1000:
@@ -554,10 +889,12 @@ def load_attempt(
     }
     for source in bindings["sources"]:
         artifact_bindings["build/" + source["id"]] = source["identity"]
+    retained_raw: dict[str, bytes] = {}
     for relative, expected in artifact_bindings.items():
-        if identity(read_artifact(root, relative)) != expected:
+        retained_raw[relative] = read_artifact(root, relative)
+        if identity(retained_raw[relative]) != expected:
             raise ComparisonError("retained artifact binding")
-    if read_artifact(root, "build/expectations.json", 1024 * 1024) != expectations_raw or read_artifact(root, "build/private-locator.json", 1024 * 1024) != private_raw:
+    if retained_raw["build/expectations.json"] != expectations_raw or retained_raw["build/private-locator.json"] != private_raw:
         raise ComparisonError("retained configuration snapshot")
     return {
         "executable_identity": executable_identity,
@@ -566,6 +903,15 @@ def load_attempt(
         "manifest_identity": identity(manifest_raw),
         "report": report,
         "report_identity": identity(report_raw),
+        "retained_objects": {
+            relative: root.object_id(relative)
+            for relative in (
+                "probe-output.json",
+                "retained-run-v1.json",
+                "build/OriginalHostQualification.exe",
+                *artifact_bindings.keys(),
+            )
+        },
     }
 
 
@@ -579,31 +925,48 @@ def stable_projection(report: dict[str, object], normalized_sha256: str) -> dict
 
 
 def compare_attempts(
-    first_root: pathlib.Path,
-    second_root: pathlib.Path,
+    first_root: RetainedRoot,
+    second_root: RetainedRoot,
     expectations_raw: bytes,
     private_raw: bytes,
     comparator_identity: dict[str, object],
+    runtime_verifier_identity: dict[str, object],
+    profile: ComparisonProfile = PRODUCTION_PROFILE,
 ) -> dict[str, object]:
-    if os.path.samefile(first_root, second_root):
+    if first_root.root_object == second_root.root_object:
         raise ComparisonError("retained roots are not distinct")
+    for outer, inner in ((first_root.path, second_root.path), (second_root.path, first_root.path)):
+        try:
+            inner.relative_to(outer)
+        except ValueError:
+            continue
+        raise ComparisonError("retained roots overlap")
+    if identity(expectations_raw) != profile.expectations_identity:
+        raise ComparisonError("expectations identity does not match profile")
     expectations = verify_output.parse_expectations(expectations_raw)
     verify_output.parse_private_locator(private_raw)
-    first = load_attempt(first_root, expectations_raw, private_raw, expectations)
-    second = load_attempt(second_root, expectations_raw, private_raw, expectations)
+    first = load_attempt(first_root, expectations_raw, private_raw, expectations, profile)
+    second = load_attempt(second_root, expectations_raw, private_raw, expectations, profile)
+    if set(first["retained_objects"].values()) & set(second["retained_objects"].values()):
+        raise ComparisonError("retained attempts share artifact objects")
     if timestamp_ticks(first["report"]["run"]["observed_at_utc"]) >= timestamp_ticks(second["report"]["run"]["observed_at_utc"]):
         raise ComparisonError("retained reports are not chronological")
     common_binding_keys = ("compiler", "compiler_ui", "expectations", "private_locator", "source_commit", "sources")
     if any(first["manifest"]["bindings"][key] != second["manifest"]["bindings"][key] for key in common_binding_keys):
         raise ComparisonError("retained producer binding mismatch")
+    for command_key in ("build_command", "probe_command"):
+        if first["manifest"]["bindings"][command_key]["sha256"] == second["manifest"]["bindings"][command_key]["sha256"]:
+            raise ComparisonError("retained attempt command binding is reused")
     first_pe = parse_pe_build_identity(first["executable_raw"])
     second_pe = parse_pe_build_identity(second["executable_raw"])
     if first_pe["timestamp_offset"] != second_pe["timestamp_offset"] or first_pe["mvid_offset"] != second_pe["mvid_offset"]:
         raise ComparisonError("PE build identity layout mismatch")
     if first_pe["normalized"] != second_pe["normalized"]:
         raise ComparisonError("probe images differ outside PE build identity")
-    if second_pe["timestamp"] < first_pe["timestamp"]:
-        raise ComparisonError("probe build timestamps are reversed")
+    if second_pe["timestamp"] <= first_pe["timestamp"] or second_pe["mvid"] == first_pe["mvid"]:
+        raise ComparisonError("probe builds are not distinct and chronological")
+    first_root.revalidate()
+    second_root.revalidate()
     normalized_identity = identity(first_pe["normalized"])
     differences = json_differences(first["report"], second["report"])
     if any(item not in ALLOWED_REPORT_DIFFERENCES for item in differences):
@@ -660,8 +1023,9 @@ def compare_attempts(
         "comparator": {
             "id": COMPARATOR_ID,
             "implementation": comparator_identity,
-            "profile_id": PROFILE_ID,
-            "profile_source_revision": SOURCE_REVISION,
+            "profile_id": profile.profile_id,
+            "profile_source_revision": profile.source_revision,
+            "runtime_verifier": runtime_verifier_identity,
             "version": COMPARATOR_VERSION,
         },
         "schema_version": SCHEMA_VERSION,
@@ -676,14 +1040,85 @@ def compare_attempts(
 
 
 def write_exclusive(path: pathlib.Path, raw: bytes) -> None:
-    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    output = path.absolute()
+    _parent, parent_descriptors, _objects = _open_absolute_directory(output.parent)
+    parent_descriptor = parent_descriptors[-1]
+    temporary = "." + output.name + ".tmp-" + secrets.token_hex(16)
+    temporary_created = False
+    published = False
     try:
-        with os.fdopen(descriptor, "wb", closefd=False) as output:
-            output.write(raw)
-            output.flush()
-            os.fsync(output.fileno())
+        try:
+            os.stat(output.name, dir_fd=parent_descriptor, follow_symlinks=False)
+        except FileNotFoundError:
+            pass
+        else:
+            raise FileExistsError(output)
+        descriptor = os.open(
+            temporary,
+            os.O_RDWR
+            | os.O_CREAT
+            | os.O_EXCL
+            | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+            dir_fd=parent_descriptor,
+        )
+        temporary_created = True
+        try:
+            view = memoryview(raw)
+            written = 0
+            while written < len(raw):
+                count = os.write(descriptor, view[written:])
+                if count <= 0:
+                    raise ComparisonError("short comparison output write")
+                written += count
+            os.fsync(descriptor)
+            observed = os.fstat(descriptor)
+            if (
+                not stat.S_ISREG(observed.st_mode)
+                or observed.st_nlink != 1
+                or observed.st_size != len(raw)
+            ):
+                raise ComparisonError("invalid temporary comparison output")
+            if os.pread(descriptor, len(raw) + 1, 0) != raw:
+                raise ComparisonError("comparison output readback mismatch")
+        finally:
+            os.close(descriptor)
+        os.link(
+            temporary,
+            output.name,
+            src_dir_fd=parent_descriptor,
+            dst_dir_fd=parent_descriptor,
+            follow_symlinks=False,
+        )
+        published = True
+        os.fsync(parent_descriptor)
+        os.unlink(temporary, dir_fd=parent_descriptor)
+        temporary_created = False
+        os.fsync(parent_descriptor)
     finally:
-        os.close(descriptor)
+        if temporary_created:
+            try:
+                os.unlink(temporary, dir_fd=parent_descriptor)
+            except FileNotFoundError:
+                pass
+        for held in reversed(parent_descriptors):
+            os.close(held)
+    if not published:
+        raise ComparisonError("comparison output was not published")
+
+
+def validate_output_location(path: pathlib.Path, roots: tuple[RetainedRoot, ...]) -> pathlib.Path:
+    output = path.absolute()
+    if not output.name:
+        raise ComparisonError("comparison output has no filename")
+    output_parent = output.parent.absolute()
+    for retained_root in roots:
+        try:
+            output_parent.relative_to(retained_root.path)
+        except ValueError:
+            continue
+        raise ComparisonError("comparison output overlaps retained input")
+    return output
 
 
 def build_pe_fixture(timestamp: int, mvid: bytes, payload_byte: int = 0x2A) -> bytes:
@@ -697,6 +1132,7 @@ def build_pe_fixture(timestamp: int, mvid: bytes, payload_byte: int = 0x2A) -> b
     struct.pack_into("<HHIIIHH", raw, coff, 0x14C, 1, timestamp, 0, 0, 0xE0, 0x0002)
     optional = coff + 20
     struct.pack_into("<H", raw, optional, 0x10B)
+    struct.pack_into("<I", raw, optional + 60, 0x200)
     struct.pack_into("<I", raw, optional + 92, 16)
     struct.pack_into("<II", raw, optional + 96 + 14 * 8, 0x1100, 0x48)
     section = optional + 0xE0
@@ -732,6 +1168,235 @@ def expect_rejected(action, label: str) -> None:
     raise AssertionError("accepted " + label)
 
 
+def _self_test_materials() -> dict[str, object]:
+    compiler_raw = b"synthetic-csc"
+    compiler_ui_raw = b"synthetic-cscui"
+    source_blobs = {
+        name: ("synthetic-" + name).encode("ascii") for name, _expected in BOUND_SOURCES
+    }
+    expectations_value = {
+        "clean_file_count": 1,
+        "clean_manifest_bytes": 10,
+        "clean_manifest_sha256": "1" * 64,
+        "clean_total_bytes": 20,
+        "compiler_bytes": len(compiler_raw),
+        "compiler_sha256": identity(compiler_raw)["sha256"],
+        "compiler_ui_bytes": len(compiler_ui_raw),
+        "compiler_ui_sha256": identity(compiler_ui_raw)["sha256"],
+        "iso_bytes": 30,
+        "iso_sha256": "3" * 64,
+        "optical_executable_bytes": 50,
+        "optical_executable_sha256": "5" * 64,
+        "optical_volume_label": "CM0102",
+        "original_executable_bytes": 40,
+        "original_executable_sha256": "4" * 64,
+        "profile_id": "self-test",
+        "registry_exact_access_mask": 0x000F003F,
+        "registry_key_id": "cm0102-install-location",
+        "registry_subkey": "Software\\Vendor\\Product",
+        "registry_value_name": "Location",
+        "required_api_ids": sorted(verify_output.REQUIRED_API_IDS),
+        "required_tool_ids": ["csc-x86", "powershell", "python313"],
+        "schema_version": 1,
+    }
+    expectations_raw = canonical(expectations_value)
+    private_value = {
+        "clean_manifest": r"C:\private\clean.tsv",
+        "clean_tree": r"C:\private\clean",
+        "installed_tree": r"C:\private\installed",
+        "iso_file": r"C:\private\disc.iso",
+        "optical_root": "D:\\",
+        "schema_version": 1,
+        "virtual_store_tree": r"C:\private\virtual",
+    }
+    private_raw = canonical(private_value)
+    bound_sources = tuple(
+        (name, identity(source_blobs[name])) for name, _expected in BOUND_SOURCES
+    )
+    profile = ComparisonProfile(
+        profile_id="self-test-only",
+        source_revision="1" * 40,
+        expectations_identity=identity(expectations_raw),
+        bound_sources=bound_sources,
+    )
+    return {
+        "bound_sources": bound_sources,
+        "compiler_raw": compiler_raw,
+        "compiler_ui_raw": compiler_ui_raw,
+        "expectations_raw": expectations_raw,
+        "expectations_value": expectations_value,
+        "private_raw": private_raw,
+        "private_value": private_value,
+        "profile": profile,
+        "source_blobs": source_blobs,
+    }
+
+
+def _write_self_test_attempt(
+    root: pathlib.Path,
+    materials: dict[str, object],
+    attempt_id: str,
+    timestamp: int,
+    mvid: bytes,
+    observed_at_utc: str,
+    elapsed_ms: int,
+    payload_byte: int = 0x2A,
+) -> None:
+    root.mkdir(mode=0o700)
+    build = root / "build"
+    (build / "1033").mkdir(parents=True)
+    executable_raw = build_pe_fixture(timestamp, mvid, payload_byte)
+    executable_identity = identity(executable_raw)
+    expectations_raw = materials["expectations_raw"]
+    private_raw = materials["private_raw"]
+    expectations_value = materials["expectations_value"]
+    profile = materials["profile"]
+    report = verify_output.synthetic_full_document(
+        expectations_value, expectations_raw, private_raw
+    )
+    report["probe"]["source_revision"] = profile.source_revision
+    report["probe"]["executable"] = executable_identity
+    report["probe"]["executable_after"] = executable_identity
+    report["run"]["elapsed_ms"] = elapsed_ms
+    report["run"]["observed_at_utc"] = observed_at_utc
+    report_raw = canonical(report)
+    command_seed = attempt_id.encode("ascii")
+    bindings = {
+        "build_command": {
+            "argument_count": len(BUILD_ROLES),
+            "argv_roles": list(BUILD_ROLES),
+            "sha256": hashlib.sha256(b"build-" + command_seed).hexdigest(),
+        },
+        "compiler": identity(materials["compiler_raw"]),
+        "compiler_ui": identity(materials["compiler_ui_raw"]),
+        "expectations": identity(expectations_raw),
+        "private_locator": identity(private_raw),
+        "probe_command": {
+            "argument_count": len(PROBE_ROLES),
+            "argv_roles": list(PROBE_ROLES),
+            "sha256": hashlib.sha256(b"probe-" + command_seed).hexdigest(),
+        },
+        "probe_executable": executable_identity,
+        "source_commit": profile.source_revision,
+        "sources": [
+            {"id": name, "identity": expected}
+            for name, expected in profile.bound_sources
+        ],
+    }
+    manifest = {
+        "bindings": bindings,
+        "execution": {
+            "build_exit_code": 0,
+            "build_stderr": EMPTY_IDENTITY,
+            "build_stdout": EMPTY_IDENTITY,
+            "probe_exit_code": 0,
+            "probe_stderr": EMPTY_IDENTITY,
+            "probe_stdout": identity(report_raw),
+            "stream_cap_bytes": STREAM_CAP_BYTES,
+            "timeout_seconds": TIMEOUT_SECONDS,
+        },
+        "harness": {"id": HARNESS_ID, "version": HARNESS_VERSION},
+        "retained_artifacts": {"canonical_stdout": "probe-output.json"},
+        "schema_version": SCHEMA_VERSION,
+        "verification": {
+            "canonical_stdout": True,
+            "completeness": "complete",
+            "privacy_locator_enforced": True,
+            "qualification_eligible": True,
+            "result": "pass",
+            "safety_verdict": "eligible-for-synthetic-launcher-test",
+        },
+    }
+    (root / "probe-output.json").write_bytes(report_raw)
+    (root / "retained-run-v1.json").write_bytes(canonical(manifest))
+    (build / "OriginalHostQualification.exe").write_bytes(executable_raw)
+    (build / "csc.exe").write_bytes(materials["compiler_raw"])
+    (build / "1033" / "cscui.dll").write_bytes(materials["compiler_ui_raw"])
+    (build / "expectations.json").write_bytes(expectations_raw)
+    (build / "private-locator.json").write_bytes(private_raw)
+    for name, raw in materials["source_blobs"].items():
+        (build / name).write_bytes(raw)
+
+
+def _rewrite_self_test_report(root: pathlib.Path, mutate) -> None:
+    report_path = root / "probe-output.json"
+    manifest_path = root / "retained-run-v1.json"
+    report = verify_output.decode_json(report_path.read_bytes())
+    mutate(report)
+    report_raw = canonical(report)
+    manifest = verify_output.decode_json(manifest_path.read_bytes())
+    manifest["execution"]["probe_stdout"] = identity(report_raw)
+    report_path.write_bytes(report_raw)
+    manifest_path.write_bytes(canonical(manifest))
+
+
+def _replace_self_test_executable(root: pathlib.Path, executable_raw: bytes) -> None:
+    report_path = root / "probe-output.json"
+    manifest_path = root / "retained-run-v1.json"
+    executable_path = root / "build" / "OriginalHostQualification.exe"
+    observed_identity = identity(executable_raw)
+    report = verify_output.decode_json(report_path.read_bytes())
+    report["probe"]["executable"] = observed_identity
+    report["probe"]["executable_after"] = observed_identity
+    report_raw = canonical(report)
+    manifest = verify_output.decode_json(manifest_path.read_bytes())
+    manifest["bindings"]["probe_executable"] = observed_identity
+    manifest["execution"]["probe_stdout"] = identity(report_raw)
+    executable_path.write_bytes(executable_raw)
+    report_path.write_bytes(report_raw)
+    manifest_path.write_bytes(canonical(manifest))
+
+
+def _compare_self_test_pair(
+    first_path: pathlib.Path,
+    second_path: pathlib.Path,
+    materials: dict[str, object],
+    profile: ComparisonProfile | None = None,
+) -> dict[str, object]:
+    first_root = RetainedRoot(first_path)
+    try:
+        second_root = RetainedRoot(second_path)
+        try:
+            return compare_attempts(
+                first_root,
+                second_root,
+                materials["expectations_raw"],
+                materials["private_raw"],
+                identity(b"self-test-comparator"),
+                RUNTIME_VERIFIER_IDENTITY,
+                materials["profile"] if profile is None else profile,
+            )
+        finally:
+            second_root.close()
+    finally:
+        first_root.close()
+
+
+def _build_self_test_pair(base: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path, dict[str, object]]:
+    materials = _self_test_materials()
+    first = base / "first"
+    second = base / "second"
+    _write_self_test_attempt(
+        first,
+        materials,
+        "first",
+        100,
+        b"a" * 16,
+        "2026-01-01T00:00:00.0000000Z",
+        100,
+    )
+    _write_self_test_attempt(
+        second,
+        materials,
+        "second",
+        166,
+        b"b" * 16,
+        "2026-01-01T00:01:06.0000000Z",
+        110,
+    )
+    return first, second, materials
+
+
 def self_test() -> None:
     first = build_pe_fixture(1, b"a" * 16)
     second = build_pe_fixture(0x01020304, b"b" * 16)
@@ -750,12 +1415,299 @@ def self_test() -> None:
     expect_rejected(lambda: parse_pe_build_identity(bytes(zero_mvid)), "zero MVID")
     truncated = first[:0x450]
     expect_rejected(lambda: parse_pe_build_identity(truncated), "truncated PE")
+    overlapping = bytearray(first)
+    struct.pack_into("<H", overlapping, 0x84 + 2, 2)
+    second_section = 0x84 + 20 + 0xE0 + 40
+    overlapping[second_section : second_section + 8] = b".alias\0\0"
+    struct.pack_into("<IIII", overlapping, second_section + 8, 0x100, 0x2000, 0x100, 0x200)
+    expect_rejected(lambda: parse_pe_build_identity(bytes(overlapping)), "overlapping PE sections")
+    for offset, width, value, label in (
+        (0x400 + 4, 2, 99, "metadata major version"),
+        (0x400 + 8, 4, 1, "metadata reserved field"),
+        (0x400 + 0x40, 4, 1, "tables reserved field"),
+        (0x400 + 0x40 + 7, 1, 0, "tables reserved byte"),
+    ):
+        malformed = bytearray(first)
+        if width == 1:
+            malformed[offset] = value
+        elif width == 2:
+            struct.pack_into("<H", malformed, offset, value)
+        else:
+            struct.pack_into("<I", malformed, offset, value)
+        expect_rejected(lambda raw=bytes(malformed): parse_pe_build_identity(raw), label)
     with tempfile.TemporaryDirectory() as directory:
-        output = pathlib.Path(directory) / "result.json"
+        root = pathlib.Path(directory)
+        output = root / "result.json"
         write_exclusive(output, canonical({"schema_version": 1}))
         expect_rejected(
             lambda: write_exclusive(output, canonical({"schema_version": 1})),
             "comparison output replacement",
+        )
+        if output.read_bytes() != canonical({"schema_version": 1}):
+            raise AssertionError("atomic output contents")
+
+    repository = pathlib.Path(__file__).resolve(strict=True).parents[3]
+    public_expectations = repository / "config" / "original-host-qualification-v1.json"
+    if public_expectations.exists() and identity(read_plain(public_expectations, 1024 * 1024)) != PUBLIC_EXPECTATIONS_IDENTITY:
+        raise AssertionError("production expectations identity")
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = pathlib.Path(directory)
+        first_path, second_path, materials = _build_self_test_pair(root)
+        result = _compare_self_test_pair(first_path, second_path, materials)
+        if result["summary"] != {
+            "original_behavior_qualified": False,
+            "original_execution_status": "not-run",
+            "stability_verdict": "pe-build-identity-normalized-stable",
+        }:
+            raise AssertionError("retained pair gate boundary")
+        if result["comparison"]["observed_report_difference_paths"] != list(ALLOWED_REPORT_DIFFERENCES):
+            raise AssertionError("retained pair difference allowlist")
+        if (
+            result["comparison"]["different_probe_byte_count"] != 17
+            or result["comparison"]["timestamp_different_byte_count"] != 1
+            or result["comparison"]["mvid_different_byte_count"] != 16
+            or result["comparison"]["timestamp_delta_seconds"] != 66
+        ):
+            raise AssertionError("retained pair PE difference classification")
+        if canonical(verify_output.decode_json(canonical(result))) != canonical(result):
+            raise AssertionError("retained pair canonical output")
+        verify_output.reject_path_like_strings(result)
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        _rewrite_self_test_report(second_path, lambda report: report["host"].__setitem__("os_build", 2))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "fifth report difference",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        report_path = second_path / "probe-output.json"
+        report = verify_output.decode_json(report_path.read_bytes())
+        executable_path = second_path / "build" / "OriginalHostQualification.exe"
+        changed = bytearray(executable_path.read_bytes())
+        changed[0x250] ^= 1
+        changed_raw = bytes(changed)
+        changed_identity = identity(changed_raw)
+        report["probe"]["executable"] = changed_identity
+        report["probe"]["executable_after"] = changed_identity
+        report_raw = canonical(report)
+        manifest_path = second_path / "retained-run-v1.json"
+        manifest = verify_output.decode_json(manifest_path.read_bytes())
+        manifest["bindings"]["probe_executable"] = changed_identity
+        manifest["execution"]["probe_stdout"] = identity(report_raw)
+        executable_path.write_bytes(changed_raw)
+        report_path.write_bytes(report_raw)
+        manifest_path.write_bytes(canonical(manifest))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "probe payload difference",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        _rewrite_self_test_report(
+            second_path,
+            lambda report: report["probe"]["executable_after"].__setitem__("sha256", "0" * 64),
+        )
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "within-run image contradiction",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        report_path = second_path / "probe-output.json"
+        report = verify_output.decode_json(report_path.read_bytes())
+        report["run"]["elapsed_ms"] += 1
+        report_path.write_bytes(canonical(report))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "report manifest binding",
+        )
+
+    for relative in (
+        "build/csc.exe",
+        "build/CanonicalJson.cs",
+        "build/expectations.json",
+    ):
+        with tempfile.TemporaryDirectory() as directory:
+            first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+            target = second_path / pathlib.PurePosixPath(relative)
+            target.write_bytes(target.read_bytes() + b"x")
+            expect_rejected(
+                lambda: _compare_self_test_pair(first_path, second_path, materials),
+                "retained artifact rebinding " + relative,
+            )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        manifest_path = second_path / "retained-run-v1.json"
+        manifest = verify_output.decode_json(manifest_path.read_bytes())
+        first_manifest = verify_output.decode_json((first_path / "retained-run-v1.json").read_bytes())
+        manifest["bindings"]["build_command"] = first_manifest["bindings"]["build_command"]
+        manifest_path.write_bytes(canonical(manifest))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "reused command binding",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        _rewrite_self_test_report(
+            second_path,
+            lambda report: report["run"].__setitem__(
+                "observed_at_utc", "2026-01-01T00:00:00.0000000Z"
+            ),
+        )
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "reversed report chronology",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        _replace_self_test_executable(second_path, build_pe_fixture(99, b"b" * 16))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "reversed build chronology",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        _replace_self_test_executable(
+            second_path,
+            (first_path / "build" / "OriginalHostQualification.exe").read_bytes(),
+        )
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "reused probe build",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        _rewrite_self_test_report(
+            second_path,
+            lambda report: report["probe"].__setitem__("source_revision", "2" * 40),
+        )
+        manifest_path = second_path / "retained-run-v1.json"
+        manifest = verify_output.decode_json(manifest_path.read_bytes())
+        manifest["bindings"]["source_commit"] = "2" * 40
+        manifest_path.write_bytes(canonical(manifest))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "producer tuple drift",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+
+        def make_unsafe(report):
+            report["guards"]["game_process_count_after"] = 1
+            check = next(
+                item for item in report["checks"] if item["id"] == "no-game-process-after"
+            )
+            check["outcome"] = "fail"
+            check["detail_code"] = "present"
+            report["summary"]["passed_count"] -= 1
+            report["summary"]["failed_count"] += 1
+            report["summary"]["safety_verdict"] = "unsafe"
+
+        _rewrite_self_test_report(second_path, make_unsafe)
+        manifest_path = second_path / "retained-run-v1.json"
+        manifest = verify_output.decode_json(manifest_path.read_bytes())
+        manifest["verification"]["qualification_eligible"] = False
+        manifest["verification"]["result"] = "fail"
+        manifest["verification"]["safety_verdict"] = "unsafe"
+        manifest_path.write_bytes(canonical(manifest))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "noneligible retained report",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        private_value = materials["private_value"]
+        _rewrite_self_test_report(
+            second_path,
+            lambda report: report["host"].__setitem__("edition", private_value["clean_tree"]),
+        )
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "private path disclosure",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        second_compiler = second_path / "build" / "csc.exe"
+        second_compiler.unlink()
+        os.link(first_path / "build" / "csc.exe", second_compiler)
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, second_path, materials),
+            "cross-attempt hardlink",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        first_path, second_path, materials = _build_self_test_pair(pathlib.Path(directory))
+        expect_rejected(
+            lambda: _compare_self_test_pair(first_path, first_path, materials),
+            "same retained root",
+        )
+        first_root = RetainedRoot(first_path)
+        try:
+            nested_root = RetainedRoot(first_path / "build")
+            try:
+                expect_rejected(
+                    lambda: validate_output_location(
+                        first_path / "comparison.json", (first_root, nested_root)
+                    ),
+                    "comparison output overlap",
+                )
+                expect_rejected(
+                    lambda: compare_attempts(
+                        first_root,
+                        nested_root,
+                        materials["expectations_raw"],
+                        materials["private_raw"],
+                        identity(b"self-test-comparator"),
+                        RUNTIME_VERIFIER_IDENTITY,
+                        materials["profile"],
+                    ),
+                    "nested retained root",
+                )
+            finally:
+                nested_root.close()
+        finally:
+            first_root.close()
+        expect_rejected(
+            lambda: _compare_self_test_pair(
+                first_path, second_path, materials, PRODUCTION_PROFILE
+            ),
+            "production expectations profile mismatch",
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = pathlib.Path(directory)
+        script = root / "comparator.py"
+        verifier = root / "verify_output.py"
+        script.write_bytes(b"# comparator\n")
+        verifier_raw = read_plain(pathlib.Path(verify_output.__file__), 1024 * 1024)
+        verifier.write_bytes(verifier_raw)
+        _load_bound_verifier_from(script, verifier, identity(verifier_raw))
+        verifier.write_bytes(verifier_raw + b"# altered\n")
+        expect_rejected(
+            lambda: _load_bound_verifier_from(script, verifier, identity(verifier_raw)),
+            "altered runtime verifier",
+        )
+        external = root / "external"
+        external.mkdir()
+        external_verifier = external / "verify_output.py"
+        external_verifier.write_bytes(verifier_raw)
+        expect_rejected(
+            lambda: _load_bound_verifier_from(script, external_verifier, identity(verifier_raw)),
+            "external runtime verifier",
         )
 
 
@@ -774,28 +1726,35 @@ def main() -> int:
         self_test()
         print("PASS")
         return 0
-    first_root = ensure_retained_root(args.first_dir)
-    second_root = ensure_retained_root(args.second_dir)
     expectations_raw = read_plain(args.expectations, 1024 * 1024)
     private_raw = read_plain(args.private_locator, 1024 * 1024)
-    implementation_path = pathlib.Path(__file__).resolve(strict=True)
+    implementation_path = pathlib.Path(__file__).absolute()
     implementation_identity = identity(read_plain(implementation_path, 1024 * 1024))
-    result = compare_attempts(
-        first_root,
-        second_root,
-        expectations_raw,
-        private_raw,
-        implementation_identity,
-    )
-    output = args.output.absolute()
-    output_parent = output.parent.resolve(strict=True)
-    for retained_root in (first_root, second_root):
+    runtime_path = pathlib.Path(verify_output.__file__).absolute()
+    runtime_identity = identity(read_plain(runtime_path, 1024 * 1024))
+    if runtime_path != implementation_path.with_name("verify_output.py") or runtime_identity != RUNTIME_VERIFIER_IDENTITY:
+        raise ComparisonError("runtime verifier changed after load")
+    first_root = RetainedRoot(args.first_dir)
+    try:
+        second_root = RetainedRoot(args.second_dir)
         try:
-            output_parent.relative_to(retained_root)
-        except ValueError:
-            continue
-        raise ComparisonError("comparison output overlaps retained input")
-    write_exclusive(output, canonical(result))
+            result = compare_attempts(
+                first_root,
+                second_root,
+                expectations_raw,
+                private_raw,
+                implementation_identity,
+                runtime_identity,
+                PRODUCTION_PROFILE,
+            )
+            output = validate_output_location(args.output, (first_root, second_root))
+            first_root.revalidate()
+            second_root.revalidate()
+            write_exclusive(output, canonical(result))
+        finally:
+            second_root.close()
+    finally:
+        first_root.close()
     print("PASS " + identity(canonical(result))["sha256"])
     return 0
 

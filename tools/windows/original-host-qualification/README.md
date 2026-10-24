@@ -121,16 +121,19 @@ python3 tools/windows/original-host-qualification/compare_retained_hosts_v1.py c
   --output new-stability-result.json
 ```
 
-The command independently rehashes and binds the reports, manifests, source
-snapshots, compiler files, configuration snapshots and raw probe images. A
-strict PE32/CLI parser proves the images differ only in the structurally
-located COFF timestamp and Module MVID before accepting the two run-time fields
-and two raw-image hashes as the only report differences. Every other byte-sized
-identity, source/locator/expectations binding, host observation, safety check
-and verdict remains exact. It publishes a canonical no-replace artifact with
-both raw identities, the normalized image hash, the stable-projection hash and
-the observed difference paths. This is host-repeat stability only; it is not an
-original/Bosman comparison.
+The command pins the exact public expectations and executing verifier, then
+independently rehashes and binds the reports, manifests, source snapshots,
+compiler files, configuration snapshots and raw probe images. Held,
+descriptor-relative no-follow reads reject nested roots, hardlinks, shared
+objects, mutation and reused command/build identity. A strict PE32/CLI parser
+proves the images differ only in the structurally located COFF timestamp and
+Module MVID before accepting the two run-time fields and two raw-image hashes
+as the only report differences. Every other byte-sized identity,
+source/locator/expectations binding, host observation, safety check and verdict
+remains exact. It atomically publishes a canonical no-replace artifact with
+both runtime-control and raw identities, the normalized image hash, the
+stable-projection hash and the observed difference paths. This is host-repeat
+stability only; it is not an original/Bosman comparison.
 
 Run the no-launch negative controls with:
 
