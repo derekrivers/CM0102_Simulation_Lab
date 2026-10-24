@@ -59,7 +59,7 @@ Neither smoke evidence nor same-save equality is an original-versus-Bosman fidel
 
 ## Supervised Bosman protocol acceptance
 
-The bounded adapter at repository revision `237490d738f44575d8ca8599703ba9e6da4722d4` was built in release mode and transferred to the WSL worker. The 912,960-byte `lab-bosman-adapter` had SHA-256 `8995c04106198b72d7ed804638e962a3d3b9556c811d5a31e1f6adf17513f3fb`; the 1,237,616-byte `lab-cli` supervisor had SHA-256 `6b816edec51d0cf311223b8a5221a8faeade876e359e53df13355820638bb140`. The canonical request bound the following positional identities:
+The bounded adapter at repository revision `aecf1d9f13be8d428b3d9ad1d23c93662da00471` was built in release mode and transferred to the WSL worker. The 918,440-byte `lab-bosman-adapter` had SHA-256 `b09d8d6a0c0ec14972e12bad8d101fe36b5ab002d9c46dfe9a1c3d808cb12948`; the 1,237,912-byte `lab-cli` supervisor had SHA-256 `9b63cb927405c9d04b571baaa4053a67b073435a411d2cff256431b4346d666e`. The canonical request bound the following positional identities:
 
 | Slot | Input | Bytes | SHA-256 |
 |---:|---|---:|---|
@@ -68,22 +68,22 @@ The bounded adapter at repository revision `237490d738f44575d8ca8599703ba9e6da47
 | 2 | pinned smoke runner | 41,619 | `3428aeae65a2dcd899e123b8c9649d109404cd11c601d2c89947d872d8d7196b` |
 | 3 | Python 3.12 interpreter | 8,020,928 | `e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f` |
 
-The request SHA-256 was `a09c40b71ef50f1e41ee5084c7504340ef3f66cf5d80628958fbba44bc119c7f`. Before and after execution the adapter verified the exact manifest through its already-hashed open file and then all 760 clean-tree rows; it also rejected writable source entries and reverified the executable and runner. The runner used classic mode, seed 1, its fixed clock, two jobs, the `normal,again` run set, and the 14-game-day endpoint. It reported:
+The request SHA-256 was `1d0459f29811403dd894b7250b6fa47e14b797717cb7e3d56c731e0e674de866`. Before and after execution the adapter verified the exact manifest through its already-hashed open file and then all 760 clean-tree rows; it also rejected writable source entries and reverified the executable and runner. Python executed the already-verified runner through its inherited open file descriptor. The runner used classic mode, seed 1, its fixed clock, two jobs, the `normal,again` run set, and the 14-game-day endpoint. It reported:
 
 ```text
-run   normal: saved after 14 game days in 82 s, idle sleeps 21025
-run   again: saved after 14 game days in 83 s, idle sleeps 21013
+run   normal: saved after 14 game days in 83 s, idle sleeps 21016
+run   again: saved after 14 game days in 83 s, idle sleeps 21023
 ok    again: the save is the same as normal
 PASS
 ```
 
-The supervisor completed in 1 minute 23.43 seconds with peak RSS 175,384 KiB, no swap, and exit status 0. It published four private evidence files:
+The supervisor completed in 1 minute 24.13 seconds with peak RSS 175,640 KiB, no swap, and exit status 0. It published four private evidence files:
 
 | Artifact | Bytes | SHA-256 |
 |---|---:|---|
-| canonical `request.json` | 1,209 | `a09c40b71ef50f1e41ee5084c7504340ef3f66cf5d80628958fbba44bc119c7f` |
-| `stdout.ndjson` | 1,242 | `ce1bfd44c8b7b2170a240baca9ddcf5b5d95b4a3b7f2e6dd9870e7d0c9ac2b85` |
-| sanitized `stderr.log` | 201 | `7f0e559361bb60b0fe0dbf3b7260ec665f933b9ac702e8dac4aefba6599b329d` |
-| `replay-manifest.json` | 2,000 | `06dd62e011659aaa44dfe76ab21537ffa2b2ab79fb4e9f68b3650bb961331d01` |
+| canonical `request.json` | 1,209 | `1d0459f29811403dd894b7250b6fa47e14b797717cb7e3d56c731e0e674de866` |
+| `stdout.ndjson` | 1,242 | `0f18637ea9e91fd79a8485fe1c8f6566145e8ad98ac768f8d28e56159c6d73ce` |
+| sanitized `stderr.log` | 201 | `80e2c90d61df41844521407cf5f344c40c6ed8d4e189da68347d144d7b121b4e` |
+| `replay-manifest.json` | 2,000 | `414a5aa053ef8e572aa17470e5b3a758929999268300f51061f1eaf157267265` |
 
 The protocol has a matching handshake, contiguous sequences 0 through 5, explicit input-verification and run-completion progress, the byte-identical relation, and a final `succeeded` / `completed-target` frame for `classic-same-save-normal-again-14-days-equal`. A recursive scan found no private WSL home-path prefix in the retained attempt. The manifest's execution status is successful while its comparison verdict correctly remains `not-run`: this is a controlled Bosman self-repeat, not original/Bosman parity.
