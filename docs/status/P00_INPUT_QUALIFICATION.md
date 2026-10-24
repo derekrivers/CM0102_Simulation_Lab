@@ -43,10 +43,16 @@ The installed folder is not a clean baseline. The comparison used the clean mani
 
 The changed required files are concentrated in `Data` plus `hall_of_fame.bin`; missing and corresponding extra history entries include filename-encoding differences. Extras also include configuration, quick-start, tactic, utility, uninstall, and save files. These facts do not identify the changed database as original 2001 data, so it cannot be relabelled as the faithful baseline.
 
-## Build evidence and remaining blocker
+## Separate clean reconstruction
+
+The user's official free-release ISO and official 3.9.68 patch were subsequently located outside the installed folder. Their sizes and SHA-256 values exactly match the constants enforced by the pinned clean-file tool: `853134bbfc9e774424e62f9694ad7fe9dd7361c8bab93033f82fc906b31a5c53` for the 303,628,288-byte ISO and `b3f2b7d2ace6e86d0974e5ad68ae7a87a1e8fc3494c90d00cc3758392dcf24f1` for the 23,458,816-byte patch.
+
+The pinned tool reconstructed a new private, read-only folder without changing the installed game. All 760 files and 483,574,706 bytes match the committed clean manifest; the generated and committed manifests are byte-identical at SHA-256 `920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6`. The clean baseline input is therefore qualified. The original installed folder remains classified as modified and is retained only as a separate diagnostic input.
+
+## Build and runtime evidence
 
 The pinned Bosman build dependencies were installed from the upstream Linux recipe. A VPS build passed configuration and generated-table checks, but the kernel OOM killer terminated the static recompiler at approximately 3.06 GiB resident memory. The temporary build-only swap file was removed when work moved to the larger PC/WSL worker.
 
 The PC/WSL worker has 16 logical CPUs, 7.7 GiB RAM, 2 GiB configured swap, and 937 GiB free WSL disk. After the peer was restored, the pinned Release build completed in 11 minutes 19.72 seconds with a peak resident set size of 7,547,840 KiB. Temporary build-only swap prevented an OOM kill and was removed afterward. The resulting 48,696,400-byte x86-64 ELF has SHA-256 `9a41f4a028f0dd1df71e3f9f18f9821a17f91947bb20e7ed0ba9fc18fcafa07b`; all 45 registered upstream tests pass with the documented `draw_test` link workaround. Full evidence is in [B1 Bosman build evidence](B1_BOSMAN_BUILD.md).
 
-Clean runtime qualification remains blocked on the official free-release `CM0102.iso` and official `cm0102_3968.exe`, whose pinned SHA-256 values are enforced by Bosman's clean-file tool. Neither installer was found in bounded searches of the Windows user's Desktop, Documents, or Downloads. Once available, reconstruct the clean files with the pinned tool and require all 760 manifest entries to match before a B1 runtime job.
+Two upstream classic-mode smoke runs against the reconstructed clean set passed through first news and holiday date advancement. The second run reproduced setup, league selection, and first news exactly under the pinned runner's smoke policy. That ordinary runner did not fix seed/clock state, so these are not deterministic replay evidence. Full measurements and evidence identities are in [B1 clean-data smoke evidence](B1_CLEAN_SMOKE.md). Clean data is no longer a blocker; the remaining B1 boundary is the repository's Bosman-specific protocol adapter and replay manifest.

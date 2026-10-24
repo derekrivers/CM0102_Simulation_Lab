@@ -1,3 +1,5 @@
+mod process_contract;
+
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -165,13 +167,18 @@ fn run() -> ImportResult<()> {
         println!("{}", usage());
         return Ok(());
     }
-    if command != "import-map" {
-        return Err(ImportError(format!(
+    match command.as_str() {
+        "import-map" => run_import_map(args),
+        "validate-run" => run_validate_request(args),
+        "execute-process" => run_execute_process(args),
+        _ => Err(ImportError(format!(
             "unknown command `{command}`\n\n{}",
             usage()
-        )));
+        ))),
     }
+}
 
+fn run_import_map(mut args: impl Iterator<Item = String>) -> ImportResult<()> {
     let mut source = None;
     let mut lock = None;
     let mut output = None;
@@ -204,8 +211,79 @@ fn run() -> ImportResult<()> {
     import_map(&source, &lock, &output, executable.as_deref())
 }
 
+fn run_validate_request(mut args: impl Iterator<Item = String>) -> ImportResult<()> {
+    let mut request = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--request" if request.is_none() => {
+                request = Some(required_path_value(&mut args, &arg)?);
+            }
+            "--help" | "-h" => {
+                println!("{}", usage());
+                return Ok(());
+            }
+            "--request" => return Err(ImportError("duplicate --request argument".to_owned())),
+            _ => {
+                return Err(ImportError(format!(
+                    "unknown argument `{arg}`\n\n{}",
+                    usage()
+                )));
+            }
+        }
+    }
+    let request = request.ok_or_else(|| ImportError("--request is required".to_owned()))?;
+    let report = process_contract::validate_request_file(&request).map_err(ImportError)?;
+    println!("{report}");
+    Ok(())
+}
+
+fn run_execute_process(mut args: impl Iterator<Item = String>) -> ImportResult<()> {
+    let mut request = None;
+    let mut backend_executable = None;
+    let mut attempt_dir = None;
+    while let Some(arg) = args.next() {
+        let target = match arg.as_str() {
+            "--request" if request.is_none() => &mut request,
+            "--backend-executable" if backend_executable.is_none() => &mut backend_executable,
+            "--attempt-dir" if attempt_dir.is_none() => &mut attempt_dir,
+            "--help" | "-h" => {
+                println!("{}", usage());
+                return Ok(());
+            }
+            "--request" | "--backend-executable" | "--attempt-dir" => {
+                return Err(ImportError(format!("duplicate {arg} argument")));
+            }
+            _ => {
+                return Err(ImportError(format!(
+                    "unknown argument `{arg}`\n\n{}",
+                    usage()
+                )));
+            }
+        };
+        *target = Some(required_path_value(&mut args, &arg)?);
+    }
+    let request = request.ok_or_else(|| ImportError("--request is required".to_owned()))?;
+    let backend_executable = backend_executable
+        .ok_or_else(|| ImportError("--backend-executable is required".to_owned()))?;
+    let attempt_dir =
+        attempt_dir.ok_or_else(|| ImportError("--attempt-dir is required".to_owned()))?;
+    process_contract::execute_process(&request, &backend_executable, &attempt_dir)
+        .map_err(ImportError)?;
+    println!("execution succeeded");
+    Ok(())
+}
+
+fn required_path_value(
+    args: &mut impl Iterator<Item = String>,
+    argument: &str,
+) -> ImportResult<PathBuf> {
+    args.next()
+        .map(PathBuf::from)
+        .ok_or_else(|| ImportError(format!("missing value for `{argument}`")))
+}
+
 fn usage() -> &'static str {
-    "Usage: lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n\nImports the six pinned function-map TSVs into a deterministic JSON evidence artifact. When the exact official 3.9.68 executable is supplied, validates every imported VA against its PE32 sections."
+    "Usage:\n  lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n  lab-cli validate-run --request FILE\n  lab-cli execute-process --request FILE --backend-executable FILE --attempt-dir DIR\n\nImports pinned function-map evidence, validates a bounded versioned execution request, or executes a validated local protocol backend in an isolated attempt directory."
 }
 
 fn import_map(

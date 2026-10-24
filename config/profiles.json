@@ -3,10 +3,15 @@
   "profiles": [
     {
       "id": "faithful-3.9.68-original-2001",
-      "status": "pending_matching_data_qualification",
+      "status": "inputs_qualified_runtime_protocol_pending",
       "description": "Unmodified official 3.9.68 behaviour with matching original 2001 data; changing-rules disabled where applicable.",
       "executable_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
-      "data_identity": null,
+      "data_identity": {
+        "kind": "bosman-clean-manifest-sha256",
+        "sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
+        "file_count": 760,
+        "byte_count": 483574706
+      },
       "accepted_deviations": []
     },
     {
