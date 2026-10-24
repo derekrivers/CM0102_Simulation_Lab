@@ -147,6 +147,46 @@ def require_absolute_canonical(path: pathlib.Path, kind: str) -> pathlib.Path:
     return resolved
 
 
+def decode_mountinfo_path(value: bytes) -> pathlib.Path:
+    def replace(match: re.Match[bytes]) -> bytes:
+        return bytes((int(match.group(1), 8),))
+
+    decoded = re.sub(rb"\\([0-7]{3})", replace, value)
+    return pathlib.Path(os.fsdecode(decoded))
+
+
+def select_mount_binding(raw: bytes, path: pathlib.Path) -> dict[str, object]:
+    candidates: list[tuple[int, dict[str, object]]] = []
+    for line in raw.splitlines():
+        fields = line.split()
+        try:
+            separator = fields.index(b"-")
+            mount_point = decode_mountinfo_path(fields[4])
+            relative = path.relative_to(mount_point)
+            del relative
+            binding = {
+                "device": fields[2].decode("ascii", "strict"),
+                "filesystem": fields[separator + 1].decode("ascii", "strict"),
+                "mount_id": int(fields[0]),
+                "mount_point": os.fspath(mount_point),
+                "root": os.fsdecode(fields[3]),
+            }
+            candidates.append((len(mount_point.parts), binding))
+        except (ValueError, IndexError, UnicodeDecodeError):
+            continue
+    if not candidates:
+        raise HarnessError("retained path has no mount binding")
+    return max(candidates, key=lambda item: item[0])[1]
+
+
+def wsl_native_mount_binding(path: pathlib.Path) -> dict[str, object]:
+    raw, _ = read_plain(pathlib.Path("/proc/self/mountinfo"), maximum=1024 * 1024)
+    binding = select_mount_binding(raw, path)
+    if binding["filesystem"] != "ext4" or binding["mount_point"] != "/" or binding["root"] != "/":
+        raise HarnessError("retained path is not on the WSL-native root filesystem")
+    return binding
+
+
 def private_parent(path: pathlib.Path) -> pathlib.Path:
     if os.name == "nt":
         raise HarnessError("retained evidence requires WSL/POSIX ownership and modes")
@@ -161,6 +201,7 @@ def private_parent(path: pathlib.Path) -> pathlib.Path:
         raise HarnessError("retained parent is not a directory")
     if metadata.st_uid != os.geteuid() or stat.S_IMODE(metadata.st_mode) != 0o700:
         raise HarnessError("retained parent must be owned and mode 0700")
+    wsl_native_mount_binding(parent)
     return parent / absolute.name
 
 
@@ -1166,7 +1207,10 @@ def run_mode(arguments: argparse.Namespace) -> dict[str, object]:
     compiler, compiler_raw, compiler_identity, compiler_ui, compiler_ui_raw, compiler_ui_identity, references = compiler_inputs(arguments.compiler)
     reference_before = {name: item[1] for name, item in references.items()}
     destination = private_parent(arguments.retained_dir)
+    destination_mount = wsl_native_mount_binding(destination.parent)
     os.mkdir(destination, 0o700)
+    if wsl_native_mount_binding(destination) != destination_mount:
+        raise HarnessError("retained destination mount binding changed")
     os.mkdir(destination / "inputs", 0o700)
     os.mkdir(destination / "build", 0o700)
     os.mkdir(destination / "build" / "1033", 0o700)
@@ -1287,6 +1331,9 @@ def verify_retained(repo_argument: pathlib.Path, commit: str, compiler_argument:
     root = require_absolute_canonical(retained_argument, "retained directory")
     if not root.is_dir():
         raise HarnessError("retained root is not a directory")
+    root_mount = wsl_native_mount_binding(root)
+    if wsl_native_mount_binding(root.parent) != root_mount:
+        raise HarnessError("retained root mount binding mismatch")
     manifest, manifest_identity = read_manifest(root)
     verify_inventory(root)
     verify_private_modes(root)
@@ -1406,6 +1453,14 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
 
 def self_test() -> None:
     metadata_schema_self_test()
+    mount_sample = (
+        b"24 1 8:32 / / rw - ext4 /dev/sdd rw\n"
+        b"25 24 0:99 / /mnt/cmeta rw - 9p C: rw,aname=drvfs\n"
+    )
+    if select_mount_binding(mount_sample, pathlib.Path("/private/evidence"))["filesystem"] != "ext4":
+        raise AssertionError("native mount selection")
+    if select_mount_binding(mount_sample, pathlib.Path("/mnt/cmeta/Temp"))["filesystem"] != "9p":
+        raise AssertionError("DrvFS mount selection")
     base = synthetic_pe()
     observed = validate_pe32_cli(base, 2)
     if not (
