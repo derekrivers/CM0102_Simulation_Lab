@@ -107,6 +107,15 @@ fn run() -> Result<(), String> {
                 thread::sleep(Duration::from_secs(30));
             }
         }
+        "escaped-descendant" => {
+            let child = Command::new("/usr/bin/setsid")
+                .args(["/bin/sleep", "30"])
+                .spawn()
+                .map_err(|error| format!("spawn escaped descendant: {error}"))?;
+            fs::write("child.pid", format!("{}\n", child.id()))
+                .map_err(|error| format!("write escaped descendant PID: {error}"))?;
+            valid(&attempt_id, &stop_condition)
+        }
         "spawn-marker" => {
             fs::write("spawned.marker", b"spawned\n")
                 .map_err(|error| format!("write spawn marker: {error}"))?;

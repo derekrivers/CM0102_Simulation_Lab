@@ -1,6 +1,7 @@
 [package]
 name = "lab-cli"
 version = "0.1.0"
+default-run = "lab-cli"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

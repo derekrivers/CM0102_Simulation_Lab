@@ -4,12 +4,14 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
+use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::fs::DirBuilderExt;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
-use std::sync::mpsc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, mpsc};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
@@ -158,6 +160,7 @@ struct ReplayExecution<'a> {
 
 #[derive(Debug, Serialize)]
 struct ReplayArtifacts {
+    request: ArtifactIdentity,
     stdout: ArtifactIdentity,
     stderr: ArtifactIdentity,
 }
@@ -192,7 +195,15 @@ pub fn execute_process(
     let executable = backend_executable
         .canonicalize()
         .map_err(|error| format!("resolve backend executable: {error}"))?;
-    let executable_sha256 = digest_file(&executable)?;
+    let mut executable_file =
+        File::open(&executable).map_err(|error| format!("open backend executable: {error}"))?;
+    let metadata = executable_file
+        .metadata()
+        .map_err(|error| format!("inspect backend executable: {error}"))?;
+    if !metadata.is_file() || metadata.permissions().mode() & 0o111 == 0 {
+        return Err("backend executable must be an executable regular file".to_owned());
+    }
+    let executable_sha256 = digest_reader(&mut executable_file)?;
     if !executable_sha256.eq_ignore_ascii_case(&request.backend.expected_executable_sha256) {
         return Err(format!(
             "backend executable SHA-256 mismatch: expected {}, actual {executable_sha256}",
@@ -202,7 +213,7 @@ pub fn execute_process(
     let canonical_request = serde_json::to_vec(&request)
         .map_err(|error| format!("serialize validated request: {error}"))?;
     let request_sha256 = digest_bytes(&canonical_request);
-    let mut request_bytes = canonical_request;
+    let mut request_bytes = canonical_request.clone();
     request_bytes.push(b'\n');
 
     create_private_dir(attempt_dir, "attempt directory")?;
@@ -214,7 +225,10 @@ pub fn execute_process(
     create_private_dir(&home_dir, "private HOME")?;
     create_private_dir(&temp_dir, "private temporary directory")?;
 
-    let mut command = Command::new(&executable);
+    enable_child_subreaper()?;
+    let executable_descriptor = executable_file.as_raw_fd();
+    let executable_path = PathBuf::from(format!("/proc/self/fd/{executable_descriptor}"));
+    let mut command = Command::new(executable_path);
     command
         .current_dir(&attempt_dir)
         .env_clear()
@@ -248,6 +262,7 @@ pub fn execute_process(
     let mut child = command
         .spawn()
         .map_err(|error| format!("spawn backend: {error}"))?;
+    drop(executable_file);
     let process_group = child.id() as i32;
     let stdin = child
         .stdin
@@ -262,29 +277,51 @@ pub fn execute_process(
         .take()
         .ok_or_else(|| "capture backend stderr: pipe missing".to_owned())?;
     let (limit_tx, limit_rx) = mpsc::channel();
-    let input_handle = thread::spawn(move || {
-        let mut stdin = stdin;
-        stdin
-            .write_all(&request_bytes)
-            .map_err(|error| format!("send validated request to backend: {error}"))
-    });
-    let stdout_handle = spawn_capture(
+    let io_cancel = Arc::new(AtomicBool::new(false));
+    let input_handle = match spawn_input(stdin, request_bytes, Arc::clone(&io_cancel)) {
+        Ok(handle) => handle,
+        Err(error) => {
+            terminate_process_group(process_group, &mut child);
+            return Err(error);
+        }
+    };
+    let stdout_handle = match spawn_capture(
         stdout,
         request.stdout_limit_bytes as usize,
         "stdout",
         limit_tx.clone(),
-    );
-    let stderr_handle = spawn_capture(
+        Arc::clone(&io_cancel),
+    ) {
+        Ok(handle) => handle,
+        Err(error) => {
+            terminate_process_group(process_group, &mut child);
+            io_cancel.store(true, Ordering::Release);
+            let _ = join_input(input_handle);
+            return Err(error);
+        }
+    };
+    let stderr_handle = match spawn_capture(
         stderr,
         request.stderr_limit_bytes as usize,
         "stderr",
         limit_tx,
-    );
+        Arc::clone(&io_cancel),
+    ) {
+        Ok(handle) => handle,
+        Err(error) => {
+            terminate_process_group(process_group, &mut child);
+            io_cancel.store(true, Ordering::Release);
+            let _ = join_input(input_handle);
+            let _ = join_capture(stdout_handle);
+            return Err(error);
+        }
+    };
 
     let deadline = Instant::now() + Duration::from_millis(request.timeout_ms);
     let status = loop {
         if let Ok(stream) = limit_rx.try_recv() {
             terminate_process_group(process_group, &mut child);
+            io_cancel.store(true, Ordering::Release);
             let _ = join_input(input_handle);
             let _ = join_capture(stdout_handle);
             let _ = join_capture(stderr_handle);
@@ -295,6 +332,7 @@ pub fn execute_process(
         match child.try_wait() {
             Err(error) => {
                 terminate_process_group(process_group, &mut child);
+                io_cancel.store(true, Ordering::Release);
                 let _ = join_input(input_handle);
                 let _ = join_capture(stdout_handle);
                 let _ = join_capture(stderr_handle);
@@ -303,6 +341,7 @@ pub fn execute_process(
             Ok(Some(status)) => break status,
             Ok(None) if Instant::now() >= deadline => {
                 terminate_process_group(process_group, &mut child);
+                io_cancel.store(true, Ordering::Release);
                 let _ = join_input(input_handle);
                 let _ = join_capture(stdout_handle);
                 let _ = join_capture(stderr_handle);
@@ -313,9 +352,12 @@ pub fn execute_process(
     };
     // A child must not leave descendants holding capture pipes or mutating its attempt.
     kill_process_group(process_group);
+    let cleanup_result = cleanup_adopted_children();
+    io_cancel.store(true, Ordering::Release);
     join_input(input_handle)?;
     let stdout = join_capture(stdout_handle)?;
     let stderr = join_capture(stderr_handle)?;
+    cleanup_result?;
     require_success_exit(status)?;
     validate_protocol(&stdout, &request)?;
 
@@ -349,6 +391,7 @@ pub fn execute_process(
         },
         comparison_verdict: "not-run",
         artifacts: ReplayArtifacts {
+            request: artifact_identity("request.json", &canonical_request),
             stdout: artifact_identity("stdout.ndjson", &stdout),
             stderr: artifact_identity("stderr.log", &stderr),
         },
@@ -357,6 +400,7 @@ pub fn execute_process(
         .map_err(|error| format!("serialize replay manifest: {error}"))?;
     manifest_bytes.push(b'\n');
 
+    atomic_write(&attempt_dir, "request.json", &canonical_request)?;
     atomic_write(&attempt_dir, "stdout.ndjson", &stdout)?;
     atomic_write(&attempt_dir, "stderr.log", &stderr)?;
     atomic_write(&attempt_dir, "replay-manifest.json", &manifest_bytes)?;
@@ -512,8 +556,7 @@ fn create_private_dir(path: &Path, label: &str) -> Result<(), String> {
         .map_err(|error| format!("secure {label}: {error}"))
 }
 
-fn digest_file(path: &Path) -> Result<String, String> {
-    let mut file = File::open(path).map_err(|error| format!("open backend executable: {error}"))?;
+fn digest_reader(file: &mut File) -> Result<String, String> {
     let mut hasher = Sha256::new();
     let mut buffer = [0_u8; 64 * 1024];
     loop {
@@ -534,19 +577,58 @@ fn digest_bytes(bytes: &[u8]) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-fn spawn_capture<R: Read + Send + 'static>(
+fn spawn_input<W: Write + AsRawFd + Send + 'static>(
+    mut writer: W,
+    bytes: Vec<u8>,
+    cancelled: Arc<AtomicBool>,
+) -> Result<JoinHandle<Result<(), String>>, String> {
+    set_nonblocking(writer.as_raw_fd(), "backend stdin")?;
+    Ok(thread::spawn(move || {
+        let mut offset = 0;
+        while offset < bytes.len() {
+            match writer.write(&bytes[offset..]) {
+                Ok(0) => return Err("send validated request: pipe wrote zero bytes".to_owned()),
+                Ok(count) => offset += count,
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    if cancelled.load(Ordering::Acquire) {
+                        return Err(
+                            "send validated request: execution ended before delivery".to_owned()
+                        );
+                    }
+                    thread::sleep(Duration::from_millis(2));
+                }
+                Err(error) => return Err(format!("send validated request to backend: {error}")),
+            }
+        }
+        Ok(())
+    }))
+}
+
+fn spawn_capture<R: Read + AsRawFd + Send + 'static>(
     mut reader: R,
     limit: usize,
     label: &'static str,
     limit_tx: mpsc::Sender<&'static str>,
-) -> JoinHandle<Result<Vec<u8>, String>> {
-    thread::spawn(move || {
+    cancelled: Arc<AtomicBool>,
+) -> Result<JoinHandle<Result<Vec<u8>, String>>, String> {
+    set_nonblocking(reader.as_raw_fd(), &format!("backend {label}"))?;
+    Ok(thread::spawn(move || {
         let mut bytes = Vec::with_capacity(limit.min(64 * 1024));
         let mut buffer = [0_u8; 8192];
         loop {
-            let count = reader
-                .read(&mut buffer)
-                .map_err(|error| format!("read backend {label}: {error}"))?;
+            let count = match reader.read(&mut buffer) {
+                Ok(count) => count,
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    if cancelled.load(Ordering::Acquire) {
+                        return Ok(bytes);
+                    }
+                    thread::sleep(Duration::from_millis(2));
+                    continue;
+                }
+                Err(error) => return Err(format!("read backend {label}: {error}")),
+            };
             if count == 0 {
                 return Ok(bytes);
             }
@@ -559,7 +641,26 @@ fn spawn_capture<R: Read + Send + 'static>(
                 ));
             }
         }
-    })
+    }))
+}
+
+fn set_nonblocking(file_descriptor: RawFd, label: &str) -> Result<(), String> {
+    // SAFETY: fcntl only reads or changes flags on a live, owned pipe descriptor.
+    let flags = unsafe { libc::fcntl(file_descriptor, libc::F_GETFL) };
+    if flags == -1 {
+        return Err(format!(
+            "read {label} flags: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    // SAFETY: the descriptor remains live for the following spawned I/O thread.
+    if unsafe { libc::fcntl(file_descriptor, libc::F_SETFL, flags | libc::O_NONBLOCK) } == -1 {
+        return Err(format!(
+            "set {label} nonblocking: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    Ok(())
 }
 
 fn join_capture(handle: JoinHandle<Result<Vec<u8>, String>>) -> Result<Vec<u8>, String> {
@@ -577,12 +678,65 @@ fn join_input(handle: JoinHandle<Result<(), String>>) -> Result<(), String> {
 fn terminate_process_group(process_group: i32, child: &mut Child) {
     kill_process_group(process_group);
     let _ = child.wait();
+    let _ = cleanup_adopted_children();
 }
 
 fn kill_process_group(process_group: i32) {
     // SAFETY: kill is called with a known positive child PGID, negated to target only that group.
     unsafe {
         libc::kill(-process_group, libc::SIGKILL);
+    }
+}
+
+fn enable_child_subreaper() -> Result<(), String> {
+    // SAFETY: prctl is called with the documented Linux PR_SET_CHILD_SUBREAPER operation.
+    if unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) } == -1 {
+        return Err(format!(
+            "enable child subreaper: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    Ok(())
+}
+
+fn cleanup_adopted_children() -> Result<(), String> {
+    let deadline = Instant::now() + Duration::from_secs(1);
+    loop {
+        reap_exited_children();
+        let children_path = format!("/proc/self/task/{}/children", std::process::id());
+        let contents = fs::read_to_string(&children_path)
+            .map_err(|error| format!("inspect adopted backend descendants: {error}"))?;
+        let children = contents
+            .split_whitespace()
+            .map(|pid| {
+                pid.parse::<i32>()
+                    .map_err(|error| format!("parse adopted descendant PID: {error}"))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        if children.is_empty() {
+            return Ok(());
+        }
+        for child in children {
+            // SAFETY: each positive PID came from this process's kernel-reported child list.
+            unsafe {
+                libc::kill(child, libc::SIGKILL);
+            }
+        }
+        if Instant::now() >= deadline {
+            return Err("adopted backend descendants survived process cleanup".to_owned());
+        }
+        thread::sleep(Duration::from_millis(2));
+    }
+}
+
+fn reap_exited_children() {
+    loop {
+        let mut status = 0;
+        // SAFETY: waitpid(-1, WNOHANG) reaps only children of this supervisor process.
+        let pid = unsafe { libc::waitpid(-1, &mut status, libc::WNOHANG) };
+        if pid <= 0 {
+            return;
+        }
     }
 }
 

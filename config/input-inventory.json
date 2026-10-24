@@ -26,14 +26,14 @@
     },
     {
       "kind": "original_2001_data",
-      "status": "present_but_not_clean_baseline",
-      "sha256": null,
+      "status": "qualified_clean_manifest_760_of_760",
+      "sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
       "distribution": "private_only"
     },
     {
       "kind": "original_assets",
-      "status": "present_but_full_installation_not_clean",
-      "sha256": null,
+      "status": "qualified_clean_manifest_760_of_760",
+      "sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
       "distribution": "private_only"
     },
     {
@@ -43,7 +43,7 @@
       "distribution": "private_only"
     }
   ],
-  "bosman_clean_manifest_check": {
+  "provided_installation_clean_manifest_check": {
     "upstream_commit": "144ed82c248228c7769c6785899527eae5b33c3d",
     "manifest_sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
     "required_files": 760,
@@ -54,14 +54,23 @@
     "path_comparison": "windows_case_insensitive",
     "result": "mismatch"
   },
+  "reconstructed_clean_manifest_check": {
+    "upstream_commit": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "manifest_sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
+    "required_files": 760,
+    "exact_files": 760,
+    "byte_count": 483574706,
+    "result": "match",
+    "distribution": "private_only"
+  },
   "address_validation": "qualified_exact_executable_pe32",
-  "bosman_build": "native_build_qualified_runtime_blocked_matching_data",
+  "bosman_build": "native_build_and_clean_upstream_smoke_qualified_protocol_adapter_pending",
   "notes": [
     "No substitute executable or modern data set may be silently registered as the baseline.",
     "The supplied executable exactly matches the hash required by the pinned Bosman source.",
-    "The pinned Bosman source builds successfully on the qualified WSL worker and all 45 registered upstream tests pass; runtime execution remains unqualified.",
+    "The pinned Bosman source builds successfully on the qualified WSL worker, all 45 registered upstream tests pass, and two clean upstream smoke runs pass.",
     "The supplied installed folder contains modified data and extra runtime/user files, so it is not registered as the clean baseline.",
-    "The official CM0102.iso and cm0102_3968.exe are still needed to reconstruct Bosman's clean 760-file runtime input.",
+    "The official ISO and 3.9.68 patch match the pinned hashes and reconstructed a separate 760-of-760 clean runtime input.",
     "Private source locations are deployment configuration and are intentionally absent from this public manifest."
   ]
 }

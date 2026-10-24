@@ -110,6 +110,7 @@ fn valid_execution_publishes_hashed_replay_without_private_paths() {
 
     let stdout = fs::read(attempt.join("stdout.ndjson")).expect("read captured protocol");
     let diagnostics = fs::read(attempt.join("stderr.log")).expect("read diagnostics");
+    let canonical_request = fs::read(attempt.join("request.json")).expect("read canonical request");
     let manifest_bytes =
         fs::read(attempt.join("replay-manifest.json")).expect("read replay manifest");
     let manifest: Value = serde_json::from_slice(&manifest_bytes).expect("parse replay manifest");
@@ -126,6 +127,11 @@ fn valid_execution_publishes_hashed_replay_without_private_paths() {
     let validation: Value =
         serde_json::from_slice(&validation.stdout).expect("parse validation report");
     assert_eq!(manifest["request_sha256"], validation["request_sha256"]);
+    assert_eq!(
+        manifest["artifacts"]["request"]["sha256"],
+        digest(&canonical_request)
+    );
+    assert_eq!(manifest["request_sha256"], digest(&canonical_request));
     assert_eq!(manifest["artifacts"]["stdout"]["sha256"], digest(&stdout));
     assert_eq!(manifest["artifacts"]["stdout"]["byte_count"], stdout.len());
     assert_eq!(
@@ -136,6 +142,7 @@ fn valid_execution_publishes_hashed_replay_without_private_paths() {
     let manifest_text = String::from_utf8(manifest_bytes).expect("manifest is UTF-8");
     assert!(!manifest_text.contains(&root.path().display().to_string()));
     assert!(!attempt.join(".stdout.ndjson.tmp").exists());
+    assert!(!attempt.join(".request.json.tmp").exists());
     assert!(!attempt.join(".stderr.log.tmp").exists());
     assert!(!attempt.join(".replay-manifest.json.tmp").exists());
 }
@@ -319,6 +326,25 @@ fn timeout_kills_the_entire_process_group() {
             Ok(status) => panic!("descendant process survived group kill:\n{status}"),
         }
     }
+}
+
+#[test]
+fn escaped_descendant_cannot_hold_pipes_or_survive_success() {
+    let root = TestDirectory::new("escaped-descendant");
+    let started = Instant::now();
+    let (attempt, output) = execute(root.path(), "escaped-descendant", 2_000);
+    assert!(output.status.success(), "{}", stderr(&output));
+    assert!(started.elapsed() < Duration::from_secs(2));
+
+    let pid: u32 = fs::read_to_string(attempt.join("child.pid"))
+        .expect("fixture recorded escaped descendant PID")
+        .trim()
+        .parse()
+        .expect("escaped descendant PID is numeric");
+    assert!(
+        !PathBuf::from(format!("/proc/{pid}")).exists(),
+        "escaped descendant survived successful execution"
+    );
 }
 
 #[test]

@@ -13,7 +13,7 @@ cargo run -p lab-cli -- execute-process \
   --attempt-dir /private/path/to/new-attempt
 ```
 
-`validate-run` emits a stable SHA-256 over the parsed, canonical request. `execute-process` verifies the executable hash before attempt creation, refuses an existing attempt directory, uses private `HOME` and temporary directories, clears inherited environment variables, and places the backend in its own process group. Timeout or output-limit failure kills that process group.
+`validate-run` emits a stable SHA-256 over the parsed, canonical request. `execute-process` opens and hashes the executable once, then executes that same open file to avoid a pathname-replacement race. It verifies the hash before attempt creation, refuses an existing attempt directory, uses private `HOME` and temporary directories, clears inherited environment variables, and places the backend in its own process group. The Linux supervisor is also a child subreaper, so descendants that escape the process group are adopted and killed. Pipe I/O is cancellable and timeout or output-limit failure cannot wait indefinitely on an inherited descriptor.
 
 ## Request bounds
 
@@ -34,7 +34,7 @@ The validated canonical request is sent on standard input. Standard output is ND
 
 The first frame must be exactly one handshake. Its backend kind, source revision, and executable hash must match the request, and its capability identifiers must be safe and unique. Exactly one terminal frame must be last. Version 1 accepts success only when the process exits zero and the terminal reports `succeeded`, `completed-target`, and the declared stop condition. Process success does not imply comparison equality.
 
-On success the new attempt directory contains atomically published `stdout.ndjson`, `stderr.log`, and `replay-manifest.json`. The manifest binds the canonical request, command stream, inputs, backend identity, limits, terminal outcome, and captured artifacts by digest. Its comparison verdict remains `not-run`.
+On success the new attempt directory contains atomically published `request.json`, `stdout.ndjson`, `stderr.log`, and `replay-manifest.json`. The retained request is canonical, does not add the supervisor's request, executable, or attempt paths, and makes the attempt self-contained for replay. The manifest binds it, the command stream, inputs, backend identity, limits, terminal outcome, and captured artifacts by digest. Its comparison verdict remains `not-run`.
 
 ## Deliberate limits
 
