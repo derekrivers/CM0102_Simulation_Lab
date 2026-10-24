@@ -5,6 +5,7 @@ Updated: 24 October 2026 (Europe/London)
 ## Current checkpoint
 
 - Roadmap revision 3 was validated, independently reviewed, and merged in PR #1 at commit `d750f3b9f8839994b4258ee5720c4b489fded9f7`.
+- The pinned B0 map inventory importer was independently reviewed, corrected, re-reviewed with no findings, and merged in PR #2 at commit `28928e649d75b01dabe61b5cdcb9cc81cbbde3a7`.
 - P00/B0 map-only inventory is active. No phase is complete.
 - The two foundational public repositories are checked out outside the public repository at their selected commits. The source lock and deterministic map importer are implemented in the B0 delivery increment.
 
@@ -22,6 +23,7 @@ Updated: 24 October 2026 (Europe/London)
 - The selected Bosman and function-map commits resolve remotely and locally. Their exact identities are recorded in `config/upstream-lock.json`.
 - The real pinned map import produced 11,747 broad function starts, 6,863 function records, 6,863 name records, 1,161 not-high records, 4,428 global records, and 4,428 data records. All six tables had zero duplicate addresses; the broad inventory contained 4,884 addresses not present in the named-function table, while every named function was present in the broad inventory.
 - Two independent executions of the reviewed importer produced byte-identical 19,892,857-byte JSON artifacts with SHA-256 `5b4b8d61103bf63537f5ae32810081be9327b75aebac77c26ad901776d0798fb`. Generated evidence remains untracked.
+- Independent review initially found a canonical-lock bypass plus physical-row and equivalent-address defects. Strict direct lock paths, numeric address canonicalization, physical-row retention, and regression tests resolved all three before PR #2 merged.
 - Original executable/data identity, PE section validation, original process observations, Bosman build qualification, and original/Bosman parity are blocked by absent authorized original inputs.
 - The current host is below the roadmap's provisional 4 vCPU / 8 GiB / 80 GiB-free pilot envelope. This is a measurement constraint, not a purchase request; no 24-hour worker pilot is scheduled.
 - Off-host backup destination remains unset, so unattended durability cannot be certified.
