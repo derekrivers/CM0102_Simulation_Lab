@@ -1,6 +1,6 @@
 # Synthetic Windows launcher qualification v1
 
-Status: the host-stability prerequisite is accepted at merge `b9123ffc7f8261f0b87c354eeb3a77d728540825`. This contract freezes the next synthetic-only sequence. The harmless fixture is the first implementation increment; the controller, retained harness, private qualification evidence, and every original-process observation remain pending.
+Status: the host-stability prerequisite is accepted at merge `b9123ffc7f8261f0b87c354eeb3a77d728540825`. This contract freezes the next synthetic-only sequence. The harmless fixture and its retained no-UI build record form the first candidate implementation increment; clean exact-revision review and merge remain pending. The controller, live-UI retained harness, private UI qualification evidence, and every original-process observation remain pending.
 
 ## Purpose and authority boundary
 
