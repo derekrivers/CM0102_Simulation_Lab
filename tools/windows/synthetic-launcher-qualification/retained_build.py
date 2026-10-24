@@ -32,6 +32,8 @@ MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_STREAM_BYTES = 256 * 1024
 BUILD_TIMEOUT_SECONDS = 300
 TEST_TIMEOUT_SECONDS = 60
+MAX_RETAINED_OBJECTS = 128
+MAX_RETAINED_DEPTH = 4
 EXPECTED_TEST_STDOUT = b"PASS 230518\r\n"
 EXPECTED_CSC_SHA256 = "012e8cd8adff0c439a90ffd22c0e33efeb6fbc8cf660d52b4858d310649382fa"
 EXPECTED_CSCUI_SHA256 = "5d925200762a6b25467da367c622883c3616c21edfaaad9548fd085d5d48757f"
@@ -197,10 +199,14 @@ def read_dynamic_proc(path: str, maximum: int) -> bytes:
 
 
 def wsl_native_mount_binding(path: pathlib.Path) -> dict[str, object]:
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+    if not hasattr(os, "O_PATH"):
+        raise HarnessError("retained mount inspection requires Linux O_PATH")
+    flags = os.O_PATH | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
     descriptor = os.open(path, flags)
     try:
         metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode) and not stat.S_ISDIR(metadata.st_mode):
+            raise HarnessError("retained mount object is not a regular file or directory")
         fdinfo = read_dynamic_proc("/proc/self/fdinfo/" + str(descriptor), 4096)
         match = re.search(rb"^mnt_id:\s*([0-9]+)$", fdinfo, re.MULTILINE)
         if match is None:
@@ -219,9 +225,24 @@ def wsl_native_mount_binding(path: pathlib.Path) -> dict[str, object]:
 
 
 def verify_tree_mount_binding(root: pathlib.Path, expected: dict[str, object]) -> None:
-    for path in (root, *sorted(root.rglob("*"))):
-        if wsl_native_mount_binding(path) != expected:
-            raise HarnessError("retained tree crosses a mount boundary")
+    if wsl_native_mount_binding(root) != expected:
+        raise HarnessError("retained root mount binding changed")
+    directories: list[tuple[pathlib.Path, int]] = [(root, 0)]
+    observed = 1
+    while directories:
+        directory, depth = directories.pop()
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                observed += 1
+                if observed > MAX_RETAINED_OBJECTS:
+                    raise HarnessError("retained tree exceeds object limit")
+                path = pathlib.Path(entry.path)
+                if wsl_native_mount_binding(path) != expected:
+                    raise HarnessError("retained tree crosses a mount boundary")
+                if entry.is_dir(follow_symlinks=False):
+                    if depth + 1 > MAX_RETAINED_DEPTH:
+                        raise HarnessError("retained tree exceeds depth limit")
+                    directories.append((path, depth + 1))
 
 
 def private_parent(path: pathlib.Path) -> pathlib.Path:
@@ -1503,6 +1524,18 @@ def self_test() -> None:
         raise AssertionError("stacked mount ID binding")
     if mount_bindings[26]["mount_point"] != "/mnt/cmeta":
         raise AssertionError("nested mount ID binding")
+    with tempfile.TemporaryDirectory() as mount_directory:
+        fifo = pathlib.Path(mount_directory) / "unexpected-fifo"
+        os.mkfifo(fifo)
+        started = time.monotonic()
+        try:
+            wsl_native_mount_binding(fifo)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("accepted retained FIFO")
+        if time.monotonic() - started > 2:
+            raise AssertionError("retained FIFO inspection blocked")
     base = synthetic_pe()
     observed = validate_pe32_cli(base, 2)
     if not (
