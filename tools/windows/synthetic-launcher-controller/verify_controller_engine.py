@@ -145,10 +145,10 @@ def verify_authority_surface(text: str, label: str, tests: bool) -> tuple[str, l
         "System.Threading.ManualResetEvent", "System.Threading.Thread",
         "System.Threading.ThreadStart",
     } if tests else set()
-    system_remainder = compact
-    for allowed in sorted(allowed_system_members, key=len, reverse=True):
-        system_remainder = system_remainder.replace(allowed, "")
-    if "System." in system_remainder:
+    source_without_strings = re.sub(r'"(?:[^"\\]|\\.)*"', '""', text)
+    observed_system_members = set(re.findall(
+        r"\bSystem(?:\.[A-Za-z_][A-Za-z0-9_]*)+", source_without_strings))
+    if observed_system_members != allowed_system_members:
         raise VerificationError(label + " System member surface")
     if not tests and "Console." in compact:
         raise VerificationError(label + " console authority")
@@ -461,6 +461,17 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted authority mutation")
+    for mutation in (
+        "System.Threading.ThreadPool.GetAvailableThreads(out worker,out completion)",
+        "System.Threading.ManualResetEventSlim value",
+    ):
+        try:
+            verify_authority_surface("using System;\n" + mutation + ";\n",
+                "test mutation", True)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted test System member mutation")
     disabled_assert = tests.replace(
         'if (!value) throw new InvalidOperationException("assertion-failed-" + assertions.ToString());',
         "if (!value) assertions++;")
