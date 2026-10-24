@@ -303,6 +303,17 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     )
     for value in required_types:
         require_count(compact, value, 1, "policy type")
+    declared_types = tuple(re.findall(
+        r"\b(?:internal|private|public)\s+(?:(?:static|sealed)\s+)*"
+        r"(?:class|enum|struct|interface)\s+([A-Za-z_][A-Za-z0-9_]*)", source))
+    if declared_types != (
+            "RuntimeImageRole", "RuntimeImageBindingState", "RuntimeBuildBinding",
+            "DeclaredFixtureStatus", "FixedRuntimeBindingContract", "RuntimeArtifactIdentity",
+            "RuntimeContractFacts", "RuntimeImageDeclarationFacts",
+            "RuntimeObjectBindingRequirementFacts", "RuntimeRouteDeclarationFacts",
+            "RuntimeOuterJobDeclarationFacts", "RuntimeBindingFacts", "RuntimeBindingState",
+            "RuntimeBindingPolicy", "BuildUnpinnedRefusal"):
+        raise VerificationError("exact declared type inventory")
     if compact.count("internalreadonly") != 71:
         raise VerificationError("immutable fact field count")
     readonly_fields = re.findall(r"internal\s+readonly\s+[A-Za-z0-9_.<>\[\]]+\s+([A-Z][A-Za-z0-9]+);",
@@ -479,6 +490,7 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
         raise VerificationError("structural refusal key binding")
     require_count(compact, "privatestaticreadonlyobjectRefusalKey=newobject();", 1,
         "exact refusal key")
+    require_count(compact, "RefusalKey", 3, "refusal key reference surface")
     if compact.count("RefusalKey=") != 1:
         raise VerificationError("refusal key reassignment")
     expected_bodies = {
@@ -821,6 +833,18 @@ def self_test() -> None:
         ("private static readonly object RefusalKey = new object();",
             "private static readonly object RefusalKey = new object();\n"
             "        static RuntimeBindingPolicy() { RefusalKey = null; }"),
+        ("private static bool ExactHash(string value)",
+            "internal static object LeakedRefusalKey { get { return RefusalKey; } }\n\n"
+            "        private static bool ExactHash(string value)"),
+        ("namespace Cm0102.SyntheticLauncherController\n{",
+            "namespace Cm0102.SyntheticLauncherController\n{\n"
+            "    internal static class Object\n"
+            "    {\n"
+            "        internal static bool ReferenceEquals(object first, object second)\n"
+            "        {\n"
+            "            return (first == null && second != null) || first == second;\n"
+            "        }\n"
+            "    }"),
         ("if (!FixedRuntimeBindingContract.IsScenario(scenarioId))",
             "if (!FixedRuntimeBindingContract.IsScenario(scenarioId) && "
             "!String.Equals(scenarioId, FixedRuntimeBindingContract.ProfileId, "
