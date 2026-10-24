@@ -617,7 +617,7 @@ def validate_cli_metadata(
         or table_minor != 0
         or heap_sizes & ~0x07
         or table_reserved2 != 1
-        or sorted_mask & ~valid
+        or sorted_mask >> 45
         or valid >> 45
         or valid & (1 << 6) == 0
     ):
