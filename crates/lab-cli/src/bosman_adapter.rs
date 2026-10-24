@@ -58,7 +58,7 @@ fn run_protocol() -> Result<(), String> {
         &request.input_identities[parameters.input_slots.bosman_executable],
         true,
     )?;
-    verify_file(
+    let smoke_runner = verify_file(
         "smoke runner",
         &config.smoke_runner,
         &request.input_identities[parameters.input_slots.smoke_runner],
@@ -94,15 +94,19 @@ fn run_protocol() -> Result<(), String> {
         json!({"stage": "inputs-verified", "clean_file_count": clean_count}),
     )?;
 
-    let adapter = env::current_exe().map_err(|error| format!("resolve adapter path: {error}"))?;
+    // Keep both nested executables bound to bytes that have already been verified. Python opens the
+    // inherited runner descriptor; its subprocess opens this still-running adapter image via procfs.
+    let smoke_runner_descriptor = smoke_runner.as_raw_fd();
+    let smoke_runner_path = format!("/proc/self/fd/{smoke_runner_descriptor}");
+    let adapter_path = format!("/proc/{}/exe", std::process::id());
     let config_path = required_env("LAB_BACKEND_CONFIG")?;
     let home = required_env("HOME")?;
     let temp = required_env("TMPDIR")?;
     let mut command = Command::new(format!("/proc/self/fd/{}", python.as_raw_fd()));
     command
         .arg("-I")
-        .arg(&config.smoke_runner)
-        .arg(&adapter)
+        .arg(&smoke_runner_path)
+        .arg(&adapter_path)
         .arg(&config.clean_game_dir)
         .args([
             "--same-save",
@@ -131,9 +135,23 @@ fn run_protocol() -> Result<(), String> {
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    let output = command
-        .output()
-        .map_err(|error| format!("run pinned smoke runner: {error}"))?;
+    let descriptor_flags = descriptor_flags(smoke_runner_descriptor, "smoke runner")?;
+    set_descriptor_flags(
+        smoke_runner_descriptor,
+        descriptor_flags & !libc::FD_CLOEXEC,
+        "make smoke runner inheritable",
+    )?;
+    let child_result = command.spawn();
+    let restore_result = set_descriptor_flags(
+        smoke_runner_descriptor,
+        descriptor_flags,
+        "restore smoke runner descriptor flags",
+    );
+    let child = child_result.map_err(|error| format!("run pinned smoke runner: {error}"))?;
+    restore_result?;
+    let output = child
+        .wait_with_output()
+        .map_err(|error| format!("wait for pinned smoke runner: {error}"))?;
     if output.stdout.len() > NESTED_OUTPUT_MAX_BYTES
         || output.stderr.len() > NESTED_OUTPUT_MAX_BYTES
     {
@@ -222,11 +240,50 @@ fn read_config() -> Result<BackendConfig, String> {
             "private backend config exceeds the {CONFIG_MAX_BYTES}-byte limit"
         ));
     }
-    serde_json::from_slice(&bytes).map_err(|error| format!("parse private backend config: {error}"))
+    let config: BackendConfig = serde_json::from_slice(&bytes)
+        .map_err(|error| format!("parse private backend config: {error}"))?;
+    validate_config(config)
+}
+
+fn validate_config(config: BackendConfig) -> Result<BackendConfig, String> {
+    for (name, path) in [
+        ("python_executable", &config.python_executable),
+        ("smoke_runner", &config.smoke_runner),
+        ("bosman_executable", &config.bosman_executable),
+        ("clean_game_dir", &config.clean_game_dir),
+        ("clean_manifest", &config.clean_manifest),
+    ] {
+        if !path.is_absolute() {
+            return Err(format!(
+                "private backend config field {name} must be an absolute path"
+            ));
+        }
+    }
+    Ok(config)
 }
 
 fn required_env(name: &str) -> Result<String, String> {
     env::var(name).map_err(|_| format!("required environment variable {name} is missing"))
+}
+
+fn descriptor_flags(descriptor: i32, label: &str) -> Result<i32, String> {
+    // SAFETY: fcntl reads flags from a live file descriptor owned by this process.
+    let flags = unsafe { libc::fcntl(descriptor, libc::F_GETFD) };
+    if flags == -1 {
+        return Err(format!(
+            "read {label} descriptor flags: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    Ok(flags)
+}
+
+fn set_descriptor_flags(descriptor: i32, flags: i32, action: &str) -> Result<(), String> {
+    // SAFETY: fcntl changes flags on a live file descriptor owned by this process.
+    if unsafe { libc::fcntl(descriptor, libc::F_SETFD, flags) } == -1 {
+        return Err(format!("{action}: {}", std::io::Error::last_os_error()));
+    }
+    Ok(())
 }
 
 fn verify_file(
@@ -384,11 +441,11 @@ fn collect_tree_into(
         let path = entry.path();
         let metadata = fs::symlink_metadata(&path)
             .map_err(|error| format!("inspect clean tree entry: {error}"))?;
-        if metadata.permissions().mode() & 0o222 != 0 {
-            return Err("clean tree entries must be read-only".to_owned());
-        }
         if metadata.file_type().is_symlink() {
             return Err("clean tree must not contain symlinks".to_owned());
+        }
+        if metadata.permissions().mode() & 0o222 != 0 {
+            return Err("clean tree entries must be read-only".to_owned());
         }
         if metadata.is_dir() {
             collect_tree_into(root, &path, files)?;
@@ -451,6 +508,13 @@ fn verify_saved_line(line: &str, run: &str, require_idle: bool) -> Result<(), St
 }
 
 fn write_diagnostics(stdout: &str, stderr: &str, config: &BackendConfig) -> Result<(), String> {
+    let text = sanitized_diagnostics(stdout, stderr, config);
+    std::io::stderr()
+        .write_all(text.as_bytes())
+        .map_err(|error| format!("write sanitized diagnostics: {error}"))
+}
+
+fn sanitized_diagnostics(stdout: &str, stderr: &str, config: &BackendConfig) -> String {
     let mut text = format!("smoke runner stdout:\n{stdout}");
     if !stderr.is_empty() {
         text.push_str("smoke runner stderr:\n");
@@ -468,9 +532,7 @@ fn write_diagnostics(stdout: &str, stderr: &str, config: &BackendConfig) -> Resu
     ] {
         text = text.replace(&path.to_string_lossy().to_string(), "[private-path]");
     }
-    std::io::stderr()
-        .write_all(text.as_bytes())
-        .map_err(|error| format!("write sanitized diagnostics: {error}"))
+    text
 }
 
 fn emit(
@@ -564,6 +626,17 @@ fn digest_reader(file: &mut File, label: &str) -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::os::unix::fs::symlink;
+
+    fn identity(path: &Path) -> InputIdentity {
+        let bytes = fs::read(path).unwrap();
+        let mut hasher = Sha256::new();
+        hasher.update(&bytes);
+        InputIdentity {
+            sha256: format!("{:x}", hasher.finalize()),
+            byte_count: bytes.len() as u64,
+        }
+    }
 
     #[test]
     fn accepts_only_exact_success_endpoint() {
@@ -605,6 +678,112 @@ mod tests {
                 .unwrap_err()
                 .contains("case-colliding")
         );
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn config_requires_absolute_paths_and_diagnostics_redact_them() {
+        let config = BackendConfig {
+            python_executable: PathBuf::from("relative-python"),
+            smoke_runner: PathBuf::from("/private/runner"),
+            bosman_executable: PathBuf::from("/private/bosman"),
+            clean_game_dir: PathBuf::from("/private/game"),
+            clean_manifest: PathBuf::from("/private/manifest"),
+        };
+        assert!(
+            validate_config(config)
+                .unwrap_err()
+                .contains("absolute path")
+        );
+
+        let config = BackendConfig {
+            python_executable: PathBuf::from("/private/python"),
+            smoke_runner: PathBuf::from("/private/runner"),
+            bosman_executable: PathBuf::from("/private/bosman"),
+            clean_game_dir: PathBuf::from("/private/game"),
+            clean_manifest: PathBuf::from("/private/manifest"),
+        };
+        let text = sanitized_diagnostics("PASS\n", "/private/game failed\n", &config);
+        assert!(text.contains("[private-path] failed"));
+        assert!(!text.contains("/private/game"));
+    }
+
+    #[test]
+    fn file_and_clean_tree_verification_rejects_identity_and_tree_drift() {
+        let base = env::temp_dir().join(format!(
+            "lab-bosman-tree-{}-{}",
+            std::process::id(),
+            std::thread::current().name().unwrap_or("test")
+        ));
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir(&base).unwrap();
+        let executable = base.join("executable");
+        fs::write(&executable, b"executable").unwrap();
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o500)).unwrap();
+        let exact = identity(&executable);
+        assert!(verify_file("fixture", &executable, &exact, true).is_ok());
+        let wrong_size = InputIdentity {
+            byte_count: exact.byte_count + 1,
+            ..exact.clone()
+        };
+        assert!(verify_file("fixture", &executable, &wrong_size, true).is_err());
+        let wrong_hash = InputIdentity {
+            sha256: "0".repeat(64),
+            ..exact
+        };
+        assert!(verify_file("fixture", &executable, &wrong_hash, true).is_err());
+        let link = base.join("executable-link");
+        symlink(&executable, &link).unwrap();
+        assert!(verify_file("fixture", &link, &identity(&executable), true).is_err());
+
+        let game = base.join("game");
+        fs::create_dir(&game).unwrap();
+        let data = game.join("Data.bin");
+        fs::write(&data, b"clean-data").unwrap();
+        fs::set_permissions(&data, fs::Permissions::from_mode(0o400)).unwrap();
+        fs::set_permissions(&game, fs::Permissions::from_mode(0o500)).unwrap();
+        let manifest = base.join("manifest.tsv");
+        fs::write(
+            &manifest,
+            format!("{}\t10\tData.bin\n", identity(&data).sha256),
+        )
+        .unwrap();
+        let manifest_identity = identity(&manifest);
+        assert_eq!(
+            verify_clean_tree(&game, &manifest, &manifest_identity).unwrap(),
+            1
+        );
+
+        fs::set_permissions(&data, fs::Permissions::from_mode(0o600)).unwrap();
+        assert!(
+            verify_clean_tree(&game, &manifest, &manifest_identity)
+                .unwrap_err()
+                .contains("read-only")
+        );
+        fs::set_permissions(&data, fs::Permissions::from_mode(0o400)).unwrap();
+        fs::set_permissions(&game, fs::Permissions::from_mode(0o700)).unwrap();
+        let extra = game.join("extra.bin");
+        fs::write(&extra, b"extra").unwrap();
+        fs::set_permissions(&extra, fs::Permissions::from_mode(0o400)).unwrap();
+        fs::set_permissions(&game, fs::Permissions::from_mode(0o500)).unwrap();
+        assert!(
+            verify_clean_tree(&game, &manifest, &manifest_identity)
+                .unwrap_err()
+                .contains("file count mismatch")
+        );
+        fs::set_permissions(&game, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::remove_file(&extra).unwrap();
+        let tree_link = game.join("link.bin");
+        symlink(&data, &tree_link).unwrap();
+        fs::set_permissions(&game, fs::Permissions::from_mode(0o500)).unwrap();
+        assert!(
+            verify_clean_tree(&game, &manifest, &manifest_identity)
+                .unwrap_err()
+                .contains("symlinks")
+        );
+
+        fs::set_permissions(&game, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::set_permissions(&data, fs::Permissions::from_mode(0o600)).unwrap();
         fs::remove_dir_all(base).unwrap();
     }
 }
