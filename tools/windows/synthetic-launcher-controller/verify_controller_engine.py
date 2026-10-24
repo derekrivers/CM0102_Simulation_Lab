@@ -25,11 +25,19 @@ GIT = pathlib.Path("/usr/bin/git")
 
 FROZEN_IDENTITIES = {
     POLICY_PATH: (41856, "0bd6e9590a31f64326706377a0789ad9fef5b715815898d074bb73bd3dec329d"),
-    ENGINE_PATH: (22730, "75b99393df162dd8963dc72ca30d9e1acb77872bbb664f71029a080cfb1b3308"),
-    TEST_PATH: (31534, "abbf2ce6e77af9f26aad1d29649b3e9ecc7060d85b6c841efeb22171197b9be3"),
-    README_PATH: (2535, "7bbc0394a9582f2a595678bb5bbd40b66213165081e2161e58ee01137aa78a26"),
+    ENGINE_PATH: (25413, "33d5d643f086c1bb057310d6368e8712b096e1165cd07946e11744426089082b"),
+    TEST_PATH: (36652, "ee2517e0d77199aba4a7ee2c2870594bce745d1e3240ab925316f9fbd27df316"),
+    README_PATH: (2718, "c3671bc8dfeb2c50afea0b219d211698eb4d2c9fb09340a07fba578c016ccba0"),
+    WORKFLOW_PATH: (4922, "8a1a9a9ecb90ca60f1494b39c9c680d7f0e624a081027b985524a135d8b26d97"),
 }
-BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (VERIFIER_PATH, WORKFLOW_PATH)
+BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (VERIFIER_PATH,)
+CONTROLLER_DIRECTORY = "tools/windows/synthetic-launcher-controller"
+EXPECTED_CONTROLLER_FILES = (
+    "ControllerEngine.cs", "ControllerEngineTests.cs", "ControllerPolicy.cs",
+    "ControllerPolicyTests.cs", "ENGINE.md", "README.md", "RUNTIME_CONTRACT.md",
+    "verify_controller_engine.py", "verify_controller_policy.py",
+    "verify_controller_runtime_contract.py",
+)
 
 
 class VerificationError(Exception):
@@ -55,9 +63,11 @@ def read_bound(path: pathlib.Path) -> bytes:
     before = os.stat(path, follow_symlinks=False)
     if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > MAX_BYTES:
         raise VerificationError("invalid bound file " + os.fspath(path))
-    descriptor = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+    descriptor = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK)
     try:
         opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode):
+            raise VerificationError("bound input changed type")
         raw = bytearray()
         while True:
             chunk = os.read(descriptor, min(65536, MAX_BYTES + 1 - len(raw)))
@@ -115,14 +125,20 @@ def verify_authority_surface(text: str, label: str, tests: bool) -> tuple[str, l
     forbidden = (
         "DllImport", "LibraryImport", "Runtime.InteropServices", "System.IO",
         "System.Diagnostics", "System.Net", "System.Reflection", "System.Threading",
+        "System.Security", "System.Timers", "System.CodeDom", "System.ComponentModel",
+        "System.Media", "System.Configuration", "System.Activities", "Microsoft.CSharp",
+        "WindowsIdentity", "RandomNumberGenerator", "CodeDomProvider",
         "Microsoft.Win32", "extern", "unsafe", "dynamic", "global::", "Environment.",
         "AppDomain.", "Activator.", "Marshal.", "IntPtr", "SafeHandle", "GCHandle",
         "File.", "Directory.", "Process.Start", "Registry.", "Socket.", "HttpClient",
         "DateTime", "Stopwatch", "Random(", "Guid.", "Type.GetType", ".GetMethod",
         ".Invoke", "typeof(", ".GetType", "ResourceManager", "Console.Open",
         "Console.Read", "Console.In", "Console.Set", "Console.Error", "delegate", "=>",
+        "String.Concat", "newstring(", "Encoding.", "char",
     )
     for value in forbidden:
+        if tests and value == "System.Threading":
+            continue
         if value in compact:
             raise VerificationError(label + " forbidden token " + value)
     if not tests and "Console." in compact:
@@ -136,6 +152,33 @@ def require_count(text: str, value: str, expected: int, label: str) -> None:
     actual = text.count(value)
     if actual != expected:
         raise VerificationError(label + " count " + value + " " + str(actual))
+
+
+def extract_block(text: str, marker: str, label: str) -> str:
+    marker_index = text.find(marker)
+    if marker_index < 0:
+        raise VerificationError(label + " marker")
+    opening = text.find("{", marker_index + len(marker))
+    if opening < 0:
+        raise VerificationError(label + " opening brace")
+    depth = 0
+    for index in range(opening, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[opening + 1:index]
+    raise VerificationError(label + " closing brace")
+
+
+def require_order(text: str, values: tuple[str, ...], label: str) -> None:
+    position = -1
+    for value in values:
+        next_position = text.find(value, position + 1)
+        if next_position < 0:
+            raise VerificationError(label + " order " + value)
+        position = next_position
 
 
 def verify_engine(engine: str, tests: str, readme: str, workflow: str) -> None:
@@ -180,36 +223,67 @@ def verify_engine(engine: str, tests: str, readme: str, workflow: str) -> None:
     }
     for value, expected in policy_counts.items():
         require_count(compact, value, expected, "policy route")
+    base_class = extract_block(compact, "internalabstractclassControllerEngineBase", "base class")
+    common_class = extract_block(compact, "internalabstractclassCommonControllerEngine", "common class")
+    ui_class = extract_block(compact, "internalsealedclassUiControllerEngine", "UI class")
+    timeout_class = extract_block(compact, "internalsealedclassTimeoutControllerEngine", "timeout class")
+    locked_class = extract_block(compact, "internalsealedclassLockedPreflightEngine", "locked class")
+    common_route = extract_block(common_class, "protectedboolRunCommonRoute()", "common route")
+    require_order(common_route, (
+        "ControllerPolicy.Binding(", "ControllerPolicy.Preflight(",
+        "ControllerPolicy.TokenRelationship(", "ControllerPolicy.LaunchToken(",
+        "ControllerPolicy.Registry(", "ControllerPolicy.Guards(",
+        "ControllerPolicy.Environment(", "ControllerPolicy.ApproveCreate(",
+        "ControllerPolicy.RecordSuspendedChild(", "ControllerPolicy.JobBeforeResume(",
+        "ControllerPolicy.PreResume(", "ControllerPolicy.Resume("), "common route")
+    ui_run = extract_block(ui_class, "internalControllerEngineResultRun()", "UI run")
+    require_order(ui_run, ("StartRun()", "RunCommonRoute()", "ControllerPolicy.Window(",
+        "ControllerPolicy.ReadyCaptureOne(", "ControllerPolicy.ReadyCaptureTwo(",
+        "ControllerPolicy.InputGuards(", "ControllerPolicy.SendInput(",
+        "ControllerPolicy.CompleteCaptureOne(", "ControllerPolicy.CompleteCaptureTwo(",
+        "ControllerPolicy.CleanupUi(", "ControllerPolicy.Rebind(",
+        "Complete(AttemptTerminal.UiComplete)"), "UI run")
+    timeout_run = extract_block(timeout_class, "internalControllerEngineResultRun()", "timeout run")
+    require_order(timeout_run, ("StartRun()", "RunCommonRoute()",
+        "ControllerPolicy.CleanupTimeout(", "ControllerPolicy.Rebind(",
+        "Complete(AttemptTerminal.ExpectedTimeout)"), "timeout run")
+    locked_run = extract_block(locked_class, "internalControllerEngineResultRun()", "locked run")
+    require_order(locked_run, ("StartRun()", "ControllerPolicy.Binding(",
+        "ControllerPolicy.Preflight(", "ControllerPolicy.CleanupLocked(",
+        "ControllerPolicy.Rebind(", "Complete(AttemptTerminal.LockedRefusal)"), "locked run")
+    abort_body = extract_block(base_class, "protectedControllerEngineResultAbort()", "abort")
+    require_order(abort_body, ("DiscardUnexpectedPixelsBeforeAbort()", "ControllerPolicy.Abort(",
+        "State.BeginAbort(", "CollectAbortCleanupFacts()", "ControllerPolicy.CleanupAbort(",
+        "State.Advance(cleanupPermit)", "RebindAfterAbort()", "ControllerPolicy.Rebind(",
+        "State.Advance(rebindPermit)", "State.Complete(AttemptTerminal.Ineligible)"), "abort")
     for value in (
+        "DiscardAndZeroFixedUnexpectedPixels()",
+        "RestoreFixedRegistryImpersonationIfActive()",
+        "ReleaseFixedEnvironmentIfAllocated()",
         "RestoreFixedPrivilegeIfChanged()", "TerminateFixedChildAndJobIfCreated()",
         "VerifyFixedJobEmptyIfCreated()", "CloseFixedHandles()", "VerifyFixedGuardsStable()",
         "VerifyZeroFixedFixtureProcesses()", "VerifyZeroFixedGameProcesses()",
     ):
         require_count(compact, value, 2, "recovery declaration and call")
     recovery_order = (
+        "boolpixelsDiscarded=DiscardUnexpectedPixelsBeforeAbort();",
+        "ControllerPolicy.Abort(",
         "AbortCleanupFactscleanupFacts=CollectAbortCleanupFacts();",
         "ControllerPolicy.CleanupAbort(", "RebindFactsrebindFacts=RebindAfterAbort();",
         "State.Complete(AttemptTerminal.Ineligible)",
     )
-    position = -1
-    for value in recovery_order:
-        next_position = compact.find(value, position + 1)
-        if next_position < 0:
-            raise VerificationError("recovery order " + value)
-        position = next_position
+    require_order(abort_body, recovery_order, "recovery")
     common_recovery_order = (
-        "PrivilegeStateRestoredIfChanged=RestorePrivilege()",
-        "ChildAndJobTerminatedIfCreated=TerminateChildAndJob()",
-        "JobEmptyIfCreated=VerifyJobEmpty()", "HandlesClosed=CloseHandles()",
-        "GuardsStable=VerifyGuards()", "ZeroFixtureProcesses=VerifyFixtureProcesses()",
-        "ZeroGameProcesses=VerifyGameProcesses()",
+        "boolregistry=RestoreRegistryImpersonation();",
+        "boolenvironment=ReleaseEnvironment();", "boolprivilege=RestorePrivilege();",
+        "booltermination=TerminateChildAndJob();", "boolempty=VerifyJobEmpty();",
+        "boolhandles=CloseHandles();", "boolguards=VerifyGuards();",
+        "boolfixtureProcesses=VerifyFixtureProcesses();",
+        "boolgameProcesses=VerifyGameProcesses();", "returnnewAbortCleanupFacts",
     )
-    position = -1
-    for value in common_recovery_order:
-        next_position = compact.find(value, position + 1)
-        if next_position < 0:
-            raise VerificationError("common recovery order " + value)
-        position = next_position
+    common_cleanup = extract_block(common_class,
+        "protectedoverrideAbortCleanupFactsCollectAbortCleanupFacts()", "common cleanup")
+    require_order(common_cleanup, common_recovery_order, "common recovery")
     locked_start = compact.find("internalinterfaceILockedPreflightPort")
     locked_end = compact.find("internalenumControllerRoute", locked_start)
     locked_surface = compact[locked_start:locked_end]
@@ -218,14 +292,24 @@ def verify_engine(engine: str, tests: str, readme: str, workflow: str) -> None:
             "WindowFacts", "CaptureFacts", "InputGuardFacts", "SendInputFacts", "Terminate"):
         if forbidden_locked in locked_surface:
             raise VerificationError("locked port authority " + forbidden_locked)
-    if "if(runStarted)returnfalse;" not in compact or "runStarted=true;" not in compact:
+    if "privatereadonlyobjectrunGate=newobject();" not in compact or \
+            "lock(runGate){if(runStarted)returnfalse;runStarted=true;State=AttemptState.Start(scenario);" not in compact:
         raise VerificationError("one-run guard")
     if "ControllerFailureCategory.CleanupFailure" not in compact or \
             "ControllerFailureCategory.ReentrantRun" not in compact:
         raise VerificationError("fixed failure categories")
+    assert_body = extract_block(test_compact, "privatestaticvoidAssert(boolvalue)", "test assertion")
+    if assert_body != 'assertions++;if(!value)thrownewInvalidOperationException(""+assertions.ToString());':
+        raise VerificationError("test assertion body")
+    main_body = extract_block(test_compact, "privatestaticintMain()", "test main")
+    require_order(main_body, ("SuccessCase(", "FailureCases(", "RejectedFactsCases(",
+        "PermitOneUseCase();", "AbortFailureCases();", "AcquireThenThrowCases();",
+        "ReentrantRunCase();", "ConcurrentRunCase();", "Console.WriteLine("), "test main")
     for required in (
         "FailureCases(", "RejectedFactsCases(", "AbortFailureCases()", "ReentrantRunCase()",
-        "for(intindex=0;index<7;index++)", "ExactRecoveryCalls(1)",
+        "AcquireThenThrowCases()", "FailAfterAcquisition=true", "Acquired(stage)",
+        "ConcurrentRunCase()", "secondFinishedBeforeRelease", "ThreadStart(runner.RunFirst)",
+        "for(intindex=0;index<10;index++)", "ExactRecoveryCalls(1)",
         "ControllerFailureCategory.CleanupFailure", "ControllerFailureCategory.ReentrantRun",
         "OriginalExecutionAttempts==0", 'Console.WriteLine(""+assertions.ToString())',
     ):
@@ -235,14 +319,14 @@ def verify_engine(engine: str, tests: str, readme: str, workflow: str) -> None:
             any("secret" in value.lower() for value in strings):
         raise VerificationError("secret-exception test boundary")
     for required in (
-        "build-unpinned scaffolding", "no native adapter may be", "PASS 1104",
+        "build-unpinned scaffolding", "no native adapter may be", "PASS 1235",
         "no production image", "original executable",
     ):
         if required.lower() not in readme.lower():
             raise VerificationError("engine README boundary " + required)
     for required in (
         "verify_controller_engine.py self-test", "ControllerEngineTests.exe",
-        "/main:Cm0102.SyntheticLauncherController.ControllerEngineTests", "PASS 1104",
+        "/main:Cm0102.SyntheticLauncherController.ControllerEngineTests", "PASS 1235",
     ):
         if required not in workflow:
             raise VerificationError("workflow engine gate " + required)
@@ -255,15 +339,17 @@ def require_main_count(compact: str) -> int:
 def run_git(repo: pathlib.Path, arguments: list[str]) -> bytes:
     environment = {
         "PATH": "/usr/bin:/bin", "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_NO_REPLACE_OBJECTS": "1",
         "GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": "core.hooksPath",
         "GIT_CONFIG_VALUE_0": "/dev/null", "GIT_CONFIG_KEY_1": "extensions.objectFormat",
         "GIT_CONFIG_VALUE_1": "sha1", "LC_ALL": "C",
     }
-    completed = subprocess.run([os.fspath(GIT), "-c", "protocol.file.allow=never",
+    completed = subprocess.run([os.fspath(GIT), "--no-replace-objects",
+        "-c", "protocol.file.allow=never",
         "-c", "core.fsmonitor=false", *arguments], cwd=repo, env=environment,
         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         timeout=20, check=False)
-    if completed.returncode != 0:
+    if completed.returncode != 0 or completed.stderr or len(completed.stdout) > MAX_BYTES:
         raise VerificationError("Git command failed")
     return completed.stdout
 
@@ -279,6 +365,25 @@ def validate_commit(repo: pathlib.Path, commit: str) -> None:
         raise VerificationError("source commit is not exact HEAD")
 
 
+def verify_inventory(repo: pathlib.Path, commit: str) -> None:
+    prefix = CONTROLLER_DIRECTORY + "/"
+    committed = run_git(repo, ["ls-tree", "-r", "--name-only", commit, "--",
+        CONTROLLER_DIRECTORY]).decode("ascii", "strict").splitlines()
+    expected = [prefix + name for name in EXPECTED_CONTROLLER_FILES]
+    if committed != sorted(expected):
+        raise VerificationError("controller commit inventory")
+    directory = repo / CONTROLLER_DIRECTORY
+    require_path_components(directory)
+    observed = []
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            if entry.is_symlink() or not entry.is_file(follow_symlinks=False):
+                raise VerificationError("controller filesystem inventory type")
+            observed.append(entry.name)
+    if sorted(observed) != sorted(EXPECTED_CONTROLLER_FILES):
+        raise VerificationError("controller filesystem inventory")
+
+
 def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str]]:
     if not GIT.is_file() or not repo_argument.is_absolute() or \
             repo_argument.resolve(strict=True) != repo_argument:
@@ -290,6 +395,7 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str
     if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
         raise VerificationError("verifier is not executing from canonical path")
     validate_commit(repo, commit)
+    verify_inventory(repo, commit)
     captured: dict[str, bytes] = {}
     identities: dict[str, tuple[int, str]] = {}
     for relative in BOUND_PATHS:
@@ -308,6 +414,7 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str
     for relative, original in captured.items():
         if read_bound(repo / relative) != original:
             raise VerificationError(relative + " changed across aggregate verification")
+    verify_inventory(repo, commit)
     validate_commit(repo, commit)
     return identities
 
@@ -320,12 +427,20 @@ def self_test() -> None:
     tests = decode_source(read_bound(repo / TEST_PATH), "tests")
     readme = read_bound(repo / README_PATH).decode("ascii", "strict")
     workflow = read_bound(repo / WORKFLOW_PATH).decode("ascii", "strict")
+    workflow_raw = read_bound(repo / WORKFLOW_PATH)
+    if identity(workflow_raw) != FROZEN_IDENTITIES[WORKFLOW_PATH]:
+        raise AssertionError("workflow frozen identity")
     verify_engine(engine, tests, readme, workflow)
     mutations = (
         "System.IO.File.ReadAllText(\"x\")", "System.Diagnostics.Process.Start(\"x\")",
         "[DllImport(\"x\")] extern static void X();", "unsafe { }", "dynamic value",
         "System.Reflection.Assembly.Load(\"x\")", "DateTime.UtcNow", "delegate { }",
         "Func<int> value = () => 1", "Console.OpenStandardInput()",
+        "System.Security.Principal.WindowsIdentity.GetCurrent()",
+        "System.Security.Cryptography.RandomNumberGenerator.Create()",
+        "new System.Timers.Timer()",
+        "System.CodeDom.Compiler.CodeDomProvider.CreateProvider(\"x\")",
+        "new string(new char[] { (char)80 })",
     )
     for mutation in mutations:
         try:
@@ -334,6 +449,55 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted authority mutation")
+    disabled_assert = tests.replace(
+        'if (!value) throw new InvalidOperationException("assertion-failed-" + assertions.ToString());',
+        "if (!value) assertions++;")
+    try:
+        verify_engine(engine, disabled_assert, readme, workflow)
+    except VerificationError:
+        pass
+    else:
+        raise AssertionError("accepted disabled assertion")
+    relocated_policy = engine.replace("ControllerPolicy.Window(State, Scenario,",
+        "ControllerPolicy.DisabledWindow(State, Scenario,", 1) + "\nControllerPolicy.Window(\n"
+    try:
+        verify_engine(relocated_policy, tests, readme, workflow)
+    except VerificationError:
+        pass
+    else:
+        raise AssertionError("accepted relocated policy call")
+    for suffix in (b"\nif: false\n", b"\ncontinue-on-error: true\n", b"\nexit 0\n"):
+        if identity(workflow_raw + suffix) == FROZEN_IDENTITIES[WORKFLOW_PATH]:
+            raise AssertionError("accepted workflow mutation")
+    with tempfile.TemporaryDirectory() as directory:
+        replacement_repo = pathlib.Path(directory)
+        git_environment = {
+            "PATH": "/usr/bin:/bin", "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": "/dev/null", "LC_ALL": "C",
+        }
+        def control_git(arguments: list[str]) -> bytes:
+            completed = subprocess.run([os.fspath(GIT), *arguments], cwd=replacement_repo,
+                env=git_environment, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, timeout=10, check=False)
+            if completed.returncode != 0:
+                raise AssertionError("replacement control setup")
+            return completed.stdout
+        control_git(["init", "--quiet"])
+        control_git(["config", "user.name", "controller-engine-self-test"])
+        control_git(["config", "user.email", "controller-engine-self-test.invalid"])
+        marker = replacement_repo / "marker"
+        marker.write_text("first\n", encoding="ascii")
+        control_git(["add", "marker"])
+        control_git(["commit", "--quiet", "-m", "first"])
+        first = control_git(["rev-parse", "HEAD"]).decode("ascii").strip()
+        marker.write_text("replacement\n", encoding="ascii")
+        control_git(["commit", "--quiet", "-am", "replacement"])
+        replacement = control_git(["rev-parse", "HEAD"]).decode("ascii").strip()
+        control_git(["replace", first, replacement])
+        if control_git(["show", first + ":marker"]) != b"replacement\n":
+            raise AssertionError("replacement control inactive")
+        if run_git(replacement_repo, ["show", first + ":marker"]) != b"first\n":
+            raise AssertionError("replacement object affected bound Git read")
     with tempfile.TemporaryDirectory() as directory:
         copied = pathlib.Path(directory) / pathlib.Path(__file__).name
         copied.write_bytes(pathlib.Path(__file__).read_bytes())

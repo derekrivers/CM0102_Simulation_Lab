@@ -4,6 +4,9 @@ namespace Cm0102.SyntheticLauncherController
 {
     internal interface IControllerRecoveryPort
     {
+        bool DiscardAndZeroFixedUnexpectedPixels();
+        bool RestoreFixedRegistryImpersonationIfActive();
+        bool ReleaseFixedEnvironmentIfAllocated();
         bool RestoreFixedPrivilegeIfChanged();
         bool TerminateFixedChildAndJobIfCreated();
         bool VerifyFixedJobEmptyIfCreated();
@@ -52,8 +55,11 @@ namespace Cm0102.SyntheticLauncherController
         BindingFacts BindFixedInputs();
         PreflightFacts ObserveFixedPreflight();
         LockedCleanupFacts CleanupFixedLockedRefusal();
-        bool VerifyFixedProcessCreationCapabilityAbsent();
-        bool VerifyFixedProcessCreationNotAttempted();
+        bool VerifyFixedCaptureCapabilityAbsent();
+        bool VerifyFixedRegistryImpersonationCapabilityAbsent();
+        bool VerifyFixedEnvironmentAllocationCapabilityAbsent();
+        bool VerifyFixedPrivilegeAdjustmentCapabilityAbsent();
+        bool VerifyFixedProcessCreationAbsentAndNotAttempted();
         bool VerifyFixedNoChildOrJobCreated();
         bool VerifyFixedNoProcessOrTokenHandlesOpened();
         bool VerifyFixedLockedGuardsStable();
@@ -109,6 +115,7 @@ namespace Cm0102.SyntheticLauncherController
     {
         private readonly string scenario;
         private readonly ControllerRoute route;
+        private readonly object runGate = new object();
         private bool runStarted;
         private ControllerFailureCategory failureCategory;
         private AttemptStage failureStage;
@@ -126,14 +133,17 @@ namespace Cm0102.SyntheticLauncherController
 
         protected bool StartRun()
         {
-            if (runStarted) return false;
-            runStarted = true;
-            State = AttemptState.Start(scenario);
-            failureCategory = ControllerFailureCategory.None;
-            failureStage = 0;
-            cleanupAccepted = false;
-            rebindAccepted = false;
-            return true;
+            lock (runGate)
+            {
+                if (runStarted) return false;
+                runStarted = true;
+                State = AttemptState.Start(scenario);
+                failureCategory = ControllerFailureCategory.None;
+                failureStage = 0;
+                cleanupAccepted = false;
+                rebindAccepted = false;
+                return true;
+            }
         }
 
         protected bool Accept(AttemptStage stage, ControllerPolicy.Permit permit)
@@ -170,17 +180,19 @@ namespace Cm0102.SyntheticLauncherController
         }
 
         protected abstract AbortCleanupFacts CollectAbortCleanupFacts();
+        protected abstract bool DiscardUnexpectedPixelsBeforeAbort();
         protected abstract RebindFacts RebindAfterAbort();
 
         protected ControllerEngineResult Abort()
         {
+            bool pixelsDiscarded = DiscardUnexpectedPixelsBeforeAbort();
             ControllerPolicy.Permit abortPermit = ControllerPolicy.Abort(State, scenario,
                 new AbortFacts
                 {
                     FailureRecorded = true,
                     NoFurtherAuthorityAttempted = true,
                     OriginalExecutionNotAttempted = true,
-                    UnexpectedPixelsDiscardedAndZeroed = true
+                    UnexpectedPixelsDiscardedAndZeroed = pixelsDiscarded
                 });
             bool began = State.BeginAbort(abortPermit);
 
@@ -195,7 +207,7 @@ namespace Cm0102.SyntheticLauncherController
             rebindAccepted = State.Advance(rebindPermit);
 
             bool terminal = State.Complete(AttemptTerminal.Ineligible);
-            bool cleanupFailed = !began || cleanupFacts == null ||
+            bool cleanupFailed = !pixelsDiscarded || !began || cleanupFacts == null ||
                 !cleanupFacts.PrivilegeStateRestoredIfChanged ||
                 !cleanupFacts.ChildAndJobTerminatedIfCreated || !cleanupFacts.JobEmptyIfCreated ||
                 !cleanupFacts.HandlesClosed || !cleanupFacts.GuardsStable ||
@@ -232,6 +244,24 @@ namespace Cm0102.SyntheticLauncherController
             ICommonControllerPort fixedPort) : base(fixedScenario, fixedRoute)
         {
             port = fixedPort;
+        }
+
+        protected override bool DiscardUnexpectedPixelsBeforeAbort()
+        {
+            try { return port.DiscardAndZeroFixedUnexpectedPixels(); }
+            catch (Exception) { return false; }
+        }
+
+        private bool RestoreRegistryImpersonation()
+        {
+            try { return port.RestoreFixedRegistryImpersonationIfActive(); }
+            catch (Exception) { return false; }
+        }
+
+        private bool ReleaseEnvironment()
+        {
+            try { return port.ReleaseFixedEnvironmentIfAllocated(); }
+            catch (Exception) { return false; }
         }
 
         private bool RestorePrivilege()
@@ -278,15 +308,24 @@ namespace Cm0102.SyntheticLauncherController
 
         protected override AbortCleanupFacts CollectAbortCleanupFacts()
         {
+            bool registry = RestoreRegistryImpersonation();
+            bool environment = ReleaseEnvironment();
+            bool privilege = RestorePrivilege();
+            bool termination = TerminateChildAndJob();
+            bool empty = VerifyJobEmpty();
+            bool handles = CloseHandles();
+            bool guards = VerifyGuards();
+            bool fixtureProcesses = VerifyFixtureProcesses();
+            bool gameProcesses = VerifyGameProcesses();
             return new AbortCleanupFacts
             {
-                PrivilegeStateRestoredIfChanged = RestorePrivilege(),
-                ChildAndJobTerminatedIfCreated = TerminateChildAndJob(),
-                JobEmptyIfCreated = VerifyJobEmpty(),
-                HandlesClosed = CloseHandles(),
-                GuardsStable = VerifyGuards(),
-                ZeroFixtureProcesses = VerifyFixtureProcesses(),
-                ZeroGameProcesses = VerifyGameProcesses()
+                PrivilegeStateRestoredIfChanged = registry && privilege,
+                ChildAndJobTerminatedIfCreated = termination,
+                JobEmptyIfCreated = empty,
+                HandlesClosed = environment && handles,
+                GuardsStable = guards,
+                ZeroFixtureProcesses = fixtureProcesses,
+                ZeroGameProcesses = gameProcesses
             };
         }
 
@@ -450,15 +489,33 @@ namespace Cm0102.SyntheticLauncherController
             port = fixedPort;
         }
 
-        private bool VerifyCreationCapabilityAbsent()
+        protected override bool DiscardUnexpectedPixelsBeforeAbort()
         {
-            try { return port.VerifyFixedProcessCreationCapabilityAbsent(); }
+            try { return port.VerifyFixedCaptureCapabilityAbsent(); }
             catch (Exception) { return false; }
         }
 
-        private bool VerifyCreationNotAttempted()
+        private bool VerifyRegistryImpersonationAbsent()
         {
-            try { return port.VerifyFixedProcessCreationNotAttempted(); }
+            try { return port.VerifyFixedRegistryImpersonationCapabilityAbsent(); }
+            catch (Exception) { return false; }
+        }
+
+        private bool VerifyEnvironmentAllocationAbsent()
+        {
+            try { return port.VerifyFixedEnvironmentAllocationCapabilityAbsent(); }
+            catch (Exception) { return false; }
+        }
+
+        private bool VerifyPrivilegeAdjustmentAbsent()
+        {
+            try { return port.VerifyFixedPrivilegeAdjustmentCapabilityAbsent(); }
+            catch (Exception) { return false; }
+        }
+
+        private bool VerifyCreationAbsentAndNotAttempted()
+        {
+            try { return port.VerifyFixedProcessCreationAbsentAndNotAttempted(); }
             catch (Exception) { return false; }
         }
 
@@ -494,18 +551,24 @@ namespace Cm0102.SyntheticLauncherController
 
         protected override AbortCleanupFacts CollectAbortCleanupFacts()
         {
-            bool absent = VerifyCreationCapabilityAbsent();
-            bool notAttempted = VerifyCreationNotAttempted();
+            bool registry = VerifyRegistryImpersonationAbsent();
+            bool environment = VerifyEnvironmentAllocationAbsent();
+            bool privilege = VerifyPrivilegeAdjustmentAbsent();
+            bool creation = VerifyCreationAbsentAndNotAttempted();
             bool noChildOrJob = VerifyNoChildOrJob();
+            bool noHandles = VerifyNoHandles();
+            bool guards = VerifyLockedGuards();
+            bool fixtureProcesses = VerifyLockedFixtureProcesses();
+            bool gameProcesses = VerifyLockedGameProcesses();
             return new AbortCleanupFacts
             {
-                PrivilegeStateRestoredIfChanged = absent && notAttempted,
-                ChildAndJobTerminatedIfCreated = noChildOrJob,
+                PrivilegeStateRestoredIfChanged = registry && privilege,
+                ChildAndJobTerminatedIfCreated = creation && noChildOrJob,
                 JobEmptyIfCreated = noChildOrJob,
-                HandlesClosed = VerifyNoHandles(),
-                GuardsStable = VerifyLockedGuards(),
-                ZeroFixtureProcesses = VerifyLockedFixtureProcesses(),
-                ZeroGameProcesses = VerifyLockedGameProcesses()
+                HandlesClosed = environment && noHandles,
+                GuardsStable = guards,
+                ZeroFixtureProcesses = fixtureProcesses,
+                ZeroGameProcesses = gameProcesses
             };
         }
 

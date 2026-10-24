@@ -12,11 +12,15 @@ namespace Cm0102.SyntheticLauncherController
         private readonly bool invalidFacts;
         private bool failureInjected;
 
-        private readonly int[] recoveryCalls = new int[7];
+        private readonly int[] recoveryCalls = new int[10];
+        private readonly bool[] acquired = new bool[23];
         internal int OriginalExecutionAttempts;
         internal int FailedRecoveryIndex = -1;
         internal bool ThrowRecoveryFailure;
         internal bool FailAbortRebind;
+        internal bool FailAfterAcquisition;
+        internal System.Threading.ManualResetEvent BindEntered;
+        internal System.Threading.ManualResetEvent ReleaseBind;
 
         internal FakeCapabilities(string scenarioId)
         {
@@ -39,7 +43,11 @@ namespace Cm0102.SyntheticLauncherController
             if (hasFailure && !failureInjected && failureStage == stage)
             {
                 failureInjected = true;
-                if (!invalidFacts) throw new InvalidOperationException("synthetic-failure");
+                if (!invalidFacts)
+                {
+                    if (FailAfterAcquisition) acquired[(int)stage] = true;
+                    throw new InvalidOperationException("synthetic-failure");
+                }
                 return false;
             }
             return true;
@@ -53,6 +61,11 @@ namespace Cm0102.SyntheticLauncherController
         internal int RecoveryCalls(int index)
         {
             return recoveryCalls[index];
+        }
+
+        internal bool Acquired(AttemptStage stage)
+        {
+            return acquired[(int)stage];
         }
 
         internal int TotalCalls()
@@ -356,7 +369,13 @@ namespace Cm0102.SyntheticLauncherController
 
         public BindingFacts BindFixedInputs()
         {
-            return Call(AttemptStage.BindInputs) ? Binding() : null;
+            bool accepted = Call(AttemptStage.BindInputs);
+            if (BindEntered != null)
+            {
+                BindEntered.Set();
+                ReleaseBind.WaitOne();
+            }
+            return accepted ? Binding() : null;
         }
 
         public PreflightFacts ObserveFixedPreflight()
@@ -475,21 +494,27 @@ namespace Cm0102.SyntheticLauncherController
             return false;
         }
 
-        public bool RestoreFixedPrivilegeIfChanged() { return Recover(0); }
-        public bool TerminateFixedChildAndJobIfCreated() { return Recover(1); }
-        public bool VerifyFixedJobEmptyIfCreated() { return Recover(2); }
-        public bool CloseFixedHandles() { return Recover(3); }
-        public bool VerifyFixedGuardsStable() { return Recover(4); }
-        public bool VerifyZeroFixedFixtureProcesses() { return Recover(5); }
-        public bool VerifyZeroFixedGameProcesses() { return Recover(6); }
+        public bool DiscardAndZeroFixedUnexpectedPixels() { return Recover(0); }
+        public bool RestoreFixedRegistryImpersonationIfActive() { return Recover(1); }
+        public bool ReleaseFixedEnvironmentIfAllocated() { return Recover(2); }
+        public bool RestoreFixedPrivilegeIfChanged() { return Recover(3); }
+        public bool TerminateFixedChildAndJobIfCreated() { return Recover(4); }
+        public bool VerifyFixedJobEmptyIfCreated() { return Recover(5); }
+        public bool CloseFixedHandles() { return Recover(6); }
+        public bool VerifyFixedGuardsStable() { return Recover(7); }
+        public bool VerifyZeroFixedFixtureProcesses() { return Recover(8); }
+        public bool VerifyZeroFixedGameProcesses() { return Recover(9); }
 
-        public bool VerifyFixedProcessCreationCapabilityAbsent() { return Recover(0); }
-        public bool VerifyFixedProcessCreationNotAttempted() { return Recover(1); }
-        public bool VerifyFixedNoChildOrJobCreated() { return Recover(2); }
-        public bool VerifyFixedNoProcessOrTokenHandlesOpened() { return Recover(3); }
-        public bool VerifyFixedLockedGuardsStable() { return Recover(4); }
-        public bool VerifyZeroFixedLockedFixtureProcesses() { return Recover(5); }
-        public bool VerifyZeroFixedLockedGameProcesses() { return Recover(6); }
+        public bool VerifyFixedCaptureCapabilityAbsent() { return Recover(0); }
+        public bool VerifyFixedRegistryImpersonationCapabilityAbsent() { return Recover(1); }
+        public bool VerifyFixedEnvironmentAllocationCapabilityAbsent() { return Recover(2); }
+        public bool VerifyFixedPrivilegeAdjustmentCapabilityAbsent() { return Recover(3); }
+        public bool VerifyFixedProcessCreationAbsentAndNotAttempted() { return Recover(4); }
+        public bool VerifyFixedNoChildOrJobCreated() { return Recover(5); }
+        public bool VerifyFixedNoProcessOrTokenHandlesOpened() { return Recover(6); }
+        public bool VerifyFixedLockedGuardsStable() { return Recover(7); }
+        public bool VerifyZeroFixedLockedFixtureProcesses() { return Recover(8); }
+        public bool VerifyZeroFixedLockedGameProcesses() { return Recover(9); }
 
         private RebindFacts RebindInternal()
         {
@@ -503,6 +528,28 @@ namespace Cm0102.SyntheticLauncherController
 
         public RebindFacts RebindFixedInputsForPublication() { return RebindInternal(); }
         public RebindFacts RebindFixedLockedInputsForPublication() { return RebindInternal(); }
+    }
+
+    internal sealed class ConcurrentEngineRunner
+    {
+        internal readonly UiControllerEngine Engine;
+        internal ControllerEngineResult FirstResult;
+        internal ControllerEngineResult SecondResult;
+
+        internal ConcurrentEngineRunner(UiControllerEngine engine)
+        {
+            Engine = engine;
+        }
+
+        internal void RunFirst()
+        {
+            FirstResult = Engine.Run();
+        }
+
+        internal void RunSecond()
+        {
+            SecondResult = Engine.Run();
+        }
     }
 
     internal static class ControllerEngineTests
@@ -630,7 +677,7 @@ namespace Cm0102.SyntheticLauncherController
 
         private static void AbortFailureCases()
         {
-            for (int index = 0; index < 7; index++)
+            for (int index = 0; index < 10; index++)
             {
                 FakeCapabilities cleanupFailure = new FakeCapabilities(
                     "ui-success-v1", AttemptStage.BindInputs, false);
@@ -665,6 +712,37 @@ namespace Cm0102.SyntheticLauncherController
             Assert(!rebindResult.OriginalExecutionAttempted && rebindFailure.OriginalExecutionAttempts == 0);
         }
 
+        private static void AcquireThenThrowCases()
+        {
+            AttemptStage[] stages = new AttemptStage[]
+            {
+                AttemptStage.RegistryDenial, AttemptStage.Environment,
+                AttemptStage.CreateApproved, AttemptStage.CreateSuspended,
+                AttemptStage.WindowReady, AttemptStage.ReadyCaptureOne,
+                AttemptStage.ReadyCaptureTwo, AttemptStage.CompleteCaptureOne,
+                AttemptStage.CompleteCaptureTwo
+            };
+            for (int caseIndex = 0; caseIndex < stages.Length; caseIndex++)
+            {
+                AttemptStage stage = stages[caseIndex];
+                int routeIndex = 0;
+                while (UiRoute[routeIndex] != stage) routeIndex++;
+                FakeCapabilities fake = new FakeCapabilities("ui-success-v1", stage, false);
+                fake.FailAfterAcquisition = true;
+                ControllerEngineResult result = new UiControllerEngine(fake).Run();
+                Assert(fake.Acquired(stage));
+                Assert(result.Terminal == AttemptTerminal.Ineligible);
+                Assert(result.FailureCategory == ControllerFailureCategory.CapabilityException);
+                Assert(result.FailureStage == stage);
+                Assert(result.StateTerminal);
+                Assert(result.CleanupAccepted);
+                Assert(result.RebindAccepted);
+                Assert(fake.ExactRecoveryCalls(1));
+                Assert(fake.ExactFailureCalls(UiRoute, routeIndex));
+                Assert(!result.OriginalExecutionAttempted && fake.OriginalExecutionAttempts == 0);
+            }
+        }
+
         private static void ReentrantRunCase()
         {
             FakeCapabilities fake = new FakeCapabilities("ui-success-v1");
@@ -684,6 +762,38 @@ namespace Cm0102.SyntheticLauncherController
             Assert(fake.OriginalExecutionAttempts == 0);
         }
 
+        private static void ConcurrentRunCase()
+        {
+            FakeCapabilities fake = new FakeCapabilities("ui-success-v1");
+            fake.BindEntered = new System.Threading.ManualResetEvent(false);
+            fake.ReleaseBind = new System.Threading.ManualResetEvent(false);
+            ConcurrentEngineRunner runner = new ConcurrentEngineRunner(new UiControllerEngine(fake));
+            System.Threading.Thread first = new System.Threading.Thread(
+                new System.Threading.ThreadStart(runner.RunFirst));
+            System.Threading.Thread second = new System.Threading.Thread(
+                new System.Threading.ThreadStart(runner.RunSecond));
+            first.Start();
+            bool bindEntered = fake.BindEntered.WaitOne(5000);
+            second.Start();
+            bool secondFinishedBeforeRelease = second.Join(5000);
+            fake.ReleaseBind.Set();
+            bool firstFinished = first.Join(5000);
+            if (!secondFinishedBeforeRelease) second.Join(5000);
+            Assert(bindEntered);
+            Assert(secondFinishedBeforeRelease);
+            Assert(firstFinished);
+            Assert(runner.SecondResult != null);
+            Assert(runner.SecondResult.FailureCategory == ControllerFailureCategory.ReentrantRun);
+            Assert(fake.Calls(AttemptStage.BindInputs) == 1);
+            Assert(runner.FirstResult != null);
+            Assert(runner.FirstResult.Terminal == AttemptTerminal.UiComplete);
+            Assert(fake.Calls(AttemptStage.BindInputs) == 1);
+            Assert(fake.ExactRecoveryCalls(0));
+            Assert(fake.OriginalExecutionAttempts == 0);
+            fake.BindEntered.Close();
+            fake.ReleaseBind.Close();
+        }
+
         private static int Main()
         {
             SuccessCase("ui-success-v1", ControllerRoute.UiSuccess,
@@ -700,7 +810,9 @@ namespace Cm0102.SyntheticLauncherController
             RejectedFactsCases("locked-refusal-v1", ControllerRoute.LockedRefusal, LockedRoute);
             PermitOneUseCase();
             AbortFailureCases();
+            AcquireThenThrowCases();
             ReentrantRunCase();
+            ConcurrentRunCase();
             Console.WriteLine("PASS " + assertions.ToString());
             return 0;
         }

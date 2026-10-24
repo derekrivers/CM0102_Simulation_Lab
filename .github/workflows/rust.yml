@@ -81,5 +81,20 @@ jobs:
           "/reference:$framework\mscorlib.dll" "/reference:$framework\System.dll" "/out:$output" `
           $policy $engine $tests
         if ($LASTEXITCODE -ne 0) { throw 'engine compilation failed' }
-        $actual = (& $output | Out-String).Trim()
-        if ($LASTEXITCODE -ne 0 -or $actual -cne 'PASS 1104') { throw "unexpected engine result: $actual" }
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $output
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        $process = [System.Diagnostics.Process]::new()
+        $process.StartInfo = $startInfo
+        if (-not $process.Start()) { throw 'engine test start failed' }
+        if (-not $process.WaitForExit(30000)) {
+          $process.Kill()
+          throw 'engine test timed out'
+        }
+        $actual = $process.StandardOutput.ReadToEnd().Trim()
+        $diagnostics = $process.StandardError.ReadToEnd().Trim()
+        if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS 1235') {
+          throw "unexpected engine result: $actual"
+        }

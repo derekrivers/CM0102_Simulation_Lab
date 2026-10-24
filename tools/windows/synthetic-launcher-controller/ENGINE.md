@@ -20,11 +20,14 @@ Every forward port call is followed by its matching policy decision and
 one-use permit consumption before the next call is lexically reachable. An
 exception, rejected fact set, null permit, or rejected state transition stops
 all later forward authority and enters one bounded abort pass. The pass attempts
-all seven fixed recovery operations independently, even after an exception,
+all ten fixed recovery operations independently, even after an exception,
 then attempts policy cleanup and one rebind. A recovery, rebind, or terminal
 failure is reported only as the fixed `CleanupFailure` category. Exception
 types, messages, stacks, paths, handles, pixels, and environment contents never
-enter the result. A second `Run` is rejected before another port call.
+enter the result. Pixel discard/zeroing occurs before the abort permit, while
+registry impersonation restoration and environment-block release are mandatory
+cleanup inputs. Sequential or concurrent second `Run` calls are rejected before
+another port call.
 
 This remains build-unpinned scaffolding. It does not bind the supervisor,
 controller, locked-preflight, timeout-root, timeout-child, runtime profile,
@@ -35,7 +38,7 @@ game may run on the strength of this increment.
 
 The only executable artifact permitted here is the authority-free console test
 assembly built from `ControllerPolicy.cs`, `ControllerEngine.cs`, and
-`ControllerEngineTests.cs`. Its exact stdout is `PASS 1104`.
+`ControllerEngineTests.cs`. Its exact stdout is `PASS 1235`.
 
 Run the static checks with:
 
