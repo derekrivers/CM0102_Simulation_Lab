@@ -26,7 +26,7 @@ MAX_BYTES = 256 * 1024
 GIT = pathlib.Path("/usr/bin/git")
 WORKFLOW_SHA_PLACEHOLDER = "RUNTIME_BINDING_VERIFIER_SHA256"
 NORMALIZED_WORKFLOW_IDENTITY = (
-    8304, "d33de62313993bf2c40ff667e10c98f9698bcbad1883f3bfa36863a9d0f29833")
+    8426, "632dab3a69cf9a303f8f3f1d28f8c82251ec1bdaed7dec398d26a173bafa8bc7")
 
 # Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
 FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
@@ -152,10 +152,7 @@ def read_bound_at(root_descriptor: int, relative: str) -> bytes:
 
 
 def validate_execution_source(repo: pathlib.Path, expected_raw: bytes) -> None:
-    canonical = repo / VERIFIER_PATH
     executing = os.fspath(pathlib.Path(__file__).absolute())
-    if executing == os.fspath(canonical):
-        return
     match = re.fullmatch(r"/proc/self/fd/([0-9]+)", executing)
     if match is None:
         raise VerificationError("verifier execution source")
@@ -309,9 +306,17 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     readonly_fields = re.findall(r"internal\s+readonly\s+[A-Za-z0-9_.<>\[\]]+\s+([A-Z][A-Za-z0-9]+);",
         source)
     parameter_aliases = {"DeclaredBindingState": "bindingState", "DeclaredIdentity": "identity"}
+    enum_assignment_names = {"Supervisor", "Controller", "LockedPreflight", "UiFixture",
+        "TimeoutRoot", "TimeoutChild"}
     for field in set(readonly_fields):
         parameter = parameter_aliases.get(field, field[0].lower() + field[1:])
-        if compact.count(field + "=" + parameter + ";") < readonly_fields.count(field):
+        expected_assignments = readonly_fields.count(field)
+        exact_assignment = r"(?<![A-Za-z0-9_])" + re.escape(field) + "=" + \
+            re.escape(parameter) + ";"
+        any_assignment = r"(?<![A-Za-z0-9_])" + re.escape(field) + r"=(?!=)"
+        total_expected = expected_assignments + (1 if field in enum_assignment_names else 0)
+        if len(re.findall(exact_assignment, compact)) != expected_assignments or \
+                len(re.findall(any_assignment, compact)) != total_expected:
             raise VerificationError("readonly constructor normalization " + field)
     expected_strings = (
         "cm0102-synthetic-launcher-controller-runtime-v1",
@@ -328,7 +333,36 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     )
     if tuple(strings) != expected_strings:
         raise VerificationError("fixed production literal sequence")
+    exact_foundations = {
+        "internalenumRuntimeImageRole":
+            "Absent=0,Supervisor=1,Controller=2,LockedPreflight=3,UiFixture=4,TimeoutRoot=5,TimeoutChild=6",
+        "internalenumRuntimeImageBindingState": "Unbound=1,BoundNotRun=2",
+        "internalenumRuntimeBuildBinding": "BuildUnpinned=1,ImagesPinned=2",
+        "internalenumDeclaredFixtureStatus":
+            "NotRun=1,ExpectedTimeoutContained=2,Succeeded=3",
+        "internalstaticclassFixedRuntimeBindingContract":
+            "internalconststringProfileId=\"\";internalconstlongRuntimeProfileByteCount=5510;"
+            "internalconststringRuntimeProfileSha256=\"\";internalconstlongUiFixtureByteCount=14336;"
+            "internalconststringUiFixtureSha256=\"\";internalconstlongProcessMemoryLimitBytes=268435456;"
+            "internalconststringPublicConfigurationName=\"\";"
+            "internalconststringPrivateConfigurationName=\"\";internalconststringReportName=\"\";"
+            "internalstaticstringNameFor(RuntimeImageRolerole){switch(role){"
+            "caseRuntimeImageRole.Supervisor:return\"\";caseRuntimeImageRole.Controller:return\"\";"
+            "caseRuntimeImageRole.LockedPreflight:return\"\";caseRuntimeImageRole.UiFixture:return\"\";"
+            "caseRuntimeImageRole.TimeoutRoot:return\"\";caseRuntimeImageRole.TimeoutChild:return\"\";"
+            "default:returnnull;}}internalstaticboolIsScenario(stringvalue){"
+            "returnString.Equals(value,\"\",StringComparison.Ordinal)||"
+            "String.Equals(value,\"\",StringComparison.Ordinal)||"
+            "String.Equals(value,\"\",StringComparison.Ordinal);}",
+    }
+    for marker, expected_body in exact_foundations.items():
+        if extract_block(compact, marker, marker) != expected_body:
+            raise VerificationError("exact policy foundation " + marker)
     expected_bodies = {
+        "internalstaticstringNameFor(RuntimeImageRolerole)":
+            "switch(role){caseRuntimeImageRole.Supervisor:return\"\";caseRuntimeImageRole.Controller:return\"\";caseRuntimeImageRole.LockedPreflight:return\"\";caseRuntimeImageRole.UiFixture:return\"\";caseRuntimeImageRole.TimeoutRoot:return\"\";caseRuntimeImageRole.TimeoutChild:return\"\";default:returnnull;}",
+        "internalstaticboolIsScenario(stringvalue)":
+            "returnString.Equals(value,\"\",StringComparison.Ordinal)||String.Equals(value,\"\",StringComparison.Ordinal)||String.Equals(value,\"\",StringComparison.Ordinal);",
         "privatestaticboolExactContract(RuntimeContractFactsfacts)":
             "returnfacts!=null&&String.Equals(facts.ProfileId,FixedRuntimeBindingContract.ProfileId,StringComparison.Ordinal)&&ExactIdentity(facts.RuntimeProfile,FixedRuntimeBindingContract.RuntimeProfileByteCount,FixedRuntimeBindingContract.RuntimeProfileSha256)&&facts.BuildBinding==RuntimeBuildBinding.BuildUnpinned&&facts.PublicBuildManifestBindingUnbound&&facts.PublicBuildManifestBindingIdentity==null&&facts.LiveExecutionNotRun&&facts.ProcessCreationUnreachable&&facts.QualificationIneligible&&facts.OriginalExecutionNotRun&&facts.OriginalBehaviorUnqualified&&facts.NoImageExecutionObserved&&facts.NoObjectObservationAttempted&&facts.NoLiveJobObservationAttempted;",
         "privatestaticboolExactUnboundImage(RuntimeImageDeclarationFactsfacts,RuntimeImageRolerole)":
@@ -644,6 +678,10 @@ def self_test() -> None:
             "facts.PublicBuildManifestBindingIdentity != null"),
         ("facts.LiveExecutionNotRun && facts.ProcessCreationUnreachable",
             "facts.LiveExecutionNotRun && !facts.ProcessCreationUnreachable"),
+        ("RuntimeProfileByteCount = 5510", "RuntimeProfileByteCount = 1"),
+        ("UiFixtureByteCount = 14336", "UiFixtureByteCount = 1"),
+        ("ProcessMemoryLimitBytes = 268435456", "ProcessMemoryLimitBytes = 1"),
+        ("Supervisor = 1", "Supervisor = 9"),
     ):
         changed = source.replace(old, new, 1)
         try:
@@ -659,6 +697,17 @@ def self_test() -> None:
         (source.replace("facts.RequireNoReparsePoints &&",
             "!facts.RequireNoReparsePoints &&"),
          tests.replace("bool noReparse = true;", "bool noReparse = false;")),
+        (source.replace("RequireNoReparsePoints = requireNoReparsePoints;",
+            "RequireNoReparsePoints = requireNoReparsePoints;\n"
+            "            RequireNoReparsePoints = true;"),
+         tests.replace("bool noReparse = true;", "bool noReparse = false;")),
+        (source.replace(
+            'case RuntimeImageRole.Supervisor: return "SyntheticLauncherSupervisor.exe";',
+            'case RuntimeImageRole.Controller: return "SyntheticLauncherSupervisor.exe";', 1).replace(
+            'case RuntimeImageRole.Controller: return "SyntheticLauncherController.exe";',
+            'case RuntimeImageRole.Supervisor: return "SyntheticLauncherController.exe";', 1), tests),
+        (source.replace("StringComparison.Ordinal) ||",
+            "StringComparison.OrdinalIgnoreCase) ||", 1), tests),
     )
     for changed_source, changed_tests in synchronized:
         try:
