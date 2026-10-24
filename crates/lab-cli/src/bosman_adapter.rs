@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::process::CommandExt;
@@ -59,12 +59,6 @@ fn run_protocol() -> Result<(), String> {
         true,
     )?;
     verify_file(
-        "clean manifest",
-        &config.clean_manifest,
-        &request.input_identities[parameters.input_slots.clean_manifest],
-        false,
-    )?;
-    verify_file(
         "smoke runner",
         &config.smoke_runner,
         &request.input_identities[parameters.input_slots.smoke_runner],
@@ -76,7 +70,11 @@ fn run_protocol() -> Result<(), String> {
         &request.input_identities[parameters.input_slots.python_interpreter],
         true,
     )?;
-    let clean_count = verify_clean_tree(&config.clean_game_dir, &config.clean_manifest)?;
+    let clean_count = verify_clean_tree(
+        &config.clean_game_dir,
+        &config.clean_manifest,
+        &request.input_identities[parameters.input_slots.clean_manifest],
+    )?;
 
     emit(
         &request,
@@ -166,7 +164,11 @@ fn run_protocol() -> Result<(), String> {
         &request.input_identities[parameters.input_slots.smoke_runner],
         false,
     )?;
-    verify_clean_tree(&config.clean_game_dir, &config.clean_manifest)?;
+    verify_clean_tree(
+        &config.clean_game_dir,
+        &config.clean_manifest,
+        &request.input_identities[parameters.input_slots.clean_manifest],
+    )?;
 
     emit(
         &request,
@@ -259,13 +261,25 @@ fn verify_file(
     Ok(file)
 }
 
-fn verify_clean_tree(game_dir: &Path, manifest_path: &Path) -> Result<usize, String> {
+fn verify_clean_tree(
+    game_dir: &Path,
+    manifest_path: &Path,
+    manifest_identity: &InputIdentity,
+) -> Result<usize, String> {
     let root_metadata = fs::symlink_metadata(game_dir)
         .map_err(|error| format!("inspect clean game directory: {error}"))?;
     if !root_metadata.file_type().is_dir() || root_metadata.permissions().mode() & 0o222 != 0 {
         return Err("clean game directory must be a read-only, non-symlink directory".to_owned());
     }
-    let manifest = parse_manifest(manifest_path)?;
+    let mut manifest_file = verify_file("clean manifest", manifest_path, manifest_identity, false)?;
+    manifest_file
+        .seek(SeekFrom::Start(0))
+        .map_err(|error| format!("rewind clean manifest: {error}"))?;
+    let mut manifest_text = String::new();
+    manifest_file
+        .read_to_string(&mut manifest_text)
+        .map_err(|error| format!("read verified clean manifest: {error}"))?;
+    let manifest = parse_manifest_text(&manifest_text)?;
     let actual = collect_tree(game_dir, game_dir)?;
     if actual.len() != manifest.len() {
         return Err(format!(
@@ -291,8 +305,7 @@ fn verify_clean_tree(game_dir: &Path, manifest_path: &Path) -> Result<usize, Str
     Ok(manifest.len())
 }
 
-fn parse_manifest(path: &Path) -> Result<BTreeMap<String, ManifestEntry>, String> {
-    let text = fs::read_to_string(path).map_err(|error| format!("read clean manifest: {error}"))?;
+fn parse_manifest_text(text: &str) -> Result<BTreeMap<String, ManifestEntry>, String> {
     let mut entries = BTreeMap::new();
     let mut folded = BTreeSet::new();
     for (line_index, line) in text.lines().enumerate() {
@@ -571,7 +584,12 @@ mod tests {
         fs::create_dir(&base).unwrap();
         let unsafe_path = base.join("unsafe.tsv");
         fs::write(&unsafe_path, format!("{}\t1\t../escape\n", "a".repeat(64))).unwrap();
-        assert!(parse_manifest(&unsafe_path).unwrap_err().contains("unsafe"));
+        let unsafe_text = fs::read_to_string(&unsafe_path).unwrap();
+        assert!(
+            parse_manifest_text(&unsafe_text)
+                .unwrap_err()
+                .contains("unsafe")
+        );
         let collision = base.join("collision.tsv");
         fs::write(
             &collision,
@@ -583,7 +601,7 @@ mod tests {
         )
         .unwrap();
         assert!(
-            parse_manifest(&collision)
+            parse_manifest_text(&fs::read_to_string(&collision).unwrap())
                 .unwrap_err()
                 .contains("case-colliding")
         );
