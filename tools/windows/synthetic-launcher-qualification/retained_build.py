@@ -180,7 +180,21 @@ def select_mount_binding(raw: bytes, path: pathlib.Path) -> dict[str, object]:
 
 
 def wsl_native_mount_binding(path: pathlib.Path) -> dict[str, object]:
-    raw, _ = read_plain(pathlib.Path("/proc/self/mountinfo"), maximum=1024 * 1024)
+    descriptor = os.open("/proc/self/mountinfo", os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    try:
+        chunks: list[bytes] = []
+        observed = 0
+        while True:
+            chunk = os.read(descriptor, min(65536, 1024 * 1024 + 1 - observed))
+            if not chunk:
+                break
+            observed += len(chunk)
+            if observed > 1024 * 1024:
+                raise HarnessError("mount table exceeds byte limit")
+            chunks.append(chunk)
+    finally:
+        os.close(descriptor)
+    raw = b"".join(chunks)
     binding = select_mount_binding(raw, path)
     if binding["filesystem"] != "ext4" or binding["mount_point"] != "/" or binding["root"] != "/":
         raise HarnessError("retained path is not on the WSL-native root filesystem")
