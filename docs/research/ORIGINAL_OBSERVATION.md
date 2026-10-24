@@ -1,6 +1,6 @@
 # Minimal original observation procedure
 
-Status: procedure defined; execution is pending authorized official inputs and a qualified Windows reference host.
+Status: procedure defined, official inputs qualified, and the Windows reference host observed read-only; safe launcher implementation and original-process execution remain pending. See [host qualification](../status/P02_ORIGINAL_HOST_QUALIFICATION.md).
 
 1. Copy, never move, the supplied executable, installation data/assets, configuration, and save fixtures into a private read-only source area. Record source provenance without exposing private paths publicly.
 2. Compute SHA-256 for every required input before and after transfer. Identify executable version, language, patch state, PE image base/sections, data edition, configuration, locale, and host/VM identity. Reject or register mismatches; do not rename them as the baseline.
@@ -10,3 +10,5 @@ Status: procedure defined; execution is pending authorized official inputs and a
 6. Store raw artifacts privately and publish only hashes, schemas, synthetic fixtures, and permitted derived metadata. Link every conclusion to its attempt manifest. Unsupported capture, unexplained reads/imports, missing state, or a divergent repeat yields `inconclusive`.
 
 Original-process observations and emulated routine tests are different evidence classes. Bosman agreement never substitutes for the original-process cross-check required by the verification plan.
+
+Do not launch the original directly through the current WSL interop channel. That path is high-integrity, while the game requests all-access to a registry key that points at the modified installed copy. The qualified design must duplicate the active medium-integrity Explorer token, prove that exact token is denied all-access to the key, and start the suspended process inside a kill-on-close Job with an explicit verified clean-attempt working directory. Qualify token, isolation, input, capture, and cleanup against a harmless synthetic Windows fixture before exposing the launcher to `cm0102.exe`.

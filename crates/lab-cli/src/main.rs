@@ -1,4 +1,4 @@
-use lab_cli::process_contract;
+use lab_cli::{comparator, process_contract};
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -170,11 +170,50 @@ fn run() -> ImportResult<()> {
         "import-map" => run_import_map(args),
         "validate-run" => run_validate_request(args),
         "execute-process" => run_execute_process(args),
+        "compare-observations" => run_compare_observations(args),
         _ => Err(ImportError(format!(
             "unknown command `{command}`\n\n{}",
             usage()
         ))),
     }
+}
+
+fn run_compare_observations(mut args: impl Iterator<Item = String>) -> ImportResult<()> {
+    let mut request = None;
+    let mut left_bundle = None;
+    let mut right_bundle = None;
+    let mut output_dir = None;
+    while let Some(arg) = args.next() {
+        let target = match arg.as_str() {
+            "--request" if request.is_none() => &mut request,
+            "--left-bundle" if left_bundle.is_none() => &mut left_bundle,
+            "--right-bundle" if right_bundle.is_none() => &mut right_bundle,
+            "--output-dir" if output_dir.is_none() => &mut output_dir,
+            "--help" | "-h" => {
+                println!("{}", usage());
+                return Ok(());
+            }
+            "--request" | "--left-bundle" | "--right-bundle" | "--output-dir" => {
+                return Err(ImportError(format!("duplicate {arg} argument")));
+            }
+            _ => {
+                return Err(ImportError(format!(
+                    "unknown argument `{arg}`\n\n{}",
+                    usage()
+                )));
+            }
+        };
+        *target = Some(required_path_value(&mut args, &arg)?);
+    }
+    comparator::compare_observations(
+        &request.ok_or_else(|| ImportError("--request is required".to_owned()))?,
+        &left_bundle.ok_or_else(|| ImportError("--left-bundle is required".to_owned()))?,
+        &right_bundle.ok_or_else(|| ImportError("--right-bundle is required".to_owned()))?,
+        &output_dir.ok_or_else(|| ImportError("--output-dir is required".to_owned()))?,
+    )
+    .map_err(ImportError)?;
+    println!("comparison completed");
+    Ok(())
 }
 
 fn run_import_map(mut args: impl Iterator<Item = String>) -> ImportResult<()> {
@@ -289,7 +328,7 @@ fn required_path_value(
 }
 
 fn usage() -> &'static str {
-    "Usage:\n  lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n  lab-cli validate-run --request FILE\n  lab-cli execute-process --request FILE --backend-executable FILE [--backend-config FILE] --attempt-dir DIR\n\nImports pinned function-map evidence, validates a bounded versioned execution request, or executes a validated local protocol backend in an isolated attempt directory. Bosman-native execution requires a private --backend-config; synthetic execution rejects one."
+    "Usage:\n  lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n  lab-cli validate-run --request FILE\n  lab-cli execute-process --request FILE --backend-executable FILE [--backend-config FILE] --attempt-dir DIR\n  lab-cli compare-observations --request FILE --left-bundle FILE --right-bundle FILE --output-dir NEW_DIR\n\nImports pinned function-map evidence, validates or executes a bounded local protocol request, or compares verified observation bundles. Bosman-native execution requires a private --backend-config; synthetic execution rejects one."
 }
 
 fn import_map(
