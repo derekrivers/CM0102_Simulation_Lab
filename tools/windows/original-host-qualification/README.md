@@ -124,8 +124,9 @@ python3 tools/windows/original-host-qualification/compare_retained_hosts_v1.py c
 The command pins the exact public expectations and executing verifier, then
 independently rehashes and binds the reports, manifests, source snapshots,
 compiler files, configuration snapshots and raw probe images. Held,
-descriptor-relative no-follow reads reject nested roots, hardlinks, shared
-objects, mutation and reused command/build identity. A strict PE32/CLI parser
+descriptor-relative no-follow reads plus exact mount identities reject nested
+or alternate-view roots, hardlinks, shared objects, mutation and reused
+command/build identity. A strict PE32/CLI parser
 proves the images differ only in the structurally located COFF timestamp and
 Module MVID before accepting the two run-time fields and two raw-image hashes
 as the only report differences. Every other byte-sized identity,

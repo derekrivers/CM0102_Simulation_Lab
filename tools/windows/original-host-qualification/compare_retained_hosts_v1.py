@@ -139,6 +139,19 @@ def _fingerprint(value: os.stat_result) -> tuple[int, int, int, int, int, int, i
     )
 
 
+def _mount_id(descriptor: int) -> int:
+    try:
+        raw = pathlib.Path("/proc/self/fdinfo").joinpath(str(descriptor)).read_text(
+            encoding="ascii"
+        )
+    except (OSError, UnicodeError) as error:
+        raise ComparisonError("mount identity unavailable") from error
+    matches = re.findall(r"(?m)^mnt_id:\s*([0-9]+)\s*$", raw)
+    if len(matches) != 1 or int(matches[0]) <= 0:
+        raise ComparisonError("invalid mount identity")
+    return int(matches[0])
+
+
 def _read_descriptor(descriptor: int, maximum: int) -> tuple[bytes, os.stat_result]:
     before = os.fstat(descriptor)
     if (
@@ -302,6 +315,7 @@ class RetainedRoot:
         self.descriptor = self.absolute_descriptors[-1]
         opened = os.fstat(self.descriptor)
         self.root_object = (opened.st_dev, opened.st_ino)
+        self.root_mount_id = _mount_id(self.descriptor)
         self.directories: dict[tuple[str, ...], int] = {(): self.descriptor}
         self.directory_fingerprints: dict[tuple[str, ...], tuple[int, int, int, int, int, int, int]] = {
             (): _fingerprint(opened)
@@ -383,7 +397,10 @@ class RetainedRoot:
             ):
                 raise ComparisonError("retained absolute path changed during comparison")
         current_root = os.fstat(self.descriptor)
-        if (current_root.st_dev, current_root.st_ino) != self.root_object:
+        if (
+            (current_root.st_dev, current_root.st_ino) != self.root_object
+            or _mount_id(self.descriptor) != self.root_mount_id
+        ):
             raise ComparisonError("retained root changed during comparison")
         if len(self.absolute_descriptors) > 1:
             root_name = self.path.parts[-1]
@@ -662,11 +679,12 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
     cli_header_size = u32(raw, cli)
     if cli_header_size < 0x48 or cli_header_size > cli_size:
         raise ComparisonError("invalid CLI header size")
+    entrypoint_token = u32(raw, cli + 20, cli + cli_header_size)
     if (
         u16(raw, cli + 4, cli + cli_header_size) != 2
         or u16(raw, cli + 6, cli + cli_header_size) != 5
         or u32(raw, cli + 16, cli + cli_header_size) != 0x00000003
-        or u32(raw, cli + 20, cli + cli_header_size) == 0
+        or entrypoint_token == 0
     ):
         raise ComparisonError("unexpected CLI runtime profile")
     metadata_rva = u32(raw, cli + 8, cli + cli_header_size)
@@ -741,8 +759,11 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
     table_names = [name for name in ("#~", "#-") if name in streams]
     if len(table_names) != 1 or set(streams) != {"#~", "#Strings", "#US", "#GUID", "#Blob"}:
         raise ComparisonError("missing or ambiguous CLI tables")
-    if streams["#GUID"][1] != 16 or streams["#Strings"][1] < 2:
-        raise ComparisonError("invalid CLI GUID heap size")
+    if streams["#GUID"][1] != 16 or any(
+        streams[name][1] < 1 or raw[streams[name][0]] != 0
+        for name in ("#Strings", "#US", "#Blob")
+    ):
+        raise ComparisonError("invalid CLI heap")
     tables, tables_size = streams[table_names[0]]
     tables_end = tables + tables_size
     if tables_size < 24:
@@ -777,6 +798,11 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
             row_cursor += 4
     if rows.get(0) != 1:
         raise ComparisonError("CLI Module row count")
+    if entrypoint_token >> 24 != 0x06:
+        raise ComparisonError("invalid CLI entrypoint table")
+    entrypoint_rid = entrypoint_token & 0x00FFFFFF
+    if entrypoint_rid == 0 or entrypoint_rid > rows.get(6, 0):
+        raise ComparisonError("invalid CLI entrypoint row")
     string_index_size = 4 if heap_sizes & 0x01 else 2
     guid_index_size = 4 if heap_sizes & 0x02 else 2
     module_size = 2 + string_index_size + 3 * guid_index_size
@@ -989,7 +1015,10 @@ def compare_attempts(
 ) -> dict[str, object]:
     if first_root.root_object == second_root.root_object:
         raise ComparisonError("retained roots are not distinct")
-    if first_root.root_object[0] != second_root.root_object[0]:
+    if (
+        first_root.root_object[0] != second_root.root_object[0]
+        or first_root.root_mount_id != second_root.root_mount_id
+    ):
         raise ComparisonError("retained roots use different mount views")
     if (
         first_root.root_object in second_root.ancestor_objects
@@ -1110,11 +1139,15 @@ class OutputTarget:
         )
         self.parent_descriptor = self.parent_descriptors[-1]
         parent_stat = os.fstat(self.parent_descriptor)
+        self.parent_mount_id = _mount_id(self.parent_descriptor)
         if parent_stat.st_uid != os.geteuid() or stat.S_IMODE(parent_stat.st_mode) & 0o077:
             self.close()
             raise ComparisonError("comparison output parent is not private and owned")
         for retained_root in roots:
-            if parent_stat.st_dev != retained_root.root_object[0]:
+            if (
+                parent_stat.st_dev != retained_root.root_object[0]
+                or self.parent_mount_id != retained_root.root_mount_id
+            ):
                 self.close()
                 raise ComparisonError("comparison output uses a different mount view")
             if retained_root.root_object in self.ancestor_objects:
@@ -1126,6 +1159,27 @@ class OutputTarget:
                 continue
             self.close()
             raise ComparisonError("comparison output lexically overlaps retained input")
+
+    def revalidate(self) -> None:
+        for index, component in enumerate(self.parent.parts[1:], start=1):
+            observed = os.stat(
+                component,
+                dir_fd=self.parent_descriptors[index - 1],
+                follow_symlinks=False,
+            )
+            held = os.fstat(self.parent_descriptors[index])
+            if (
+                (observed.st_dev, observed.st_ino) != self.ancestor_objects[index]
+                or (held.st_dev, held.st_ino) != self.ancestor_objects[index]
+            ):
+                raise ComparisonError("comparison output path changed")
+        parent_stat = os.fstat(self.parent_descriptor)
+        if (
+            _mount_id(self.parent_descriptor) != self.parent_mount_id
+            or parent_stat.st_uid != os.geteuid()
+            or stat.S_IMODE(parent_stat.st_mode) & 0o077
+        ):
+            raise ComparisonError("comparison output parent privacy changed")
 
     def close(self) -> None:
         for descriptor in reversed(getattr(self, "parent_descriptors", [])):
@@ -1139,6 +1193,7 @@ class OutputTarget:
         final_created = False
         descriptor: int | None = None
         try:
+            self.revalidate()
             try:
                 os.stat(self.output.name, dir_fd=parent_descriptor, follow_symlinks=False)
             except FileNotFoundError:
@@ -1178,6 +1233,7 @@ class OutputTarget:
                 observed.st_ino,
             ):
                 raise ComparisonError("temporary comparison output name changed")
+            self.revalidate()
             os.link(
                 temporary,
                 self.output.name,
@@ -1186,6 +1242,7 @@ class OutputTarget:
                 follow_symlinks=False,
             )
             final_created = True
+            self.revalidate()
             final_stat = os.stat(
                 self.output.name, dir_fd=parent_descriptor, follow_symlinks=False
             )
@@ -1203,10 +1260,12 @@ class OutputTarget:
             ):
                 raise ComparisonError("published comparison output identity mismatch")
             post_check()
+            self.revalidate()
             os.fsync(parent_descriptor)
             os.unlink(temporary, dir_fd=parent_descriptor)
             temporary_created = False
             os.fsync(parent_descriptor)
+            self.revalidate()
             final_stat = os.stat(
                 self.output.name, dir_fd=parent_descriptor, follow_symlinks=False
             )
@@ -1217,6 +1276,7 @@ class OutputTarget:
             ):
                 raise ComparisonError("final comparison output changed")
             post_check()
+            self.revalidate()
             final_created = False
         finally:
             if descriptor is not None:
@@ -1282,9 +1342,10 @@ def build_pe_fixture(timestamp: int, mvid: bytes, payload_byte: int = 0x2A) -> b
     struct.pack_into("<II", raw, cursor, 0x100, 0x10)
     raw[cursor + 8 : cursor + 16] = b"#Blob\0\0\0"
     tables = metadata + 0x80
-    struct.pack_into("<IBBBBQQ", raw, tables, 0, 2, 0, 0, 1, 1, 0)
+    struct.pack_into("<IBBBBQQ", raw, tables, 0, 2, 0, 0, 1, 1 | (1 << 6), 0)
     struct.pack_into("<I", raw, tables + 24, 1)
-    struct.pack_into("<HHHHH", raw, tables + 28, 0, 1, 1, 0, 0)
+    struct.pack_into("<I", raw, tables + 28, 1)
+    struct.pack_into("<HHHHH", raw, tables + 32, 0, 1, 1, 0, 0)
     guid = metadata + 0xC0
     raw[guid : guid + 16] = mvid
     strings = metadata + 0xD0
@@ -1544,7 +1605,7 @@ def self_test() -> None:
     struct.pack_into("<H", wrong_machine, 0x84, 0x8664)
     expect_rejected(lambda: parse_pe_build_identity(bytes(wrong_machine)), "PE32+ machine")
     zero_mvid = bytearray(first)
-    struct.pack_into("<H", zero_mvid, 0x400 + 0x80 + 28 + 4, 0)
+    struct.pack_into("<H", zero_mvid, 0x400 + 0x80 + 32 + 4, 0)
     expect_rejected(lambda: parse_pe_build_identity(bytes(zero_mvid)), "zero MVID")
     truncated = first[:0x450]
     expect_rejected(lambda: parse_pe_build_identity(truncated), "truncated PE")
@@ -1556,14 +1617,21 @@ def self_test() -> None:
     expect_rejected(lambda: parse_pe_build_identity(bytes(overlapping)), "overlapping PE sections")
     for offset, width, value, label in (
         (0x300 + 16, 4, 0, "CLI flags"),
+        (0x300 + 20, 4, 0x06000002, "CLI entrypoint row"),
         (0x400 + 4, 2, 99, "metadata major version"),
         (0x400 + 8, 4, 1, "metadata reserved field"),
         (0x400 + 0x80, 4, 1, "tables reserved field"),
         (0x400 + 0x80 + 7, 1, 0, "tables reserved byte"),
-        (0x400 + 0x80 + 28, 2, 1, "Module generation"),
-        (0x400 + 0x80 + 30, 2, 0, "Module name"),
-        (0x400 + 0x80 + 34, 2, 1, "Module EncId"),
-        (0x400 + 0x80 + 36, 2, 1, "Module EncBaseId"),
+        (0x400 + 0x80 + 32, 2, 1, "Module generation"),
+        (0x400 + 0x80 + 34, 2, 0, "Module name"),
+        (0x400 + 0x80 + 38, 2, 1, "Module EncId"),
+        (0x400 + 0x80 + 40, 2, 1, "Module EncBaseId"),
+        (0x400 + 0x38, 4, 0, "Strings heap size"),
+        (0x400 + 0x4C, 4, 0, "US heap size"),
+        (0x400 + 0x58, 4, 0, "Blob heap size"),
+        (0x400 + 0xD0, 1, 1, "Strings heap sentinel"),
+        (0x400 + 0xF0, 1, 1, "US heap sentinel"),
+        (0x400 + 0x100, 1, 1, "Blob heap sentinel"),
     ):
         malformed = bytearray(first)
         if width == 1:
@@ -1583,6 +1651,24 @@ def self_test() -> None:
         )
         if output.read_bytes() != canonical({"schema_version": 1}):
             raise AssertionError("atomic output contents")
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = pathlib.Path(directory)
+        parent = root / "parent"
+        parent.mkdir(mode=0o700)
+        target = OutputTarget(parent / "result.json", ())
+        try:
+            moved = root / "moved"
+            parent.rename(moved)
+            parent.mkdir(mode=0o700)
+            expect_rejected(
+                lambda: target.publish(canonical({"schema_version": 1})),
+                "output ancestor replacement",
+            )
+            if (parent / "result.json").exists() or (moved / "result.json").exists():
+                raise AssertionError("detached output publication")
+        finally:
+            target.close()
 
     repository = pathlib.Path(__file__).resolve(strict=True).parents[3]
     public_expectations = repository / "config" / "original-host-qualification-v1.json"
@@ -1848,6 +1934,38 @@ def self_test() -> None:
                 alias_nested_root.close()
         finally:
             alias_first_root.close()
+        mount_first_root = RetainedRoot(first_path)
+        try:
+            mount_second_root = RetainedRoot(second_path)
+            try:
+                mount_second_root.root_mount_id += 1
+                expect_rejected(
+                    lambda: compare_attempts(
+                        mount_first_root,
+                        mount_second_root,
+                        materials["expectations_raw"],
+                        materials["private_raw"],
+                        identity(b"self-test-comparator"),
+                        RUNTIME_VERIFIER_IDENTITY,
+                        materials["profile"],
+                    ),
+                    "different retained mount views",
+                )
+            finally:
+                mount_second_root.close()
+        finally:
+            mount_first_root.close()
+        mount_output_root = RetainedRoot(first_path)
+        try:
+            mount_output_root.root_mount_id += 1
+            expect_rejected(
+                lambda: OutputTarget(
+                    pathlib.Path(directory) / "mount-output.json", (mount_output_root,)
+                ),
+                "different output mount view",
+            )
+        finally:
+            mount_output_root.close()
         expect_rejected(
             lambda: _compare_self_test_pair(
                 first_path, second_path, materials, PRODUCTION_PROFILE
