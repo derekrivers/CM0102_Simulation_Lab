@@ -31,6 +31,12 @@ jobs:
         python3 tools/windows/synthetic-launcher-controller/verify_controller_policy.py verify \
           --repo "$GITHUB_WORKSPACE" \
           --source-commit "$GITHUB_SHA"
+    - name: Verify controller runtime contract
+      run: |
+        python3 tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py self-test
+        python3 tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py verify \
+          --repo "$GITHUB_WORKSPACE" \
+          --source-commit "$GITHUB_SHA"
     - name: Build
       run: cargo build --verbose
     - name: Run tests
