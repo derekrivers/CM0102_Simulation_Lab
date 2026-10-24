@@ -148,6 +148,8 @@ def require_absolute_canonical(path: pathlib.Path, kind: str) -> pathlib.Path:
 
 
 def private_parent(path: pathlib.Path) -> pathlib.Path:
+    if os.name == "nt":
+        raise HarnessError("retained evidence requires WSL/POSIX ownership and modes")
     if not path.is_absolute():
         raise HarnessError("retained directory must be absolute")
     absolute = pathlib.Path(os.path.normpath(os.fspath(path)))
@@ -157,9 +159,8 @@ def private_parent(path: pathlib.Path) -> pathlib.Path:
     metadata = parent.stat(follow_symlinks=False)
     if not stat.S_ISDIR(metadata.st_mode):
         raise HarnessError("retained parent is not a directory")
-    if os.name != "nt":
-        if metadata.st_uid != os.geteuid() or stat.S_IMODE(metadata.st_mode) != 0o700:
-            raise HarnessError("retained parent must be owned and mode 0700")
+    if metadata.st_uid != os.geteuid() or stat.S_IMODE(metadata.st_mode) != 0o700:
+        raise HarnessError("retained parent must be owned and mode 0700")
     return parent / absolute.name
 
 
@@ -608,6 +609,37 @@ def metadata_field_size(
     raise HarnessError("unsupported metadata field schema")
 
 
+REQUIRED_HEAP_FIELDS = {
+    (0, 1), (0, 2), (1, 1), (2, 1), (4, 1), (4, 2), (6, 3), (6, 4),
+    (10, 1), (10, 2), (11, 2), (12, 2), (13, 1), (14, 2), (17, 0),
+    (20, 1), (23, 1), (23, 2), (26, 0), (27, 0), (28, 2), (32, 7),
+    (35, 6), (38, 1), (38, 2), (39, 2), (40, 2), (42, 3), (43, 1),
+}
+
+# TypeDef.Extends and ManifestResource.Implementation are the only nullable
+# coded indexes in the supported optimized metadata model.
+NULLABLE_CODED_FIELDS = {(2, 3), (40, 3)}
+
+
+def metadata_schema_self_test() -> None:
+    rows = [0] * 64
+    if len(metadata_schemas(rows, 2, 2, 2)) != 45:
+        raise AssertionError("metadata schema table count")
+    rows[4] = 0xFFFF
+    if metadata_index_size(rows, 4) != 2:
+        raise AssertionError("metadata two-byte table threshold")
+    rows[4] = 0x10000
+    if metadata_index_size(rows, 4) != 4:
+        raise AssertionError("metadata four-byte table threshold")
+    rows = [0] * 64
+    rows[2] = 0x3FFF
+    if coded_index_size(rows, (2, 1, 27), 2) != 2:
+        raise AssertionError("metadata two-byte coded threshold")
+    rows[2] = 0x4000
+    if coded_index_size(rows, (2, 1, 27), 2) != 4:
+        raise AssertionError("metadata four-byte coded threshold")
+
+
 def compressed_unsigned(raw: bytes, offset: int, limit: int) -> tuple[int, int]:
     if offset >= limit:
         raise HarnessError("metadata blob index is outside stream")
@@ -695,10 +727,9 @@ def validate_cli_metadata(
     stream_ranges.sort()
     if any(left[1] > right[0] for left, right in zip(stream_ranges, stream_ranges[1:])):
         raise HarnessError("CLI metadata streams overlap")
-    table_names = [name for name in ("#~", "#-") if name in streams]
-    if len(table_names) != 1 or "#Strings" not in streams or "#Blob" not in streams:
+    if "#~" not in streams or "#-" in streams or "#Strings" not in streams or "#Blob" not in streams:
         raise HarnessError("CLI metadata required streams are missing")
-    table_start, table_end = streams[table_names[0]]
+    table_start, table_end = streams["#~"]
     if table_start + 24 > table_end:
         raise HarnessError("CLI metadata tables header is truncated")
     table_reserved = struct.unpack_from("<I", raw, table_start)[0]
@@ -723,6 +754,8 @@ def validate_cli_metadata(
                 raise HarnessError("CLI metadata row counts are truncated")
             rows[table] = struct.unpack_from("<I", raw, table_cursor)[0]
             table_cursor += 4
+    if rows[0] != 1 or valid & sum(1 << table for table in (3, 5, 7, 19, 22)):
+        raise HarnessError("CLI metadata optimized table model is invalid")
     method_rid = entrypoint & 0x00FFFFFF
     if entrypoint >> 24 != 0x06 or method_rid == 0 or method_rid > rows[6]:
         raise HarnessError("CLI entrypoint is not a valid MethodDef token")
@@ -780,11 +813,13 @@ def validate_cli_metadata(
                 value, row_cursor = read_metadata_index(row_cursor, size)
                 values.append(value)
                 if field in ("string", "guid", "blob"):
+                    if value == 0 and (table, column) in REQUIRED_HEAP_FIELDS:
+                        raise HarnessError("CLI required heap index is null")
                     validate_heap_index(field, value)
                 elif isinstance(field, tuple) and field[0] == "table":
                     target, list_index = field[1], field[2]
                     upper = rows[target] + (1 if list_index else 0)
-                    if value > upper or (list_index and value == 0):
+                    if value > upper or value == 0:
                         raise HarnessError("CLI metadata table index is invalid")
                     if list_index:
                         key = (table, column)
@@ -796,6 +831,8 @@ def validate_cli_metadata(
                     tag = value & ((1 << tag_bits) - 1)
                     target = field[1][tag]
                     target_rid = value >> tag_bits
+                    if value == 0 and (table, column) not in NULLABLE_CODED_FIELDS:
+                        raise HarnessError("CLI required coded index is null")
                     if value != 0 and (target is None or target_rid == 0 or target_rid > rows[target]):
                         raise HarnessError("CLI metadata coded index is invalid")
             if table == 6 and rid == method_rid:
@@ -979,7 +1016,7 @@ def verify_inventory(root: pathlib.Path) -> None:
 
 def verify_private_modes(root: pathlib.Path) -> None:
     if os.name == "nt":
-        return
+        raise HarnessError("retained evidence requires WSL/POSIX ownership and modes")
     directory_names = ((), ("inputs",), ("build",), ("build", "1033"))
     for parts in directory_names:
         metadata = root.joinpath(*parts).stat(follow_symlinks=False)
@@ -1087,8 +1124,8 @@ def revalidate_sources(repo: pathlib.Path, commit: str, expected: object) -> Non
 
 
 def run_mode(arguments: argparse.Namespace) -> dict[str, object]:
-    if os.name != "nt" and not is_wsl():
-        raise HarnessError("run mode requires Windows or WSL")
+    if os.name == "nt" or not is_wsl():
+        raise HarnessError("run mode requires WSL/POSIX ownership and Windows interop")
     repo = require_absolute_canonical(arguments.repo, "repository")
     source_before, snapshots = source_bindings(repo, arguments.source_commit)
     validate_profile(snapshots["profile"], snapshots)
@@ -1210,6 +1247,8 @@ def run_mode(arguments: argparse.Namespace) -> dict[str, object]:
 
 
 def verify_retained(repo_argument: pathlib.Path, commit: str, compiler_argument: pathlib.Path, retained_argument: pathlib.Path) -> dict[str, object]:
+    if os.name == "nt" or not is_wsl():
+        raise HarnessError("verify mode requires WSL/POSIX ownership and Windows interop")
     repo = require_absolute_canonical(repo_argument, "repository")
     root = require_absolute_canonical(retained_argument, "retained directory")
     if not root.is_dir():
@@ -1295,7 +1334,7 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     raw[section:section + 5] = b".text"
     struct.pack_into("<IIII", raw, section + 8, 0x600, 0x2000, 0x600, 0x200)
     struct.pack_into("<I", raw, 0x300, 72)
-    struct.pack_into("<II", raw, 0x308, 0x2180, 0xE0)
+    struct.pack_into("<II", raw, 0x308, 0x2180, 0xF0)
     struct.pack_into("<II", raw, 0x310, flags, 0x06000001)
     metadata = 0x380
     version = b"v4.0.30319\0"
@@ -1303,15 +1342,17 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     struct.pack_into("<HHII", raw, metadata + 4, 1, 1, 0, len(version))
     raw[metadata + 16:metadata + 16 + len(version)] = version
     cursor = (metadata + 16 + len(version) + 3) & ~3
-    struct.pack_into("<HH", raw, cursor, 0, 3)
+    struct.pack_into("<HH", raw, cursor, 0, 4)
     cursor += 4
-    table_offset = 0x50
+    table_offset = 0x60
     strings_offset = 0xC0
     blob_offset = 0xD0
+    guid_offset = 0xE0
     for name, offset, size in (
         (b"#~\0", table_offset, 60),
         (b"#Strings\0", strings_offset, 15),
         (b"#Blob\0", blob_offset, 5),
+        (b"#GUID\0", guid_offset, 16),
     ):
         struct.pack_into("<II", raw, cursor, offset, size)
         raw[cursor + 8:cursor + 8 + len(name)] = name
@@ -1320,15 +1361,17 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     struct.pack_into("<IBBBBQQ", raw, tables, 0, 2, 0, 0, 1, (1 << 0) | (1 << 6), 0)
     struct.pack_into("<II", raw, tables + 24, 1, 1)
     rows = tables + 32
-    struct.pack_into("<HHHHH", raw, rows, 0, 1, 0, 0, 0)
+    struct.pack_into("<HHHHH", raw, rows, 0, 1, 1, 0, 0)
     struct.pack_into("<IHHHHH", raw, rows + 10, 0x2300, 0, 0x0091, 10, 1, 1)
     raw[metadata + strings_offset:metadata + strings_offset + 15] = b"\0<Module>\0Main\0"
     raw[metadata + blob_offset:metadata + blob_offset + 5] = b"\0\x03\x00\x00\x08"
+    raw[metadata + guid_offset:metadata + guid_offset + 16] = bytes(range(1, 17))
     raw[0x500:0x502] = b"\x06\x2A"
     return bytes(raw)
 
 
 def self_test() -> None:
+    metadata_schema_self_test()
     base = synthetic_pe()
     observed = validate_pe32_cli(base, 2)
     if not (
@@ -1340,7 +1383,7 @@ def self_test() -> None:
         and observed["entrypoint_signature"] == "private static int Main()"
         and observed["metadata_table_count"] == 2
         and observed["methoddef_rows"] == 1
-        and observed["metadata_streams"] == ["#Blob", "#Strings", "#~"]
+        and observed["metadata_streams"] == ["#Blob", "#GUID", "#Strings", "#~"]
     ):
         raise AssertionError("PE positive control")
     mutations = []
@@ -1357,26 +1400,62 @@ def self_test() -> None:
         ("entrypoint", 0x314, struct.pack("<I", 0)),
         ("metadata signature", 0x380, b"NOPE"),
         ("metadata stream/header overlap", 0x3A0, struct.pack("<I", 0x30)),
-        ("metadata missing MethodDef rows", 0x3EC, struct.pack("<I", 0)),
+        ("metadata missing MethodDef rows", 0x3FC, struct.pack("<I", 0)),
         ("metadata MethodDef token", 0x314, struct.pack("<I", 0x02000001)),
+        ("metadata string heap boundary", 0x3E0 + 32 + 2, struct.pack("<H", 0xFFFF)),
         ("metadata method name", 0x380 + 0xC0 + 10, b"X"),
-        ("metadata native MethodImpl", 0x3D0 + 32 + 10 + 4, struct.pack("<H", 1)),
-        ("metadata abstract Main", 0x3D0 + 32 + 10 + 6, struct.pack("<H", 0x0491)),
+        ("metadata null Module Mvid", 0x3E0 + 32 + 4, struct.pack("<H", 0)),
+        ("metadata native MethodImpl", 0x3E0 + 32 + 10 + 4, struct.pack("<H", 1)),
+        ("metadata abstract Main", 0x3E0 + 32 + 10 + 6, struct.pack("<H", 0x0491)),
         ("metadata invalid Main signature", 0x380 + 0xD0 + 2, b"\xFF\xFF\xFF"),
-        ("metadata Main body overlap", 0x3D0 + 32 + 10, struct.pack("<I", 0x2180)),
+        ("metadata Main body overlap", 0x3E0 + 32 + 10, struct.pack("<I", 0x2180)),
         ("metadata invalid IL header", 0x500, b"\x00"),
     ):
         changed = bytearray(base)
         changed[offset:offset + len(packed)] = packed
         mutations.append((label, bytes(changed)))
     truncated_later_table = bytearray(base)
-    tables = 0x380 + 0x50
+    tables = 0x380 + 0x60
     old_rows = bytes(truncated_later_table[tables + 32:tables + 56])
     struct.pack_into("<Q", truncated_later_table, tables + 8, (1 << 0) | (1 << 6) | (1 << 8))
     struct.pack_into("<III", truncated_later_table, tables + 24, 1, 1, 1)
     truncated_later_table[tables + 36:tables + 60] = old_rows
     struct.pack_into("<I", truncated_later_table, 0x3A0 + 4, 64)
     mutations.append(("truncated post-MethodDef table", bytes(truncated_later_table)))
+    null_interface = bytearray(base)
+    old_rows = bytes(null_interface[tables + 32:tables + 56])
+    struct.pack_into("<Q", null_interface, tables + 8, (1 << 0) | (1 << 6) | (1 << 9))
+    struct.pack_into("<III", null_interface, tables + 24, 1, 1, 1)
+    null_interface[tables + 36:tables + 60] = old_rows
+    null_interface[tables + 60:tables + 64] = b"\0" * 4
+    struct.pack_into("<I", null_interface, 0x3A0 + 4, 64)
+    mutations.append(("null required InterfaceImpl indexes", bytes(null_interface)))
+    pointer_table = bytearray(base)
+    module_row = bytes(pointer_table[tables + 32:tables + 42])
+    method_row = bytes(pointer_table[tables + 42:tables + 56])
+    struct.pack_into("<Q", pointer_table, tables + 8, (1 << 0) | (1 << 3) | (1 << 6))
+    struct.pack_into("<III", pointer_table, tables + 24, 1, 1, 1)
+    pointer_table[tables + 36:tables + 46] = module_row
+    pointer_table[tables + 46:tables + 48] = b"\0\0"
+    pointer_table[tables + 48:tables + 62] = method_row
+    pointer_table[tables + 62:tables + 64] = b"\0\0"
+    struct.pack_into("<I", pointer_table, 0x3A0 + 4, 64)
+    mutations.append(("unsupported FieldPtr table", bytes(pointer_table)))
+    fat_body = bytearray(base)
+    struct.pack_into("<HHII", fat_body, 0x500, 0x3013, 8, 1, 0)
+    fat_body[0x50C] = 0x2A
+    if validate_pe32_cli(bytes(fat_body), 2)["entrypoint_method_rid"] != 1:
+        raise AssertionError("fat IL body positive control")
+    eh_body = bytearray(base)
+    struct.pack_into("<HHII", eh_body, 0x500, 0x301B, 8, 1, 0)
+    eh_body[0x50C] = 0x2A
+    eh_body[0x510:0x514] = b"\x41\x1C\x00\x00"
+    eh_body[0x514:0x52C] = b"\0" * 24
+    if validate_pe32_cli(bytes(eh_body), 2)["entrypoint_method_rid"] != 1:
+        raise AssertionError("fat EH IL body positive control")
+    malformed_eh = bytearray(eh_body)
+    malformed_eh[0x511] = 27
+    mutations.append(("malformed fat EH section", bytes(malformed_eh)))
     for label, changed in mutations:
         try:
             validate_pe32_cli(changed, 2)

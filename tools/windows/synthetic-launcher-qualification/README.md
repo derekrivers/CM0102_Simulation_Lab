@@ -56,8 +56,9 @@ SyntheticFixtureTests.exe
 ```
 
 Qualification evidence must use the retained harness, not the illustrative
-commands. From WSL, choose a fresh destination whose existing parent is private
-and mode `0700`; the destination must not already exist:
+commands. It deliberately rejects native Windows because Windows DACL privacy
+is outside this version's verifier. From WSL, choose a fresh destination whose
+existing parent is private and mode `0700`; the destination must not already exist:
 
 ```sh
 python3 tools/windows/synthetic-launcher-qualification/retained_build.py self-test
