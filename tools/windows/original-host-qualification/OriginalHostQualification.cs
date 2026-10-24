@@ -1097,9 +1097,7 @@ namespace Cm0102.OriginalHostQualification
 
         private SortedDictionary<string, object> ObserveCapabilities()
         {
-            string windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            string system = Environment.GetFolderPath(Environment.SpecialFolder.System);
-            Dictionary<string, string> candidates = CapabilityCatalog.ToolPaths(windows, system);
+            Dictionary<string, string> candidates = CapabilityCatalog.ToolPaths();
             HashSet<string> requiredTools = new HashSet<string>(expectations.RequiredToolIds, StringComparer.Ordinal);
             List<object> tools = new List<object>();
             foreach (KeyValuePair<string, string> candidate in candidates)
@@ -1160,7 +1158,17 @@ namespace Cm0102.OriginalHostQualification
         };
         public static readonly string[] ToolIds = { "cdb", "cmd", "csc-x64", "csc-x86", "powershell", "python313", "windbg" };
 
-        public static Dictionary<string, string> ToolPaths(string windows, string system)
+        public static string SystemX86Path()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
+        }
+
+        public static Dictionary<string, string> ToolPaths()
+        {
+            return ToolPaths(Environment.GetFolderPath(Environment.SpecialFolder.Windows), SystemX86Path());
+        }
+
+        internal static Dictionary<string, string> ToolPaths(string windows, string system)
         {
             return new Dictionary<string, string>(StringComparer.Ordinal)
             {
