@@ -9,6 +9,7 @@ Standalone CM0102 Simulation Lab roadmap, revision 3. All implementation phases 
 - `docs/OPEN_DECISIONS.md`
 - `docs/architecture/EVIDENCE_AND_FIDELITY.md`
 - `docs/architecture/JEV.md`
+- `docs/architecture/OBSERVATION_COMPARISON_V1.md`
 - `docs/architecture/RECONSTRUCTION_METHOD.md`
 - `docs/architecture/RUNTIME_CONTRACTS.md`
 - `docs/architecture/SIMULATOR.md`
@@ -33,3 +34,4 @@ Standalone CM0102 Simulation Lab roadmap, revision 3. All implementation phases 
 - `docs/roadmap/phase-09.md`
 - `docs/roadmap/phase-10.md`
 - `docs/runbooks/delivery.md`
+- `docs/status/P02_ORIGINAL_HOST_QUALIFICATION.md`

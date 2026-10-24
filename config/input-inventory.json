@@ -64,11 +64,11 @@
     "distribution": "private_only"
   },
   "address_validation": "qualified_exact_executable_pe32",
-  "bosman_build": "native_build_and_clean_upstream_smoke_qualified_protocol_adapter_pending",
+  "bosman_build": "native_build_clean_smoke_and_bounded_protocol_replay_qualified",
   "notes": [
     "No substitute executable or modern data set may be silently registered as the baseline.",
     "The supplied executable exactly matches the hash required by the pinned Bosman source.",
-    "The pinned Bosman source builds successfully on the qualified WSL worker, all 45 registered upstream tests pass, and two clean upstream smoke runs pass.",
+    "The pinned Bosman source builds successfully on the qualified WSL worker, all 45 registered upstream tests pass, two clean upstream smoke runs pass, and one bounded protocol same-save replay passes.",
     "The supplied installed folder contains modified data and extra runtime/user files, so it is not registered as the clean baseline.",
     "The official ISO and 3.9.68 patch match the pinned hashes and reconstructed a separate 760-of-760 clean runtime input.",
     "Private source locations are deployment configuration and are intentionally absent from this public manifest."
