@@ -34,6 +34,7 @@ namespace Cm0102.OriginalHostQualification
             Run("unreadable-and-share-protected", TestUnreadableAndShareProtected);
             Run("mid-read-mutation-and-share-denial", TestMidReadMutationAndShareDenial);
             Run("qualification-policies", TestQualificationPolicies);
+            Run("restoration-cleanup", TestRestorationCleanup);
             Run("actual-token-restoration", TestActualTokenRestoration);
             Run("clean-iso-identity-mismatch", TestCleanIsoIdentityMismatch);
             Run("installed-virtual-store-mutation", TestInstalledVirtualStoreMutation);
@@ -118,6 +119,7 @@ namespace Cm0102.OriginalHostQualification
             Assert(DiagnosticStages.AfterRestoration(true, true) == DiagnosticStages.RegistryExplorerAccess);
             Assert(DiagnosticStages.AfterRestoration(true, false) == DiagnosticStages.ImpersonationRestore);
             Assert(DiagnosticStages.AfterRestoration(false, true) == DiagnosticStages.ImpersonationRestore);
+            Assert(DiagnosticStages.AfterRestoration(false, false) == DiagnosticStages.ImpersonationRestore);
 
             string first = CanonicalJson.Serialize(Program.MinimalDocument(detail));
             string second = CanonicalJson.Serialize(Program.MinimalDocument(detail));
@@ -467,6 +469,33 @@ namespace Cm0102.OriginalHostQualification
                 Assert(observed);
                 AssertTokenRestored(initial, initialWasThreadToken);
             }
+        }
+
+        private static void TestRestorationCleanup()
+        {
+            bool disposeAttempted = false;
+            bool undoFailureObserved = false;
+            try
+            {
+                Probe.RestoreImpersonation(null,
+                    delegate { throw new SyntheticTokenException(); },
+                    delegate { disposeAttempted = true; });
+            }
+            catch (SyntheticTokenException) { undoFailureObserved = true; }
+            Assert(undoFailureObserved);
+            Assert(disposeAttempted);
+
+            bool undoAttempted = false;
+            bool disposeFailureObserved = false;
+            try
+            {
+                Probe.RestoreImpersonation(null,
+                    delegate { undoAttempted = true; },
+                    delegate { throw new SyntheticTokenException(); });
+            }
+            catch (SyntheticTokenException) { disposeFailureObserved = true; }
+            Assert(undoAttempted);
+            Assert(disposeFailureObserved);
         }
 
         private static void AssertTokenRestored(TokenObservation initial, bool initialWasThreadToken)

@@ -908,8 +908,7 @@ namespace Cm0102.OriginalHostQualification
                 bool restorationCompleted = false;
                 try
                 {
-                    context.Undo();
-                    context.Dispose();
+                    RestoreImpersonation(context, null, null);
                     restorationCompleted = true;
                 }
                 finally
@@ -981,6 +980,21 @@ namespace Cm0102.OriginalHostQualification
                 GroupSid = group,
                 Aces = aces
             };
+        }
+
+        internal static void RestoreImpersonation(WindowsImpersonationContext context,
+            Action undoOverride, Action disposeOverride)
+        {
+            try
+            {
+                if (undoOverride == null) context.Undo();
+                else undoOverride();
+            }
+            finally
+            {
+                if (disposeOverride == null) context.Dispose();
+                else disposeOverride();
+            }
         }
 
         private static string NormalizePath(string path)
