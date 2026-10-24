@@ -5,6 +5,7 @@ using System.IO;
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Cm0102.OriginalHostQualification
@@ -67,7 +68,8 @@ namespace Cm0102.OriginalHostQualification
 
         private static void TestMinimalDocument()
         {
-            SortedDictionary<string, object> document = Program.MinimalDocument("synthetic-error");
+            SortedDictionary<string, object> document = Program.MinimalDocument(
+                "unhandled-v1-host-observation-exception-80131501");
             string[] requiredTopLevel = { "capabilities", "checks", "errors", "guards", "host", "inputs", "probe",
                 "registry", "run", "schema_version", "session", "summary", "tokens" };
             Assert(document.Count == requiredTopLevel.Length);
@@ -99,6 +101,21 @@ namespace Cm0102.OriginalHostQualification
                 "unhandled-v1-stage-tracker-exception-80131501");
             Assert(!detail.Contains("SystemException"));
             Assert(!detail.Contains("private"));
+
+            string stage = DiagnosticStages.CleanManifest;
+            Assert(Program.UnhandledDetail(stage, new FileNotFoundException(@"C:\private\file")) ==
+                "unhandled-v1-clean-manifest-file-not-found");
+            Assert(Program.UnhandledDetail(stage, new DirectoryNotFoundException(@"C:\private\directory")) ==
+                "unhandled-v1-clean-manifest-directory-not-found");
+            Assert(Program.UnhandledDetail(stage, new IOException(@"C:\private\io"))
+                .StartsWith("unhandled-v1-clean-manifest-io-", StringComparison.Ordinal));
+            Assert(Program.UnhandledDetail(stage, new CryptographicException(@"C:\private\crypto"))
+                .StartsWith("unhandled-v1-clean-manifest-crypto-", StringComparison.Ordinal));
+
+            string first = CanonicalJson.Serialize(Program.MinimalDocument(detail));
+            string second = CanonicalJson.Serialize(Program.MinimalDocument(detail));
+            Assert(first == second);
+            Assert(!first.Contains("private"));
         }
 
         private static void TestRedactor()

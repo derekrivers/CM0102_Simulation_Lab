@@ -1044,6 +1044,25 @@ def static_source(paths: list[pathlib.Path]) -> None:
             )
             if stage_constants != [DIAGNOSTIC_STAGE_CSV]:
                 raise ValueError(f"{path.name}: diagnostic-stage parity")
+            named_stages = re.findall(
+                r'public const string ([A-Za-z][A-Za-z0-9]*) = "([a-z0-9-]+)";',
+                source,
+            )
+            stage_names = {name for name, _value in named_stages}
+            stage_values = [value for _name, value in named_stages]
+            if (
+                len(stage_names) != len(named_stages)
+                or len(set(stage_values)) != len(stage_values)
+                or set(stage_values) != DIAGNOSTIC_STAGE_IDS
+            ):
+                raise ValueError(f"{path.name}: diagnostic-stage constants")
+            stage_references = set(
+                re.findall(r"DiagnosticStages\.([A-Za-z][A-Za-z0-9]*)", source)
+            )
+            if stage_names - {"StageTracker"} - stage_references:
+                raise ValueError(f"{path.name}: unused diagnostic stage")
+            if stage_references - stage_names - {"Require"}:
+                raise ValueError(f"{path.name}: unknown diagnostic transition")
         without_comments = re.sub(r"/\*.*?\*/|//[^\r\n]*", "", source, flags=re.DOTALL)
         normalized = re.sub(r"\s+", "", without_comments).casefold()
         for pattern, label in BANNED_NORMALIZED_PATTERNS:
@@ -1372,6 +1391,12 @@ def self_test() -> None:
         full_output = root / "full-output.json"
         full_output.write_bytes(canonical(full))
         verify(full_output, private, expectations)
+        old_full = decode_json(canonical(full))
+        old_full["probe"]["version"] = "1.0.0"
+        full_output.write_bytes(canonical(old_full))
+        expect_rejected(
+            lambda: verify(full_output, private, expectations), "old full-report version"
+        )
         for check_id in sorted(REQUIRED_CHECK_IDS):
             contradiction = decode_json(canonical(full))
             changed = next(
@@ -1385,6 +1410,18 @@ def self_test() -> None:
             expect_rejected(
                 lambda: verify(full_output, private, expectations),
                 f"semantic contradiction {check_id}",
+            )
+            detail_contradiction = decode_json(canonical(full))
+            changed = next(
+                item
+                for item in detail_contradiction["checks"]
+                if item["id"] == check_id
+            )
+            changed["detail_code"] += "-wrong"
+            full_output.write_bytes(canonical(detail_contradiction))
+            expect_rejected(
+                lambda: verify(full_output, private, expectations),
+                f"semantic detail contradiction {check_id}",
             )
         leaked = decode_json(canonical(full))
         leaked["host"]["product_name"] = private_value["installed_tree"]
@@ -1455,6 +1492,21 @@ def self_test() -> None:
         output = root / "output.json"
         output.write_bytes(canonical(document))
         verify(output, private, expectations)
+        legacy_document = decode_json(canonical(document))
+        legacy_detail = "unhandled-exception-80131501"
+        legacy_document["checks"][0]["detail_code"] = legacy_detail
+        legacy_document["errors"][0]["detail_code"] = legacy_detail
+        output.write_bytes(canonical(legacy_document))
+        verify(output, private, expectations)
+        mismatched_minimal = decode_json(canonical(document))
+        mismatched_minimal["checks"][0]["detail_code"] = (
+            "unhandled-v1-session-discovery-exception-80131501"
+        )
+        output.write_bytes(canonical(mismatched_minimal))
+        expect_rejected(
+            lambda: verify(output, private, expectations),
+            "minimal valid-detail mismatch",
+        )
         for stage in DIAGNOSTIC_STAGE_IDS:
             validate_minimal_detail(f"unhandled-v1-{stage}-exception-80131501")
         validate_minimal_detail("unhandled-exception-80131501")

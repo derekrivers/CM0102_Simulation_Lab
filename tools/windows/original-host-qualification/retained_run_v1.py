@@ -1132,6 +1132,11 @@ def self_test() -> None:
             "tokens": {},
         }
         strict_cases.append((strict_minimal, 3))
+        strict_legacy_minimal = json.loads(json.dumps(strict_minimal))
+        legacy_detail = "unhandled-exception-80131501"
+        strict_legacy_minimal["checks"][0]["detail_code"] = legacy_detail
+        strict_legacy_minimal["errors"][0]["detail_code"] = legacy_detail
+        strict_cases.append((strict_legacy_minimal, 3))
         report_binding_fixture = {
             "source_revision": strict_full["probe"]["source_revision"],
             "executable": strict_full["probe"]["executable"],
