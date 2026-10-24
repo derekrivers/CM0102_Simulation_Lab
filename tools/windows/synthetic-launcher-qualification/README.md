@@ -46,7 +46,7 @@ exit zero means only that it closed after reaching `complete`; it is not a
 qualification verdict.
 
 Build only in a private temporary directory with the qualified in-box x86 .NET
-Framework compiler. No binary is committed:
+Framework compiler. The illustrative compiler commands are:
 
 ```bat
 set CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe
@@ -54,6 +54,32 @@ set CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe
 %CSC% /nologo /noconfig /warnaserror+ /optimize+ /platform:x86 /target:exe /main:Cm0102.SyntheticLauncherQualification.SyntheticFixtureTests /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Security.dll /r:System.Windows.Forms.dll /out:SyntheticFixtureTests.exe SyntheticFixture.cs SyntheticFixtureTests.cs
 SyntheticFixtureTests.exe
 ```
+
+Qualification evidence must use the retained harness, not the illustrative
+commands. From WSL, choose a fresh destination whose existing parent is private
+and mode `0700`; the destination must not already exist:
+
+```sh
+python3 tools/windows/synthetic-launcher-qualification/retained_build.py self-test
+python3 tools/windows/synthetic-launcher-qualification/retained_build.py run \
+  --repo "$PWD" \
+  --source-commit "$(git rev-parse HEAD)" \
+  --compiler /mnt/c/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe \
+  --retained-dir /absolute/private/fresh-retained-directory
+python3 tools/windows/synthetic-launcher-qualification/retained_build.py verify \
+  --repo "$PWD" \
+  --source-commit "$(git rev-parse HEAD)" \
+  --compiler /mnt/c/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe \
+  --retained-dir /absolute/private/fresh-retained-directory
+```
+
+The harness commit-binds and snapshots the sources, profile, verifier, harness,
+qualified compiler and compiler companion; binds the absolute x86 Framework
+references, exact command roles and minimal environment; validates both outputs
+as PE32/i386 CLI images; and runs only `SyntheticFixtureTests.exe` under bounded
+stream and time limits. Its canonical path-free manifest records explicitly
+that `SyntheticLauncherFixture.exe` was not executed and original execution is
+`not-run`. No binary or private retained directory is committed.
 
 The C# test executable exercises pure configuration, token, input and paint
 policy. It does not construct the form or call Windows token/desktop APIs.

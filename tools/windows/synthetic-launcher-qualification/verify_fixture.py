@@ -217,14 +217,39 @@ def require_no_symlink_components(path: pathlib.Path) -> None:
             raise VerificationError("path contains symlink component")
 
 
+def fingerprint(value: os.stat_result) -> tuple[int, ...]:
+    return (
+        value.st_dev,
+        value.st_ino,
+        value.st_mode,
+        value.st_nlink,
+        value.st_size,
+        value.st_mtime_ns,
+        value.st_ctime_ns,
+    )
+
+
 def read_source(path: pathlib.Path, expected_name: str) -> bytes:
     if path.name != expected_name or not path.is_absolute():
         raise VerificationError("source path or name")
-    before = os.lstat(path)
-    if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > MAX_SOURCE_BYTES:
-        raise VerificationError("source is not a bounded single-link regular file")
-    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    if os.name != "posix" or not hasattr(os, "O_DIRECTORY") or not hasattr(os, "O_NOFOLLOW"):
+        raise VerificationError("held descriptor traversal is unavailable")
+    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+    file_flags = os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+    directory_descriptors = [os.open(path.anchor, directory_flags)]
+    directory_bindings: list[tuple[int, str, tuple[int, ...]]] = []
+    descriptor = -1
     try:
+        for component in path.parts[1:-1]:
+            parent = directory_descriptors[-1]
+            child = os.open(component, directory_flags, dir_fd=parent)
+            child_fingerprint = fingerprint(os.fstat(child))
+            directory_bindings.append((parent, component, child_fingerprint))
+            directory_descriptors.append(child)
+        descriptor = os.open(path.name, file_flags, dir_fd=directory_descriptors[-1])
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > MAX_SOURCE_BYTES:
+            raise VerificationError("source is not a bounded single-link regular file")
         raw = bytearray()
         while True:
             chunk = os.read(descriptor, min(65536, MAX_SOURCE_BYTES + 1 - len(raw)))
@@ -234,19 +259,18 @@ def read_source(path: pathlib.Path, expected_name: str) -> bytes:
             if len(raw) > MAX_SOURCE_BYTES:
                 raise VerificationError("source exceeds byte limit")
         opened = os.fstat(descriptor)
+        named_after = os.stat(path.name, dir_fd=directory_descriptors[-1], follow_symlinks=False)
+        for parent, component, expected in directory_bindings:
+            if fingerprint(os.stat(component, dir_fd=parent, follow_symlinks=False)) != expected:
+                raise VerificationError("source directory changed during read")
+    except OSError as error:
+        raise VerificationError("held descriptor traversal failed") from error
     finally:
-        os.close(descriptor)
-    after = os.lstat(path)
-    fingerprint = lambda value: (
-        value.st_dev,
-        value.st_ino,
-        value.st_mode,
-        value.st_nlink,
-        value.st_size,
-        value.st_mtime_ns,
-        value.st_ctime_ns,
-    )
-    if fingerprint(before) != fingerprint(opened) or fingerprint(before) != fingerprint(after):
+        if descriptor >= 0:
+            os.close(descriptor)
+        for directory_descriptor in reversed(directory_descriptors):
+            os.close(directory_descriptor)
+    if fingerprint(before) != fingerprint(opened) or fingerprint(before) != fingerprint(named_after):
         raise VerificationError("source changed during read")
     return bytes(raw)
 
@@ -495,6 +519,14 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted symlinked ancestor")
+        copied_tree = temporary / "copied-tree-without-git-metadata"
+        copied_tree.mkdir()
+        try:
+            git(copied_tree, ["rev-parse", "--show-toplevel"])
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted copied non-Git tree")
     verify_local_paths(repo, root / FIXTURE_NAME, root / TEST_NAME, repo / "config" / PROFILE_NAME)
 
 

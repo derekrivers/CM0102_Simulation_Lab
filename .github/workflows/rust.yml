@@ -16,6 +16,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Verify harmless Windows fixture sources
+      run: |
+        python3 tools/windows/synthetic-launcher-qualification/verify_fixture.py self-test
+        python3 tools/windows/synthetic-launcher-qualification/verify_fixture.py verify \
+          --repo "$GITHUB_WORKSPACE" \
+          --source-commit "$GITHUB_SHA" \
+          --fixture "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-qualification/SyntheticFixture.cs" \
+          --tests "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-qualification/SyntheticFixtureTests.cs" \
+          --profile "$GITHUB_WORKSPACE/config/synthetic-launcher-fixture-v1.json"
     - name: Build
       run: cargo build --verbose
     - name: Run tests
