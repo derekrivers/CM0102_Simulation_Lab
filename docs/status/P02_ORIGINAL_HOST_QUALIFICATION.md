@@ -1,8 +1,14 @@
-# P02 Windows reference-host qualification
+# P02 preliminary Windows reference-host probe
 
 Date: 24 October 2026
 
-Status: host and launch constraints observed read-only; the original executable has not been launched and no original behaviour is qualified.
+Status: preliminary read-only observations without an immutable probe artifact; host qualification, launcher implementation, and all original behaviour remain pending.
+
+## Evidence boundary
+
+These observations were collected on 24 October 2026 through bounded WSL and Windows PowerShell/`cmd.exe` inventory commands during the active Codex session. They included OS/session/process inventory, token privilege and integrity queries, registry value/ACL/access probes, tool discovery, filesystem mode/type/count/hash checks, independent Windows executable hashing, mounted-volume inspection, and process absence checks. No versioned probe script, canonical command transcript, sanitized output bundle, or artifact hashes were retained.
+
+The exact host, token, privilege, registry, and tooling statements below are therefore unverified operational observations that define what the reproducible qualification probe must test; they are not yet durable gate evidence. Before any original launch, rerun them through a reviewed versioned probe and retain its canonical request, sanitized outputs, tool revision, completeness flags, and hashes. Any discrepancy invalidates the provisional launcher assumptions.
 
 ## Observed host
 
@@ -20,7 +26,7 @@ Therefore the original executable must not be launched directly from WSL. This i
 
 The key grants ordinary Users read access rather than full control. A medium-integrity launch should receive `ACCESS_DENIED` for that exact all-access request and retain the supplied working directory, but the launcher must prove this with the exact token before every game start.
 
-## Qualified launcher design
+## Provisional launcher design
 
 The smallest safe adapter uses built-in Windows APIs and must:
 

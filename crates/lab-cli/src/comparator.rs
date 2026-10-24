@@ -3,9 +3,11 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
+use std::ffi::CString;
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
 use std::path::{Component, Path};
 
@@ -201,7 +203,8 @@ struct ComparisonReport<'a> {
     policy: &'a ComparisonPolicy,
     left: ReportSide<'a>,
     right: ReportSide<'a>,
-    comparison_key: &'a ComparisonKey,
+    left_comparison_key: &'a ComparisonKey,
+    right_comparison_key: &'a ComparisonKey,
     incompatible_key_fields: Vec<&'static str>,
     capture: CaptureReport,
     raw: RawReport,
@@ -302,13 +305,11 @@ pub fn compare_observations(
     let canonical_request = json_line(&request, "comparison request")?;
     let request_sha256 = digest(&canonical_request);
 
-    let executable = std::env::current_exe()
-        .map_err(|error| format!("locate comparator executable: {error}"))?;
-    let executable_identity = hash_regular_file(&executable, "comparator executable")?;
-    if executable_identity.sha256 != request.comparator.expected_executable_sha256 {
+    let executable_sha256 = live_executable_sha256()?;
+    if executable_sha256 != request.comparator.expected_executable_sha256 {
         return Err(format!(
             "comparator executable hash mismatch: expected {}, observed {}",
-            request.comparator.expected_executable_sha256, executable_identity.sha256
+            request.comparator.expected_executable_sha256, executable_sha256
         ));
     }
 
@@ -362,7 +363,8 @@ pub fn compare_observations(
             backend: &right.replay.backend,
             unparsed_byte_count: right.bundle.capture.unparsed_byte_count,
         },
-        comparison_key: &left.bundle.comparison_key,
+        left_comparison_key: &left.bundle.comparison_key,
+        right_comparison_key: &right.bundle.comparison_key,
         incompatible_key_fields,
         capture: CaptureReport {
             left: capture_side(&left.bundle.capture),
@@ -396,8 +398,22 @@ pub fn compare_observations(
         &request,
         &canonical_request,
         &report_bytes,
-        &executable_identity.sha256,
+        &executable_sha256,
     )
+}
+
+pub fn live_executable_sha256() -> Result<String, String> {
+    let mut file = File::open("/proc/self/exe")
+        .map_err(|error| format!("open live comparator executable: {error}"))?;
+    if !file
+        .metadata()
+        .map_err(|error| format!("stat live comparator executable: {error}"))?
+        .file_type()
+        .is_file()
+    {
+        return Err("live comparator executable is not a regular file".into());
+    }
+    Ok(hash_open_file(&mut file, "live comparator executable")?.sha256)
 }
 
 fn validate_request(request: &mut ComparisonRequest) -> Result<(), String> {
@@ -520,6 +536,8 @@ fn validate_replay(
     if replay.schema_version != 1
         || replay.execution.status != "succeeded"
         || replay.execution.reason != "completed-target"
+        || replay.execution.exit_code != 0
+        || replay.execution.stop_condition != replay.expected_stop_condition
         || replay.comparison_verdict != "not-run"
     {
         return Err(format!(
@@ -558,7 +576,6 @@ fn validate_replay(
         &replay.expected_stop_condition,
         &replay.limits,
     );
-    let _ = (&replay.execution.stop_condition, replay.execution.exit_code);
     for (name, artifact) in [
         ("request", &replay.artifacts.request),
         ("stdout", &replay.artifacts.stdout),
@@ -641,6 +658,12 @@ fn compare_raw(
         right_hasher.update(&right_buffer[..right_read]);
         left_byte_count += left_read as u64;
         right_byte_count += right_read as u64;
+        if left_byte_count > left.identity.byte_count {
+            return Err("left raw artifact grew while comparing".into());
+        }
+        if right_byte_count > right.identity.byte_count {
+            return Err("right raw artifact grew while comparing".into());
+        }
         let shared = left_read.min(right_read);
         if first_differing_offset.is_none() {
             if let Some(index) =
@@ -881,8 +904,8 @@ fn publish(
         };
         let manifest_bytes = json_line(&manifest, "comparison manifest")?;
         write_new(&staging.join("comparison-manifest.json"), &manifest_bytes)?;
-        fs::rename(&staging, output_dir)
-            .map_err(|error| format!("publish output directory: {error}"))
+        rename_noreplace(&staging, output_dir)
+            .map_err(|error| format!("publish output directory without replacement: {error}"))
     })();
     if result.is_err() {
         let _ = fs::remove_dir_all(&staging);
@@ -901,6 +924,38 @@ fn write_new(path: &Path, bytes: &[u8]) -> Result<(), String> {
         .map_err(|error| format!("write {}: {error}", path.display()))?;
     file.sync_all()
         .map_err(|error| format!("sync {}: {error}", path.display()))
+}
+
+fn rename_noreplace(source: &Path, destination: &Path) -> std::io::Result<()> {
+    let source = CString::new(source.as_os_str().as_bytes()).map_err(|_| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "source path contains a NUL byte",
+        )
+    })?;
+    let destination = CString::new(destination.as_os_str().as_bytes()).map_err(|_| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "destination path contains a NUL byte",
+        )
+    })?;
+    // Linux renameat2 is the atomic primitive that guarantees an output created
+    // after our early existence check is never replaced, including an empty dir.
+    let result = unsafe {
+        libc::syscall(
+            libc::SYS_renameat2,
+            libc::AT_FDCWD,
+            source.as_ptr(),
+            libc::AT_FDCWD,
+            destination.as_ptr(),
+            libc::RENAME_NOREPLACE,
+        )
+    };
+    if result == 0 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
 }
 
 fn read_verified_artifact(
@@ -977,16 +1032,22 @@ fn read_bounded_open(file: &mut File, max: u64, label: &str) -> Result<Vec<u8>, 
     if size > max {
         return Err(format!("{label} exceeds {max}-byte limit"));
     }
-    let mut bytes = Vec::with_capacity(size as usize);
-    file.read_to_end(&mut bytes)
+    let capacity = usize::try_from(size.min(max.saturating_add(1)))
+        .map_err(|_| format!("{label} size cannot be represented on this host"))?;
+    let mut bytes = Vec::with_capacity(capacity);
+    file.take(max.saturating_add(1))
+        .read_to_end(&mut bytes)
         .map_err(|error| format!("read {label}: {error}"))?;
+    if bytes.len() as u64 > max {
+        return Err(format!("{label} exceeds {max}-byte limit while reading"));
+    }
     Ok(bytes)
 }
 
 fn open_regular_no_follow(path: &Path, label: &str) -> Result<File, String> {
     let file = OpenOptions::new()
         .read(true)
-        .custom_flags(libc::O_NOFOLLOW)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
         .open(path)
         .map_err(|error| format!("open {label}: {error}"))?;
     if !file
@@ -998,11 +1059,6 @@ fn open_regular_no_follow(path: &Path, label: &str) -> Result<File, String> {
         return Err(format!("{label} is not a regular file"));
     }
     Ok(file)
-}
-
-fn hash_regular_file(path: &Path, label: &str) -> Result<Identity, String> {
-    let mut file = open_regular_no_follow(path, label)?;
-    hash_open_file(&mut file, label)
 }
 
 fn hash_open_file(file: &mut File, label: &str) -> Result<Identity, String> {
@@ -1182,5 +1238,37 @@ impl<'de> Visitor<'de> for NoDuplicateVisitor {
             values.insert(key, value);
         }
         Ok(Value::Object(values))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::rename_noreplace;
+    use std::fs;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn no_replace_publication_preserves_a_concurrent_destination() {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "lab-comparator-rename-{}-{nonce}",
+            std::process::id()
+        ));
+        let source = root.join("source");
+        let destination = root.join("destination");
+        fs::create_dir(&root).expect("create test root");
+        fs::create_dir(&source).expect("create source");
+        fs::write(source.join("evidence"), b"source").expect("write source evidence");
+        fs::create_dir(&destination).expect("create concurrent destination");
+
+        let error = rename_noreplace(&source, &destination).expect_err("must not replace");
+        assert_eq!(error.kind(), std::io::ErrorKind::AlreadyExists);
+        assert!(source.join("evidence").is_file());
+        assert!(destination.is_dir());
+
+        fs::remove_dir_all(&root).expect("remove test root");
     }
 }

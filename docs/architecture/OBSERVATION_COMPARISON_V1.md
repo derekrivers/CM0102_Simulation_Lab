@@ -31,7 +31,7 @@ The strict request has schema version 1, a safe comparison ID, the 40-hex compar
 }
 ```
 
-`raw_mode` may instead be `retain-only`. No masks, ignored paths, tolerances, or alternative semantic modes exist in v1. The comparator hashes its own running executable before creating output and rejects an identity mismatch.
+`raw_mode` may instead be `retain-only`. No masks, ignored paths, tolerances, or alternative semantic modes exist in v1. The comparator hashes the live `/proc/self/exe` image rather than reopening its mutable launch pathname, then rejects an identity mismatch before creating output.
 
 ## Observation bundle
 
@@ -42,7 +42,7 @@ The strict, 1 MiB-bounded bundle contains:
 - capture status (`complete` or `incomplete`), truncation flag, dropped-record count, and unparsed-byte count; and
 - hashed basename references with media types for one raw artifact and one semantic artifact.
 
-Referenced paths must be single safe basenames. Symlinks and non-regular files are rejected. Each file is opened without following a final symlink, then size and SHA-256 are verified from the same handle or bytes used for comparison/parsing. The linked replay must report schema 1, `succeeded`, `completed-target`, and `comparison_verdict: not-run`; its scenario/profile and retained request/stdout/stderr identities are revalidated.
+Referenced paths must be single safe basenames. Files are opened nonblocking without following a final symlink; symlinks and non-regular files are rejected, and bounded JSON reads retain at most one byte beyond their cap before refusing growth. Size and SHA-256 are verified from the same handle or bytes used for comparison/parsing. The linked replay must report schema 1, `succeeded`, `completed-target`, exit code zero, an execution stop condition equal to its declared expected endpoint, and `comparison_verdict: not-run`; its scenario/profile and retained request/stdout/stderr identities are revalidated.
 
 The semantic artifact is strict JSON:
 
@@ -72,6 +72,6 @@ With `raw_mode: exact`, the verdict scope is `raw-and-semantic-exact`. With `ret
 
 ## Published evidence and controls
 
-A new mode-0700 output directory atomically receives mode-0600 `comparison-request.json`, `comparison-report.json`, and `comparison-manifest.json`. The manifest binds the canonical request and report plus comparator identity. No host paths are serialized, and identical logical inputs produce byte-identical reports.
+A new mode-0700 output directory atomically receives mode-0600 `comparison-request.json`, `comparison-report.json`, and `comparison-manifest.json`. Linux `renameat2(RENAME_NOREPLACE)` prevents publication from replacing even an empty output directory created after the early refusal check. The manifest binds the canonical request and report plus comparator identity. No host paths are serialized, and identical logical inputs produce byte-identical reports.
 
 Executable tests cover exact A/A equality, raw byte and length changes, numeric semantic mutation, event reordering, omitted RNG state, semantic-only raw retention, incompatible keys, dropped capture, artifact corruption, symlink rejection, forbidden floats/policy fields, existing-output refusal, path redaction, and report stability. These falsification controls qualify the comparator mechanism; real backend observation production and the P02 replay corpus remain separate gates.

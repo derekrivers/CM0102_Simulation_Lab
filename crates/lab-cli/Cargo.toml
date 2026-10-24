@@ -19,3 +19,7 @@ path = "src/bin/lab-protocol-fixture.rs"
 [[bin]]
 name = "lab-bosman-adapter"
 path = "src/bin/lab-bosman-adapter.rs"
+
+[[bin]]
+name = "lab-live-image-fixture"
+path = "src/bin/lab-live-image-fixture.rs"

@@ -4,7 +4,7 @@ Status: initial P00 inventory. `pending` means no qualified local execution supp
 
 | Capability | original-windows | original-function | bosman-native | rust-native | rust-wasm |
 |---|---|---|---|---|---|
-| Handshake/build identity | exact executable and host constraints qualified; safe launcher pending | pending capture | qualified for bounded adapter revision and native build | planned | planned |
+| Handshake/build identity | exact executable qualified; host constraints observed but retained probe and safe launcher pending | pending capture | qualified for bounded adapter revision and native build | planned | planned |
 | Create game | pending | not applicable | qualified only for clean classic same-save v1 route | unsupported | unsupported |
 | Load original save | pending | not applicable | pending qualification | unsupported | unsupported |
 | Load supported Rust save | not applicable | not applicable | not applicable | unsupported | unsupported |

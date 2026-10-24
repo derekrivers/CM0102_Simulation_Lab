@@ -1,13 +1,16 @@
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+use std::ffi::CString;
 use std::fs;
+use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const CLI: &str = env!("CARGO_BIN_EXE_lab-cli");
+const LIVE_IMAGE_FIXTURE: &str = env!("CARGO_BIN_EXE_lab-live-image-fixture");
 static NEXT_DIRECTORY: AtomicU64 = AtomicU64::new(0);
 
 struct TestDirectory(PathBuf);
@@ -558,6 +561,42 @@ fn duplicate_keys_unsafe_paths_and_failed_replays_are_invalid_evidence() {
     let output = run_compare(root.path(), &left, &right, "exact", "out");
     assert!(!output.status.success());
     assert!(!root.path().join("out").exists());
+
+    let root = TestDirectory::new("nonzero-replay");
+    let left = write_side(
+        root.path(),
+        "left",
+        SideOptions::complete(b"same", json!({"day": 14})),
+    );
+    let mut right = write_side(
+        root.path(),
+        "right",
+        SideOptions::complete(b"same", json!({"day": 14})),
+    );
+    rewrite_replay(&mut right, |replay| {
+        replay["execution"]["exit_code"] = json!(7);
+    });
+    let output = run_compare(root.path(), &left, &right, "exact", "out");
+    assert!(!output.status.success());
+    assert!(!root.path().join("out").exists());
+
+    let root = TestDirectory::new("wrong-stop-replay");
+    let left = write_side(
+        root.path(),
+        "left",
+        SideOptions::complete(b"same", json!({"day": 14})),
+    );
+    let mut right = write_side(
+        root.path(),
+        "right",
+        SideOptions::complete(b"same", json!({"day": 14})),
+    );
+    rewrite_replay(&mut right, |replay| {
+        replay["execution"]["stop_condition"] = json!("wrong-endpoint");
+    });
+    let output = run_compare(root.path(), &left, &right, "exact", "out");
+    assert!(!output.status.success());
+    assert!(!root.path().join("out").exists());
 }
 
 #[test]
@@ -587,4 +626,96 @@ fn bundle_identity_drift_is_rejected_before_publication() {
         .unwrap();
     assert!(!output.status.success());
     assert!(!root.path().join("out").exists());
+}
+
+#[test]
+fn oversized_request_is_bounded_and_rejected_without_publication() {
+    let root = TestDirectory::new("oversized-request");
+    let state = json!({"day": 14});
+    let left = write_side(
+        root.path(),
+        "left",
+        SideOptions::complete(b"same", state.clone()),
+    );
+    let right = write_side(root.path(), "right", SideOptions::complete(b"same", state));
+    let request = root.path().join("oversized.json");
+    fs::write(&request, vec![b' '; 1024 * 1024 + 1]).unwrap();
+    let output = Command::new(CLI)
+        .args(["compare-observations", "--request"])
+        .arg(request)
+        .arg("--left-bundle")
+        .arg(&left.bundle_path)
+        .arg("--right-bundle")
+        .arg(&right.bundle_path)
+        .arg("--output-dir")
+        .arg(root.path().join("out"))
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(!root.path().join("out").exists());
+}
+
+#[test]
+fn non_regular_artifact_is_rejected_without_blocking() {
+    let root = TestDirectory::new("fifo");
+    let left = write_side(
+        root.path(),
+        "left",
+        SideOptions::complete(b"same", json!({"day": 14})),
+    );
+    let right = write_side(
+        root.path(),
+        "right",
+        SideOptions::complete(b"same", json!({"day": 14})),
+    );
+    let raw_path = root.path().join("right/raw.bin");
+    fs::remove_file(&raw_path).unwrap();
+    let raw_path = CString::new(raw_path.as_os_str().as_encoded_bytes()).unwrap();
+    let result = unsafe { libc::mkfifo(raw_path.as_ptr(), 0o600) };
+    assert_eq!(
+        result,
+        0,
+        "mkfifo failed: {}",
+        std::io::Error::last_os_error()
+    );
+    let output = run_compare(root.path(), &left, &right, "exact", "out");
+    assert!(!output.status.success());
+    assert!(!root.path().join("out").exists());
+}
+
+#[test]
+fn live_image_hash_survives_executable_path_replacement() {
+    let root = TestDirectory::new("live-image");
+    let runnable = root.path().join("running-fixture");
+    let displaced = root.path().join("displaced-fixture");
+    let fixture_bytes = fs::read(LIVE_IMAGE_FIXTURE).expect("read fixture image");
+    fs::copy(LIVE_IMAGE_FIXTURE, &runnable).expect("copy fixture image");
+    let mut child = Command::new(&runnable)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("start copied fixture");
+    let mut stdout = BufReader::new(child.stdout.take().expect("capture fixture stdout"));
+    let mut ready = String::new();
+    stdout
+        .read_line(&mut ready)
+        .expect("read fixture readiness");
+    assert_eq!(ready, "ready\n");
+
+    fs::rename(&runnable, &displaced).expect("displace running image pathname");
+    fs::write(&runnable, b"replacement bytes").expect("replace executable pathname");
+    child
+        .stdin
+        .take()
+        .expect("fixture stdin")
+        .write_all(b"x")
+        .expect("release fixture");
+    let mut observed = String::new();
+    stdout
+        .read_line(&mut observed)
+        .expect("read live image identity");
+    let status = child.wait().expect("wait for fixture");
+    assert!(status.success());
+    assert_eq!(observed.trim(), digest(&fixture_bytes));
+    assert_ne!(observed.trim(), digest(b"replacement bytes"));
 }
