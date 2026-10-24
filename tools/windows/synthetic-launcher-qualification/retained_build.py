@@ -38,6 +38,7 @@ EXPECTED_CSCUI_SHA256 = "5d925200762a6b25467da367c622883c3616c21edfaaad9548fd085
 EXPECTED_CSC_WINDOWS = r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"
 EXPECTED_CSCUI_WINDOWS = r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\1033\cscui.dll"
 FRAMEWORK_NAMES = (
+    "mscorlib.dll",
     "System.dll",
     "System.Core.dll",
     "System.Drawing.dll",
@@ -464,6 +465,7 @@ def build_arguments(
         os.fspath(compiler_snapshot),
         "/nologo",
         "/noconfig",
+        "/nostdlib+",
         "/warnaserror+",
         "/optimize+",
         "/debug-",
@@ -478,6 +480,7 @@ def build_arguments(
         "compiler",
         "nologo",
         "no-default-response-file",
+        "no-standard-library",
         "warnings-as-errors",
         "optimized",
         "no-debug-output",
@@ -502,6 +505,181 @@ def map_rva(raw: bytes, sections: list[tuple[int, int, int, int]], rva: int, siz
                 raise HarnessError("PE directory is not file-backed")
             return offset
     raise HarnessError("PE directory is outside sections")
+
+
+def metadata_index_size(rows: list[int], table: int) -> int:
+    return 2 if rows[table] < 0x10000 else 4
+
+
+def coded_index_size(rows: list[int], tables: tuple[int, ...], tag_bits: int) -> int:
+    limit = 1 << (16 - tag_bits)
+    return 2 if max(rows[table] for table in tables) < limit else 4
+
+
+def compressed_unsigned(raw: bytes, offset: int, limit: int) -> tuple[int, int]:
+    if offset >= limit:
+        raise HarnessError("metadata blob index is outside stream")
+    first = raw[offset]
+    if first & 0x80 == 0:
+        return first, 1
+    if first & 0xC0 == 0x80:
+        if offset + 2 > limit:
+            raise HarnessError("metadata blob length is truncated")
+        return ((first & 0x3F) << 8) | raw[offset + 1], 2
+    if first & 0xE0 == 0xC0:
+        if offset + 4 > limit:
+            raise HarnessError("metadata blob length is truncated")
+        return (
+            ((first & 0x1F) << 24)
+            | (raw[offset + 1] << 16)
+            | (raw[offset + 2] << 8)
+            | raw[offset + 3],
+            4,
+        )
+    raise HarnessError("metadata blob length prefix is invalid")
+
+
+def validate_cli_metadata(
+    raw: bytes,
+    sections: list[tuple[int, int, int, int]],
+    metadata_rva: int,
+    metadata_size: int,
+    entrypoint: int,
+) -> dict[str, object]:
+    metadata = map_rva(raw, sections, metadata_rva, metadata_size)
+    end = metadata + metadata_size
+    if metadata_size < 32 or raw[metadata:metadata + 4] != b"BSJB":
+        raise HarnessError("CLI metadata root signature is invalid")
+    major, minor = struct.unpack_from("<HH", raw, metadata + 4)
+    reserved, version_length = struct.unpack_from("<II", raw, metadata + 8)
+    if major not in (1, 2) or minor > 1 or reserved != 0 or not (1 <= version_length <= 256):
+        raise HarnessError("CLI metadata root header is invalid")
+    version_start = metadata + 16
+    version_end = version_start + version_length
+    if version_end > end or raw[version_end - 1] != 0:
+        raise HarnessError("CLI metadata version is invalid")
+    version = raw[version_start:version_end - 1]
+    if not version or any(byte < 0x20 or byte > 0x7E for byte in version):
+        raise HarnessError("CLI metadata version is not printable ASCII")
+    cursor = (version_end + 3) & ~3
+    if cursor + 4 > end:
+        raise HarnessError("CLI metadata stream header is truncated")
+    flags, stream_count = struct.unpack_from("<HH", raw, cursor)
+    cursor += 4
+    if flags != 0 or not (3 <= stream_count <= 8):
+        raise HarnessError("CLI metadata stream count or flags are invalid")
+    streams: dict[str, tuple[int, int]] = {}
+    stream_ranges: list[tuple[int, int]] = []
+    allowed_streams = {"#~", "#-", "#Strings", "#US", "#GUID", "#Blob", "#Pdb"}
+    for _ in range(stream_count):
+        if cursor + 9 > end:
+            raise HarnessError("CLI metadata stream descriptor is truncated")
+        stream_offset, stream_size = struct.unpack_from("<II", raw, cursor)
+        name_start = cursor + 8
+        name_limit = min(name_start + 32, end)
+        terminator = raw.find(b"\0", name_start, name_limit)
+        if terminator < 0:
+            raise HarnessError("CLI metadata stream name is unterminated")
+        try:
+            name = raw[name_start:terminator].decode("ascii", "strict")
+        except UnicodeDecodeError as error:
+            raise HarnessError("CLI metadata stream name is not ASCII") from error
+        cursor = (terminator + 4) & ~3
+        if name not in allowed_streams or name in streams or stream_offset % 4 != 0 or stream_size <= 0:
+            raise HarnessError("CLI metadata stream descriptor is invalid")
+        stream_start = metadata + stream_offset
+        stream_end = stream_start + stream_size
+        if stream_start < cursor or stream_end > end:
+            raise HarnessError("CLI metadata stream range is invalid")
+        streams[name] = (stream_start, stream_end)
+        stream_ranges.append((stream_start, stream_end))
+    if any(stream_start < cursor for stream_start, _ in stream_ranges):
+        raise HarnessError("CLI metadata stream overlaps descriptors")
+    stream_ranges.sort()
+    if any(left[1] > right[0] for left, right in zip(stream_ranges, stream_ranges[1:])):
+        raise HarnessError("CLI metadata streams overlap")
+    table_names = [name for name in ("#~", "#-") if name in streams]
+    if len(table_names) != 1 or "#Strings" not in streams or "#Blob" not in streams:
+        raise HarnessError("CLI metadata required streams are missing")
+    table_start, table_end = streams[table_names[0]]
+    if table_start + 24 > table_end:
+        raise HarnessError("CLI metadata tables header is truncated")
+    table_reserved = struct.unpack_from("<I", raw, table_start)[0]
+    table_major, table_minor, heap_sizes, table_reserved2 = struct.unpack_from("<BBBB", raw, table_start + 4)
+    valid, sorted_mask = struct.unpack_from("<QQ", raw, table_start + 8)
+    if (
+        table_reserved != 0
+        or table_major != 2
+        or table_minor != 0
+        or heap_sizes & ~0x07
+        or table_reserved2 != 1
+        or sorted_mask & ~valid
+        or valid >> 45
+        or valid & (1 << 6) == 0
+    ):
+        raise HarnessError("CLI metadata tables header is invalid")
+    rows = [0] * 64
+    table_cursor = table_start + 24
+    for table in range(64):
+        if valid & (1 << table):
+            if table_cursor + 4 > table_end:
+                raise HarnessError("CLI metadata row counts are truncated")
+            rows[table] = struct.unpack_from("<I", raw, table_cursor)[0]
+            table_cursor += 4
+    method_rid = entrypoint & 0x00FFFFFF
+    if entrypoint >> 24 != 0x06 or method_rid == 0 or method_rid > rows[6]:
+        raise HarnessError("CLI entrypoint is not a valid MethodDef token")
+    string_size = 4 if heap_sizes & 0x01 else 2
+    guid_size = 4 if heap_sizes & 0x02 else 2
+    blob_size = 4 if heap_sizes & 0x04 else 2
+    table_sizes = {
+        0: 2 + string_size + guid_size * 3,
+        1: coded_index_size(rows, (0, 26, 35, 1), 2) + string_size * 2,
+        2: 4 + string_size * 2 + coded_index_size(rows, (2, 1, 27), 2)
+        + metadata_index_size(rows, 4) + metadata_index_size(rows, 6),
+        3: metadata_index_size(rows, 4),
+        4: 2 + string_size + blob_size,
+        5: metadata_index_size(rows, 6),
+    }
+    method_size = 8 + string_size + blob_size + metadata_index_size(rows, 8)
+    method_table = table_cursor + sum(rows[table] * table_sizes[table] for table in range(6))
+    method_end = method_table + rows[6] * method_size
+    if method_end > table_end:
+        raise HarnessError("CLI MethodDef table is truncated")
+    method = method_table + (method_rid - 1) * method_size
+    method_rva = struct.unpack_from("<I", raw, method)[0]
+    index_cursor = method + 8
+
+    def read_index(size: int) -> int:
+        nonlocal index_cursor
+        value = struct.unpack_from("<H" if size == 2 else "<I", raw, index_cursor)[0]
+        index_cursor += size
+        return value
+
+    name_index = read_index(string_size)
+    signature_index = read_index(blob_size)
+    parameter_index = read_index(metadata_index_size(rows, 8))
+    map_rva(raw, sections, method_rva, 1)
+    strings_start, strings_end = streams["#Strings"]
+    name_start = strings_start + name_index
+    if name_index == 0 or name_start >= strings_end:
+        raise HarnessError("CLI entrypoint name index is invalid")
+    name_end = raw.find(b"\0", name_start, strings_end)
+    if name_end < 0 or raw[name_start:name_end] != b"Main":
+        raise HarnessError("CLI entrypoint name is not exact Main")
+    blob_start, blob_end = streams["#Blob"]
+    signature_start = blob_start + signature_index
+    signature_length, prefix_length = compressed_unsigned(raw, signature_start, blob_end)
+    if signature_index == 0 or signature_length == 0 or signature_start + prefix_length + signature_length > blob_end:
+        raise HarnessError("CLI entrypoint signature blob is invalid")
+    if parameter_index == 0 or parameter_index > rows[8] + 1:
+        raise HarnessError("CLI entrypoint parameter list is invalid")
+    return {
+        "entrypoint_method_rid": method_rid,
+        "metadata_streams": sorted(streams),
+        "metadata_version_sha256": hashlib.sha256(version).hexdigest(),
+        "methoddef_rows": rows[6],
+    }
 
 
 def validate_pe32_cli(raw: bytes, expected_subsystem: int) -> dict[str, object]:
@@ -549,16 +727,17 @@ def validate_pe32_cli(raw: bytes, expected_subsystem: int) -> dict[str, object]:
     header_size = struct.unpack_from("<I", raw, cli)[0]
     metadata_rva, metadata_size = struct.unpack_from("<II", raw, cli + 8)
     flags, entrypoint = struct.unpack_from("<II", raw, cli + 16)
-    if header_size < 72 or flags & 0x00000003 != 0x00000003 or flags & 0x00020000:
+    if header_size != 72 or flags != 0x00000003:
         raise HarnessError("CLI flags are not IL-only x86-required")
     if entrypoint == 0:
         raise HarnessError("CLI entrypoint is empty")
-    map_rva(raw, sections, metadata_rva, metadata_size)
+    metadata = validate_cli_metadata(raw, sections, metadata_rva, metadata_size, entrypoint)
     return {
         "cli_flags": flags,
         "machine": machine,
         "optional_magic": 0x010B,
         "subsystem": subsystem,
+        **metadata,
     }
 
 
@@ -889,7 +1068,7 @@ def verify_retained(repo_argument: pathlib.Path, commit: str, compiler_argument:
 
 
 def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
-    raw = bytearray(1024)
+    raw = bytearray(2048)
     raw[:2] = b"MZ"
     struct.pack_into("<I", raw, 0x3C, 0x80)
     raw[0x80:0x84] = b"PE\0\0"
@@ -902,18 +1081,53 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     struct.pack_into("<II", raw, optional + 96 + 14 * 8, 0x2100, 72)
     section = optional + 0xE0
     raw[section:section + 5] = b".text"
-    struct.pack_into("<IIII", raw, section + 8, 0x200, 0x2000, 0x200, 0x200)
+    struct.pack_into("<IIII", raw, section + 8, 0x600, 0x2000, 0x600, 0x200)
     struct.pack_into("<I", raw, 0x300, 72)
-    struct.pack_into("<II", raw, 0x308, 0x2180, 0x20)
+    struct.pack_into("<II", raw, 0x308, 0x2180, 0xA0)
     struct.pack_into("<II", raw, 0x310, flags, 0x06000001)
-    raw[0x380:0x3A0] = b"B" * 0x20
+    metadata = 0x380
+    version = b"v4.0.30319\0"
+    raw[metadata:metadata + 4] = b"BSJB"
+    struct.pack_into("<HHII", raw, metadata + 4, 1, 1, 0, len(version))
+    raw[metadata + 16:metadata + 16 + len(version)] = version
+    cursor = (metadata + 16 + len(version) + 3) & ~3
+    struct.pack_into("<HH", raw, cursor, 0, 3)
+    cursor += 4
+    table_offset = 0x50
+    strings_offset = 0x88
+    blob_offset = 0x98
+    for name, offset, size in (
+        (b"#~\0", table_offset, 56),
+        (b"#Strings\0", strings_offset, 15),
+        (b"#Blob\0", blob_offset, 5),
+    ):
+        struct.pack_into("<II", raw, cursor, offset, size)
+        raw[cursor + 8:cursor + 8 + len(name)] = name
+        cursor = (cursor + 8 + len(name) + 3) & ~3
+    tables = metadata + table_offset
+    struct.pack_into("<IBBBBQQ", raw, tables, 0, 2, 0, 0, 1, (1 << 0) | (1 << 6), 0)
+    struct.pack_into("<II", raw, tables + 24, 1, 1)
+    rows = tables + 32
+    struct.pack_into("<HHHHH", raw, rows, 0, 1, 0, 0, 0)
+    struct.pack_into("<IHHHHH", raw, rows + 10, 0x2300, 0, 0, 10, 1, 1)
+    raw[metadata + strings_offset:metadata + strings_offset + 15] = b"\0<Module>\0Main\0"
+    raw[metadata + blob_offset:metadata + blob_offset + 5] = b"\0\x03\x00\x00\x08"
+    raw[0x500] = 0x2A
     return bytes(raw)
 
 
 def self_test() -> None:
     base = synthetic_pe()
     observed = validate_pe32_cli(base, 2)
-    if observed != {"cli_flags": 3, "machine": 0x014C, "optional_magic": 0x010B, "subsystem": 2}:
+    if not (
+        observed["cli_flags"] == 3
+        and observed["machine"] == 0x014C
+        and observed["optional_magic"] == 0x010B
+        and observed["subsystem"] == 2
+        and observed["entrypoint_method_rid"] == 1
+        and observed["methoddef_rows"] == 1
+        and observed["metadata_streams"] == ["#Blob", "#Strings", "#~"]
+    ):
         raise AssertionError("PE positive control")
     mutations = []
     for label, offset, packed in (
@@ -921,7 +1135,15 @@ def self_test() -> None:
         ("optional magic", 0x84 + 20, struct.pack("<H", 0x020B)),
         ("subsystem", 0x84 + 20 + 68, struct.pack("<H", 3)),
         ("CLI flags", 0x310, struct.pack("<I", 1)),
+        ("CLI unsupported strong-name flag", 0x310, struct.pack("<I", 0x7)),
+        ("CLI native entrypoint flag", 0x310, struct.pack("<I", 0x13)),
+        ("CLI extra tracking flag", 0x310, struct.pack("<I", 0x103)),
         ("entrypoint", 0x314, struct.pack("<I", 0)),
+        ("metadata signature", 0x380, b"NOPE"),
+        ("metadata stream/header overlap", 0x3A0, struct.pack("<I", 0x30)),
+        ("metadata missing MethodDef rows", 0x3EC, struct.pack("<I", 0)),
+        ("metadata MethodDef token", 0x314, struct.pack("<I", 0x02000001)),
+        ("metadata method name", 0x380 + 0x88 + 10, b"X"),
     ):
         changed = bytearray(base)
         changed[offset:offset + len(packed)] = packed
@@ -953,12 +1175,16 @@ def self_test() -> None:
         globals()["to_windows_path"] = original_converter
     if set(commands) != {"fixture_build", "test_build", "test_run"}:
         raise AssertionError("command set roles")
-    if len(raw_commands["fixture_build"]) != 16 or len(raw_commands["test_build"]) != 17:
+    if len(raw_commands["fixture_build"]) != 18 or len(raw_commands["test_build"]) != 19:
         raise AssertionError("command set arity")
     if raw_commands["fixture_build"].count("/noconfig") != 1:
         raise AssertionError("fixture build controls")
     if raw_commands["test_build"].count("/noconfig") != 1:
         raise AssertionError("test build controls")
+    if raw_commands["fixture_build"].count("/nostdlib+") != 1:
+        raise AssertionError("fixture standard library control")
+    if raw_commands["test_build"].count("/nostdlib+") != 1:
+        raise AssertionError("test standard library control")
     with tempfile.TemporaryDirectory() as directory:
         root = pathlib.Path(directory)
         plain = root / "plain"
