@@ -306,7 +306,9 @@ class RetainedRoot:
         self.directory_fingerprints: dict[tuple[str, ...], tuple[int, int, int, int, int, int, int]] = {
             (): _fingerprint(opened)
         }
-        self.files: dict[str, tuple[int, tuple[int, int, int, int, int, int, int]]] = {}
+        self.files: dict[
+            str, tuple[int, tuple[int, int, int, int, int, int, int], bytes]
+        ] = {}
 
     def close(self) -> None:
         for descriptor in [item[0] for item in self.files.values()]:
@@ -359,15 +361,27 @@ class RetainedRoot:
         except Exception:
             os.close(descriptor)
             raise
-        self.files[relative] = (descriptor, _fingerprint(opened))
+        self.files[relative] = (descriptor, _fingerprint(opened), raw)
         return raw
 
     def object_id(self, relative: str) -> tuple[int, int]:
-        descriptor, _fingerprint_value = self.files[relative]
+        descriptor, _fingerprint_value, _raw = self.files[relative]
         observed = os.fstat(descriptor)
         return (observed.st_dev, observed.st_ino)
 
     def revalidate(self) -> None:
+        for index, component in enumerate(self.path.parts[1:], start=1):
+            observed = os.stat(
+                component,
+                dir_fd=self.absolute_descriptors[index - 1],
+                follow_symlinks=False,
+            )
+            held = os.fstat(self.absolute_descriptors[index])
+            if (
+                (observed.st_dev, observed.st_ino) != self.ancestor_objects[index]
+                or (held.st_dev, held.st_ino) != self.ancestor_objects[index]
+            ):
+                raise ComparisonError("retained absolute path changed during comparison")
         current_root = os.fstat(self.descriptor)
         if (current_root.st_dev, current_root.st_ino) != self.root_object:
             raise ComparisonError("retained root changed during comparison")
@@ -390,9 +404,11 @@ class RetainedRoot:
                 or _fingerprint(observed) != self.directory_fingerprints[parts]
             ):
                 raise ComparisonError("retained directory changed during comparison")
-        for relative, (descriptor, expected) in self.files.items():
+        for relative, (descriptor, expected, raw) in self.files.items():
             if _fingerprint(os.fstat(descriptor)) != expected:
                 raise ComparisonError("retained artifact changed during comparison")
+            if os.pread(descriptor, len(raw) + 1, 0) != raw:
+                raise ComparisonError("retained artifact bytes changed during comparison")
             parts = self._parts(relative)
             parent = self._directory(parts[:-1])
             check = os.open(
@@ -646,6 +662,13 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
     cli_header_size = u32(raw, cli)
     if cli_header_size < 0x48 or cli_header_size > cli_size:
         raise ComparisonError("invalid CLI header size")
+    if (
+        u16(raw, cli + 4, cli + cli_header_size) != 2
+        or u16(raw, cli + 6, cli + cli_header_size) != 5
+        or u32(raw, cli + 16, cli + cli_header_size) != 0x00000003
+        or u32(raw, cli + 20, cli + cli_header_size) == 0
+    ):
+        raise ComparisonError("unexpected CLI runtime profile")
     metadata_rva = u32(raw, cli + 8, cli + cli_header_size)
     metadata_size = u32(raw, cli + 12, cli + cli_header_size)
     if metadata_rva == 0 or metadata_size < 20:
@@ -716,9 +739,9 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
         if first[1] > second[0]:
             raise ComparisonError("overlapping CLI streams")
     table_names = [name for name in ("#~", "#-") if name in streams]
-    if len(table_names) != 1 or "#GUID" not in streams:
+    if len(table_names) != 1 or set(streams) != {"#~", "#Strings", "#US", "#GUID", "#Blob"}:
         raise ComparisonError("missing or ambiguous CLI tables")
-    if streams["#GUID"][1] == 0 or streams["#GUID"][1] % 16:
+    if streams["#GUID"][1] != 16 or streams["#Strings"][1] < 2:
         raise ComparisonError("invalid CLI GUID heap size")
     tables, tables_size = streams[table_names[0]]
     tables_end = tables + tables_size
@@ -759,12 +782,43 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
     module_size = 2 + string_index_size + 3 * guid_index_size
     if row_cursor + module_size > tables_end:
         raise ComparisonError("truncated CLI Module row")
+    generation = u16(raw, row_cursor, tables_end)
+    name_index_offset = row_cursor + 2
+    name_index = (
+        u32(raw, name_index_offset, tables_end)
+        if string_index_size == 4
+        else u16(raw, name_index_offset, tables_end)
+    )
     mvid_index_offset = row_cursor + 2 + string_index_size
     mvid_index = (
         u32(raw, mvid_index_offset, tables_end)
         if guid_index_size == 4
         else u16(raw, mvid_index_offset, tables_end)
     )
+    enc_id_offset = mvid_index_offset + guid_index_size
+    enc_base_id_offset = enc_id_offset + guid_index_size
+    enc_id = (
+        u32(raw, enc_id_offset, tables_end)
+        if guid_index_size == 4
+        else u16(raw, enc_id_offset, tables_end)
+    )
+    enc_base_id = (
+        u32(raw, enc_base_id_offset, tables_end)
+        if guid_index_size == 4
+        else u16(raw, enc_base_id_offset, tables_end)
+    )
+    strings, strings_size = streams["#Strings"]
+    if generation != 0 or mvid_index != 1 or enc_id != 0 or enc_base_id != 0:
+        raise ComparisonError("invalid CLI Module reserved fields")
+    if name_index == 0 or name_index >= strings_size:
+        raise ComparisonError("invalid CLI Module name index")
+    name_end = raw.find(b"\0", strings + name_index, strings + strings_size)
+    if name_end <= strings + name_index:
+        raise ComparisonError("invalid CLI Module name")
+    try:
+        raw[strings + name_index : name_end].decode("utf-8", "strict")
+    except UnicodeDecodeError as error:
+        raise ComparisonError("invalid CLI Module name") from error
     if mvid_index == 0:
         raise ComparisonError("zero CLI MVID index")
     guid, guid_size = streams["#GUID"]
@@ -935,6 +989,13 @@ def compare_attempts(
 ) -> dict[str, object]:
     if first_root.root_object == second_root.root_object:
         raise ComparisonError("retained roots are not distinct")
+    if first_root.root_object[0] != second_root.root_object[0]:
+        raise ComparisonError("retained roots use different mount views")
+    if (
+        first_root.root_object in second_root.ancestor_objects
+        or second_root.root_object in first_root.ancestor_objects
+    ):
+        raise ComparisonError("retained roots physically overlap")
     for outer, inner in ((first_root.path, second_root.path), (second_root.path, first_root.path)):
         try:
             inner.relative_to(outer)
@@ -1039,31 +1100,58 @@ def compare_attempts(
     return result
 
 
-def write_exclusive(path: pathlib.Path, raw: bytes) -> None:
-    output = path.absolute()
-    _parent, parent_descriptors, _objects = _open_absolute_directory(output.parent)
-    parent_descriptor = parent_descriptors[-1]
-    temporary = "." + output.name + ".tmp-" + secrets.token_hex(16)
-    temporary_created = False
-    published = False
-    try:
-        try:
-            os.stat(output.name, dir_fd=parent_descriptor, follow_symlinks=False)
-        except FileNotFoundError:
-            pass
-        else:
-            raise FileExistsError(output)
-        descriptor = os.open(
-            temporary,
-            os.O_RDWR
-            | os.O_CREAT
-            | os.O_EXCL
-            | getattr(os, "O_NOFOLLOW", 0),
-            0o600,
-            dir_fd=parent_descriptor,
+class OutputTarget:
+    def __init__(self, path: pathlib.Path, roots: tuple[RetainedRoot, ...]):
+        self.output = path.absolute()
+        if not self.output.name:
+            raise ComparisonError("comparison output has no filename")
+        self.parent, self.parent_descriptors, self.ancestor_objects = _open_absolute_directory(
+            self.output.parent
         )
-        temporary_created = True
+        self.parent_descriptor = self.parent_descriptors[-1]
+        parent_stat = os.fstat(self.parent_descriptor)
+        if parent_stat.st_uid != os.geteuid() or stat.S_IMODE(parent_stat.st_mode) & 0o077:
+            self.close()
+            raise ComparisonError("comparison output parent is not private and owned")
+        for retained_root in roots:
+            if parent_stat.st_dev != retained_root.root_object[0]:
+                self.close()
+                raise ComparisonError("comparison output uses a different mount view")
+            if retained_root.root_object in self.ancestor_objects:
+                self.close()
+                raise ComparisonError("comparison output physically overlaps retained input")
+            try:
+                self.parent.relative_to(retained_root.path)
+            except ValueError:
+                continue
+            self.close()
+            raise ComparisonError("comparison output lexically overlaps retained input")
+
+    def close(self) -> None:
+        for descriptor in reversed(getattr(self, "parent_descriptors", [])):
+            os.close(descriptor)
+        self.parent_descriptors = []
+
+    def publish(self, raw: bytes, post_check=lambda: None) -> None:
+        parent_descriptor = self.parent_descriptor
+        temporary = "." + self.output.name + ".tmp-" + secrets.token_hex(16)
+        temporary_created = False
+        final_created = False
+        descriptor: int | None = None
         try:
+            try:
+                os.stat(self.output.name, dir_fd=parent_descriptor, follow_symlinks=False)
+            except FileNotFoundError:
+                pass
+            else:
+                raise FileExistsError(self.output)
+            descriptor = os.open(
+                temporary,
+                os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                0o600,
+                dir_fd=parent_descriptor,
+            )
+            temporary_created = True
             view = memoryview(raw)
             written = 0
             while written < len(raw):
@@ -1075,50 +1163,83 @@ def write_exclusive(path: pathlib.Path, raw: bytes) -> None:
             observed = os.fstat(descriptor)
             if (
                 not stat.S_ISREG(observed.st_mode)
+                or observed.st_uid != os.geteuid()
+                or stat.S_IMODE(observed.st_mode) != 0o600
                 or observed.st_nlink != 1
                 or observed.st_size != len(raw)
+                or os.pread(descriptor, len(raw) + 1, 0) != raw
             ):
                 raise ComparisonError("invalid temporary comparison output")
-            if os.pread(descriptor, len(raw) + 1, 0) != raw:
-                raise ComparisonError("comparison output readback mismatch")
+            named_temporary = os.stat(
+                temporary, dir_fd=parent_descriptor, follow_symlinks=False
+            )
+            if (named_temporary.st_dev, named_temporary.st_ino) != (
+                observed.st_dev,
+                observed.st_ino,
+            ):
+                raise ComparisonError("temporary comparison output name changed")
+            os.link(
+                temporary,
+                self.output.name,
+                src_dir_fd=parent_descriptor,
+                dst_dir_fd=parent_descriptor,
+                follow_symlinks=False,
+            )
+            final_created = True
+            final_stat = os.stat(
+                self.output.name, dir_fd=parent_descriptor, follow_symlinks=False
+            )
+            temporary_stat = os.stat(
+                temporary, dir_fd=parent_descriptor, follow_symlinks=False
+            )
+            expected_object = (observed.st_dev, observed.st_ino)
+            if (
+                (final_stat.st_dev, final_stat.st_ino) != expected_object
+                or (temporary_stat.st_dev, temporary_stat.st_ino) != expected_object
+                or final_stat.st_nlink != 2
+                or final_stat.st_uid != os.geteuid()
+                or stat.S_IMODE(final_stat.st_mode) != 0o600
+                or os.pread(descriptor, len(raw) + 1, 0) != raw
+            ):
+                raise ComparisonError("published comparison output identity mismatch")
+            post_check()
+            os.fsync(parent_descriptor)
+            os.unlink(temporary, dir_fd=parent_descriptor)
+            temporary_created = False
+            os.fsync(parent_descriptor)
+            final_stat = os.stat(
+                self.output.name, dir_fd=parent_descriptor, follow_symlinks=False
+            )
+            if (
+                (final_stat.st_dev, final_stat.st_ino) != expected_object
+                or final_stat.st_nlink != 1
+                or os.pread(descriptor, len(raw) + 1, 0) != raw
+            ):
+                raise ComparisonError("final comparison output changed")
+            post_check()
+            final_created = False
         finally:
-            os.close(descriptor)
-        os.link(
-            temporary,
-            output.name,
-            src_dir_fd=parent_descriptor,
-            dst_dir_fd=parent_descriptor,
-            follow_symlinks=False,
-        )
-        published = True
-        os.fsync(parent_descriptor)
-        os.unlink(temporary, dir_fd=parent_descriptor)
-        temporary_created = False
-        os.fsync(parent_descriptor)
+            if descriptor is not None:
+                os.close(descriptor)
+            if final_created:
+                try:
+                    os.unlink(self.output.name, dir_fd=parent_descriptor)
+                    os.fsync(parent_descriptor)
+                except FileNotFoundError:
+                    pass
+            if temporary_created:
+                try:
+                    os.unlink(temporary, dir_fd=parent_descriptor)
+                except FileNotFoundError:
+                    pass
+
+
+def write_exclusive(path: pathlib.Path, raw: bytes) -> None:
+    target = OutputTarget(path, ())
+    try:
+        target.publish(raw)
     finally:
-        if temporary_created:
-            try:
-                os.unlink(temporary, dir_fd=parent_descriptor)
-            except FileNotFoundError:
-                pass
-        for held in reversed(parent_descriptors):
-            os.close(held)
-    if not published:
-        raise ComparisonError("comparison output was not published")
-
-
-def validate_output_location(path: pathlib.Path, roots: tuple[RetainedRoot, ...]) -> pathlib.Path:
-    output = path.absolute()
-    if not output.name:
-        raise ComparisonError("comparison output has no filename")
-    output_parent = output.parent.absolute()
-    for retained_root in roots:
-        try:
-            output_parent.relative_to(retained_root.path)
-        except ValueError:
-            continue
-        raise ComparisonError("comparison output overlaps retained input")
-    return output
+        target.close()
 
 
 def build_pe_fixture(timestamp: int, mvid: bytes, payload_byte: int = 0x2A) -> bytes:
@@ -1140,22 +1261,34 @@ def build_pe_fixture(timestamp: int, mvid: bytes, payload_byte: int = 0x2A) -> b
     struct.pack_into("<IIII", raw, section + 8, 0x400, 0x1000, 0x400, 0x200)
     cli = 0x300
     struct.pack_into("<IHHII", raw, cli, 0x48, 2, 5, 0x1200, 0x180)
+    struct.pack_into("<II", raw, cli + 16, 0x00000003, 0x06000001)
     metadata = 0x400
     struct.pack_into("<IHHII", raw, metadata, 0x424A5342, 1, 1, 0, 4)
     raw[metadata + 16 : metadata + 20] = b"v1\0\0"
-    struct.pack_into("<HH", raw, metadata + 20, 0, 2)
+    struct.pack_into("<HH", raw, metadata + 20, 0, 5)
     cursor = metadata + 24
-    struct.pack_into("<II", raw, cursor, 0x40, 0x40)
+    struct.pack_into("<II", raw, cursor, 0x80, 0x40)
     raw[cursor + 8 : cursor + 12] = b"#~\0\0"
     cursor += 12
-    struct.pack_into("<II", raw, cursor, 0x80, 0x20)
+    struct.pack_into("<II", raw, cursor, 0xC0, 0x10)
     raw[cursor + 8 : cursor + 16] = b"#GUID\0\0\0"
-    tables = metadata + 0x40
+    cursor += 16
+    struct.pack_into("<II", raw, cursor, 0xD0, 0x20)
+    raw[cursor + 8 : cursor + 20] = b"#Strings\0\0\0\0"
+    cursor += 20
+    struct.pack_into("<II", raw, cursor, 0xF0, 0x10)
+    raw[cursor + 8 : cursor + 12] = b"#US\0"
+    cursor += 12
+    struct.pack_into("<II", raw, cursor, 0x100, 0x10)
+    raw[cursor + 8 : cursor + 16] = b"#Blob\0\0\0"
+    tables = metadata + 0x80
     struct.pack_into("<IBBBBQQ", raw, tables, 0, 2, 0, 0, 1, 1, 0)
     struct.pack_into("<I", raw, tables + 24, 1)
-    struct.pack_into("<HHHHH", raw, tables + 28, 0, 0, 1, 0, 0)
-    guid = metadata + 0x80
+    struct.pack_into("<HHHHH", raw, tables + 28, 0, 1, 1, 0, 0)
+    guid = metadata + 0xC0
     raw[guid : guid + 16] = mvid
+    strings = metadata + 0xD0
+    raw[strings + 1 : strings + 8] = b"Module\0"
     raw[0x250] = payload_byte
     return bytes(raw)
 
@@ -1411,7 +1544,7 @@ def self_test() -> None:
     struct.pack_into("<H", wrong_machine, 0x84, 0x8664)
     expect_rejected(lambda: parse_pe_build_identity(bytes(wrong_machine)), "PE32+ machine")
     zero_mvid = bytearray(first)
-    struct.pack_into("<H", zero_mvid, 0x400 + 0x40 + 28 + 4, 0)
+    struct.pack_into("<H", zero_mvid, 0x400 + 0x80 + 28 + 4, 0)
     expect_rejected(lambda: parse_pe_build_identity(bytes(zero_mvid)), "zero MVID")
     truncated = first[:0x450]
     expect_rejected(lambda: parse_pe_build_identity(truncated), "truncated PE")
@@ -1422,10 +1555,15 @@ def self_test() -> None:
     struct.pack_into("<IIII", overlapping, second_section + 8, 0x100, 0x2000, 0x100, 0x200)
     expect_rejected(lambda: parse_pe_build_identity(bytes(overlapping)), "overlapping PE sections")
     for offset, width, value, label in (
+        (0x300 + 16, 4, 0, "CLI flags"),
         (0x400 + 4, 2, 99, "metadata major version"),
         (0x400 + 8, 4, 1, "metadata reserved field"),
-        (0x400 + 0x40, 4, 1, "tables reserved field"),
-        (0x400 + 0x40 + 7, 1, 0, "tables reserved byte"),
+        (0x400 + 0x80, 4, 1, "tables reserved field"),
+        (0x400 + 0x80 + 7, 1, 0, "tables reserved byte"),
+        (0x400 + 0x80 + 28, 2, 1, "Module generation"),
+        (0x400 + 0x80 + 30, 2, 0, "Module name"),
+        (0x400 + 0x80 + 34, 2, 1, "Module EncId"),
+        (0x400 + 0x80 + 36, 2, 1, "Module EncBaseId"),
     ):
         malformed = bytearray(first)
         if width == 1:
@@ -1660,7 +1798,7 @@ def self_test() -> None:
             nested_root = RetainedRoot(first_path / "build")
             try:
                 expect_rejected(
-                    lambda: validate_output_location(
+                    lambda: OutputTarget(
                         first_path / "comparison.json", (first_root, nested_root)
                     ),
                     "comparison output overlap",
@@ -1681,12 +1819,71 @@ def self_test() -> None:
                 nested_root.close()
         finally:
             first_root.close()
+        alias_nested = pathlib.Path("//" + str(first_path / "build").lstrip("/"))
+        alias_first_root = RetainedRoot(first_path)
+        try:
+            alias_nested_root = RetainedRoot(alias_nested)
+            try:
+                expect_rejected(
+                    lambda: compare_attempts(
+                        alias_first_root,
+                        alias_nested_root,
+                        materials["expectations_raw"],
+                        materials["private_raw"],
+                        identity(b"self-test-comparator"),
+                        RUNTIME_VERIFIER_IDENTITY,
+                        materials["profile"],
+                    ),
+                    "alternate-spelling nested root",
+                )
+                expect_rejected(
+                    lambda: OutputTarget(
+                        pathlib.Path("//" + str(first_path).lstrip("/"))
+                        / "comparison.json",
+                        (alias_first_root,),
+                    ),
+                    "alternate-spelling output overlap",
+                )
+            finally:
+                alias_nested_root.close()
+        finally:
+            alias_first_root.close()
         expect_rejected(
             lambda: _compare_self_test_pair(
                 first_path, second_path, materials, PRODUCTION_PROFILE
             ),
             "production expectations profile mismatch",
         )
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = pathlib.Path(directory)
+        attempt = root / "attempt"
+        attempt.mkdir()
+        artifact = attempt / "artifact.bin"
+        artifact.write_bytes(b"before")
+        held = RetainedRoot(attempt)
+        try:
+            held.read("artifact.bin")
+            artifact.write_bytes(b"after!")
+            expect_rejected(held.revalidate, "same-size retained byte mutation")
+        finally:
+            held.close()
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = pathlib.Path(directory)
+        parent = root / "parent"
+        attempt = parent / "attempt"
+        attempt.mkdir(parents=True)
+        (attempt / "artifact.bin").write_bytes(b"stable")
+        held = RetainedRoot(attempt)
+        try:
+            held.read("artifact.bin")
+            moved = root / "moved"
+            parent.rename(moved)
+            parent.mkdir()
+            expect_rejected(held.revalidate, "retained ancestor replacement")
+        finally:
+            held.close()
 
     with tempfile.TemporaryDirectory() as directory:
         root = pathlib.Path(directory)
@@ -1738,19 +1935,25 @@ def main() -> int:
     try:
         second_root = RetainedRoot(args.second_dir)
         try:
-            result = compare_attempts(
-                first_root,
-                second_root,
-                expectations_raw,
-                private_raw,
-                implementation_identity,
-                runtime_identity,
-                PRODUCTION_PROFILE,
-            )
-            output = validate_output_location(args.output, (first_root, second_root))
-            first_root.revalidate()
-            second_root.revalidate()
-            write_exclusive(output, canonical(result))
+            target = OutputTarget(args.output, (first_root, second_root))
+            try:
+                result = compare_attempts(
+                    first_root,
+                    second_root,
+                    expectations_raw,
+                    private_raw,
+                    implementation_identity,
+                    runtime_identity,
+                    PRODUCTION_PROFILE,
+                )
+                first_root.revalidate()
+                second_root.revalidate()
+                target.publish(
+                    canonical(result),
+                    lambda: (first_root.revalidate(), second_root.revalidate()),
+                )
+            finally:
+                target.close()
         finally:
             second_root.close()
     finally:
