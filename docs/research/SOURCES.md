@@ -20,7 +20,7 @@ Inspected 24 October 2026. These are source inspections, not reports of tests ex
 | [LICENSE](https://github.com/maxevans60/cm0102-bosman-edition/blob/144ed82c248228c7769c6785899527eae5b33c3d/LICENSE) | Current inspected Bosman licence is GPLv3 |
 | [Map README](https://github.com/maxevans60/cm0102-function-map/blob/2bb558ef6a6bcdbd304dd1a6a4cf156c6707007c/README.md) | Named functions and global catalogue, confidence interpretation and provenance; imported names are not our verified contracts |
 
-Upstream reports are upstream assertions until reproduced locally. This planning session did not build Bosman, run CM01/02, inspect a supplied original binary, benchmark the VPS, or invoke Jev. Function addresses in upstream tooling identify research starting points; read the actual original routine before relying on its claimed contract.
+Upstream reports are upstream assertions until reproduced locally. The initial planning session did not build Bosman, run CM01/02, inspect a supplied original binary, benchmark the VPS, or invoke Jev. Subsequent implementation qualified the original executable and a Bosman native build; see [P00 input qualification](../status/P00_INPUT_QUALIFICATION.md) and [B1 Bosman build evidence](../status/B1_BOSMAN_BUILD.md). No Bosman runtime job or original-process behaviour is yet qualified. Function addresses in upstream tooling identify research starting points; read the actual original routine before relying on its claimed contract.
 
 The forum URL supplied earlier, https://champman0102.co.uk/viewtopic.php?t=11024, was not fully retrievable in the earlier research. Repository evidence, rather than an assumed reading of all forum replies, grounds this plan.
 

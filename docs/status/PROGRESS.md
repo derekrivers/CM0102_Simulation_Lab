@@ -8,6 +8,7 @@ Updated: 24 October 2026 (Europe/London)
 - The pinned B0 map inventory importer was independently reviewed, corrected, re-reviewed with no findings, and merged in PR #2 at commit `28928e649d75b01dabe61b5cdcb9cc81cbbde3a7`.
 - The executable/input qualification and PE-backed map-address validation were independently reviewed with no findings and merged in PR #4 at commit `0e64c4acfea612de58409639f5bed7241c7d94a7`.
 - A user-authorized Windows installation was copied to private storage and verified file-for-file against source hashes. Its `cm0102.exe` exactly matches official 3.9.68 as required by the pinned Bosman source.
+- The pinned Bosman source now has a qualified native Linux Release build on the PC/WSL worker. All 45 registered upstream tests pass; runtime execution remains blocked on clean data and the B1 adapter/replay work.
 - P00/B0 input inventory is active. No phase is complete.
 - The two foundational public repositories are checked out outside the public repository at their selected commits. The source lock and deterministic map importer are implemented in the B0 delivery increment.
 
@@ -30,9 +31,10 @@ Updated: 24 October 2026 (Europe/London)
 - The executable has SHA-256 `0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86`, size 7,192,576 bytes, PE32/i386 image base `0x00400000`, and entry point VA `0x00947a13`. This exactly matches the pinned Bosman hash.
 - Against Bosman's 760-file clean manifest, the installed folder has 696 exact files, 57 changed files, 7 missing files, and 21 extras under Windows-case-insensitive path comparison. It is not the clean data baseline. The official ISO and patch installer were not found in bounded Windows user-folder searches.
 - Two executable-backed map imports validated every address against the PE sections and produced byte-identical 19,894,555-byte artifacts with SHA-256 `5e411cf01746c8b0defd8503a0b61efbfc36c3547649162c95df56a18d636510`.
-- The first VPS Bosman build reached static recompilation but the kernel killed its 3.06 GiB Python process on the 3.7 GiB/no-swap host. A PC/WSL retry passed configuration and generators, then the peer became unreachable before a terminal build result could be recorded. No build pass is claimed.
+- The first VPS Bosman build reached static recompilation but the kernel killed its 3.06 GiB Python process on the 3.7 GiB/no-swap host. The PC/WSL Release build subsequently completed in 11 minutes 19.72 seconds with peak RSS 7,547,840 KiB. Its 48,696,400-byte x86-64 ELF has SHA-256 `9a41f4a028f0dd1df71e3f9f18f9821a17f91947bb20e7ed0ba9fc18fcafa07b`.
+- The translation report records 1,882,000 handled instructions out of 1,882,031 (99.9983528433%), 31 explicitly listed unhandled instructions, one decode stop, and three missing-function targets. All 45 registered CTest cases pass. The source checkout remained clean; `draw_test` needed a build-only `-lm` link correction, and the unrelated default demo target has an upstream Linux `CommonCrypto` include defect.
 - Independent review initially found a canonical-lock bypass plus physical-row and equivalent-address defects. Strict direct lock paths, numeric address canonicalization, physical-row retention, and regression tests resolved all three before PR #2 merged.
-- Matching original data identity, original process observations, Bosman build qualification, and original/Bosman parity remain blocked. The executable and PE section layout are qualified; the installed data is not clean.
+- Matching original data identity, qualified Bosman runtime execution, original process observations, and original/Bosman parity remain blocked. The executable, PE section layout, Bosman native build, and upstream unit tests are qualified; the installed data is not clean.
 - The current host is below the roadmap's provisional 4 vCPU / 8 GiB / 80 GiB-free pilot envelope. This is a measurement constraint, not a purchase request; no 24-hour worker pilot is scheduled.
 - Off-host backup destination remains unset, so unattended durability cannot be certified.
 
@@ -41,7 +43,7 @@ Updated: 24 October 2026 (Europe/London)
 1. Maintain the deterministic B0 map import, provenance report, reconciliation, and negative tests as the upstream inventory evolves through reviewed pin changes.
 2. Expand the coverage register from direct observation when matching data and a qualified execution path become available.
 3. Locate the official `CM0102.iso` and `cm0102_3968.exe`, verify their pinned hashes privately, and reconstruct the clean 760-file runtime set without committing bytes.
-4. Reconnect and stabilize the PC/WSL worker, finish the pinned Bosman build there, then run one isolated Rust-CLI job with a replay manifest after clean data qualification.
+4. After clean data qualification, add the bounded Rust process adapter and run one isolated Bosman job with endpoint evidence, logs, and a replay manifest.
 
 ## Model routing record
 

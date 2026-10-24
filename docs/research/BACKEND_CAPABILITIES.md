@@ -4,7 +4,7 @@ Status: initial P00 inventory. `pending` means no qualified local execution supp
 
 | Capability | original-windows | original-function | bosman-native | rust-native | rust-wasm |
 |---|---|---|---|---|---|
-| Handshake/build identity | pending input/host | pending capture | pending B1 build | planned | planned |
+| Handshake/build identity | pending input/host | pending capture | build identity qualified; handshake pending runtime | planned | planned |
 | Create game | pending | not applicable | pending qualification | unsupported | unsupported |
 | Load original save | pending | not applicable | pending qualification | unsupported | unsupported |
 | Load supported Rust save | not applicable | not applicable | not applicable | unsupported | unsupported |

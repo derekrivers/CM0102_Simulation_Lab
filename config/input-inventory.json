@@ -55,10 +55,11 @@
     "result": "mismatch"
   },
   "address_validation": "qualified_exact_executable_pe32",
-  "bosman_build": "executable_qualified_runtime_blocked_matching_data",
+  "bosman_build": "native_build_qualified_runtime_blocked_matching_data",
   "notes": [
     "No substitute executable or modern data set may be silently registered as the baseline.",
     "The supplied executable exactly matches the hash required by the pinned Bosman source.",
+    "The pinned Bosman source builds successfully on the qualified WSL worker and all 45 registered upstream tests pass; runtime execution remains unqualified.",
     "The supplied installed folder contains modified data and extra runtime/user files, so it is not registered as the clean baseline.",
     "The official CM0102.iso and cm0102_3968.exe are still needed to reconstruct Bosman's clean 760-file runtime input.",
     "Private source locations are deployment configuration and are intentionally absent from this public manifest."
