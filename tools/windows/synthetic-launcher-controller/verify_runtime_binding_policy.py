@@ -32,7 +32,7 @@ NORMALIZED_WORKFLOW_IDENTITY = (
 # Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
 FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
     BASE_GUARD_PATH: (1181, "bdcbfbee204c36b5d985f921ed87b647620d3dba8b05d82706527a70cd4589b2"),
-    SOURCE_PATH: (26943, "32d7890f04894956e5b72b055c8326947559e5d30f3108558420eea68ecebe6c"),
+    SOURCE_PATH: (26943, "f59f3c12978e2c01788f89a030009ac852934ebf0187ad87e0be89f5a68990bc"),
     TEST_PATH: (24400, "c726f5240a6ca0d4a9f7cce267ed25af64f1e2cc04784e67b8cf4b563710e8e5"),
     README_PATH: (3571, "416b96ccb4b6599936a4542a608c5346989b1b06ab8f6ae9b1c38bfaada0aa9f"),
     PROFILE_PATH: (5510, "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1"),
@@ -464,14 +464,14 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
             "internalBuildUnpinnedRefusal(RuntimeBindingStateacceptedOwner,"
             "stringacceptedScenario,intacceptedGeneration,stringacceptedProfileId,"
             "longacceptedProfileByteCount,stringacceptedProfileSha256,objectkey){"
-            "if(!Object.ReferenceEquals(key,RefusalKey))thrownewArgumentException(\"\");"
+            "if(!object.ReferenceEquals(key,RefusalKey))thrownewArgumentException(\"\");"
             "owner=acceptedOwner;scenario=acceptedScenario;generation=acceptedGeneration;"
             "profileId=acceptedProfileId;profileByteCount=acceptedProfileByteCount;"
             "profileSha256=acceptedProfileSha256;}internalboolConsume("
             "RuntimeBindingStatecandidateOwner,stringcandidateScenario,"
             "intcandidateGeneration,stringcandidateProfileId,longcandidateProfileByteCount,"
             "stringcandidateProfileSha256){lock(sync){if(consumed||"
-            "!Object.ReferenceEquals(owner,candidateOwner)||"
+            "!object.ReferenceEquals(owner,candidateOwner)||"
             "!String.Equals(scenario,candidateScenario,StringComparison.Ordinal)||"
             "generation!=candidateGeneration||"
             "!String.Equals(profileId,candidateProfileId,StringComparison.Ordinal)||"
@@ -573,7 +573,7 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
         "refusal consumption")
     require_order(consume, ("lock(sync)", "consumed||", "consumed=true", "returntrue"),
         "refusal consumption")
-    expected_consume = 'lock(sync){if(consumed||!Object.ReferenceEquals(owner,candidateOwner)||!String.Equals(scenario,candidateScenario,StringComparison.Ordinal)||generation!=candidateGeneration||!String.Equals(profileId,candidateProfileId,StringComparison.Ordinal)||profileByteCount!=candidateProfileByteCount||!String.Equals(profileSha256,candidateProfileSha256,StringComparison.Ordinal))returnfalse;consumed=true;returntrue;}'
+    expected_consume = 'lock(sync){if(consumed||!object.ReferenceEquals(owner,candidateOwner)||!String.Equals(scenario,candidateScenario,StringComparison.Ordinal)||generation!=candidateGeneration||!String.Equals(profileId,candidateProfileId,StringComparison.Ordinal)||profileByteCount!=candidateProfileByteCount||!String.Equals(profileSha256,candidateProfileSha256,StringComparison.Ordinal))returnfalse;consumed=true;returntrue;}'
     if consume != expected_consume:
         raise VerificationError("exact refusal consumption")
     snapshot = extract_block(compact,

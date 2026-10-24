@@ -385,7 +385,7 @@ namespace Cm0102.SyntheticLauncherController
                 string acceptedScenario, int acceptedGeneration, string acceptedProfileId,
                 long acceptedProfileByteCount, string acceptedProfileSha256, object key)
             {
-                if (!Object.ReferenceEquals(key, RefusalKey)) throw new ArgumentException("key");
+                if (!object.ReferenceEquals(key, RefusalKey)) throw new ArgumentException("key");
                 owner = acceptedOwner;
                 scenario = acceptedScenario;
                 generation = acceptedGeneration;
@@ -400,7 +400,7 @@ namespace Cm0102.SyntheticLauncherController
             {
                 lock (sync)
                 {
-                    if (consumed || !Object.ReferenceEquals(owner, candidateOwner) ||
+                    if (consumed || !object.ReferenceEquals(owner, candidateOwner) ||
                         !String.Equals(scenario, candidateScenario, StringComparison.Ordinal) ||
                         generation != candidateGeneration ||
                         !String.Equals(profileId, candidateProfileId, StringComparison.Ordinal) ||
