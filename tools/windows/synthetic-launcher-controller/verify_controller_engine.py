@@ -28,15 +28,16 @@ FROZEN_IDENTITIES = {
     ENGINE_PATH: (25413, "33d5d643f086c1bb057310d6368e8712b096e1165cd07946e11744426089082b"),
     TEST_PATH: (36652, "ee2517e0d77199aba4a7ee2c2870594bce745d1e3240ab925316f9fbd27df316"),
     README_PATH: (2718, "c3671bc8dfeb2c50afea0b219d211698eb4d2c9fb09340a07fba578c016ccba0"),
-    WORKFLOW_PATH: (4922, "8a1a9a9ecb90ca60f1494b39c9c680d7f0e624a081027b985524a135d8b26d97"),
+    WORKFLOW_PATH: (7032, "bc405ad3eac006af3a6ade97848d222e8e9ce8b716ff2646736aba8fa24a8fb8"),
 }
 BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (VERIFIER_PATH,)
 CONTROLLER_DIRECTORY = "tools/windows/synthetic-launcher-controller"
 EXPECTED_CONTROLLER_FILES = (
     "ControllerEngine.cs", "ControllerEngineTests.cs", "ControllerPolicy.cs",
-    "ControllerPolicyTests.cs", "ENGINE.md", "README.md", "RUNTIME_CONTRACT.md",
+    "ControllerPolicyTests.cs", "ENGINE.md", "README.md", "RUNTIME_BINDING.md",
+    "RUNTIME_CONTRACT.md", "RuntimeBindingPolicy.cs", "RuntimeBindingPolicyTests.cs",
     "verify_controller_engine.py", "verify_controller_policy.py",
-    "verify_controller_runtime_contract.py",
+    "verify_controller_runtime_contract.py", "verify_runtime_binding_policy.py",
 )
 
 

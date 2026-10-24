@@ -43,6 +43,12 @@ jobs:
         python3 tools/windows/synthetic-launcher-controller/verify_controller_engine.py verify \
           --repo "$GITHUB_WORKSPACE" \
           --source-commit "$GITHUB_SHA"
+    - name: Verify authority-free runtime binding policy
+      run: |
+        python3 tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py self-test
+        python3 tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py verify \
+          --repo "$GITHUB_WORKSPACE" \
+          --source-commit "$GITHUB_SHA"
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -97,4 +103,34 @@ jobs:
         $diagnostics = $process.StandardError.ReadToEnd().Trim()
         if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS 1235') {
           throw "unexpected engine result: $actual"
+        }
+    - name: Build and run authority-free x86 runtime binding tests
+      shell: pwsh
+      run: |
+        $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319'
+        $compiler = Join-Path $framework 'csc.exe'
+        $output = Join-Path $env:RUNNER_TEMP 'RuntimeBindingPolicyTests.exe'
+        $policy = (Resolve-Path 'tools\windows\synthetic-launcher-controller\RuntimeBindingPolicy.cs').Path
+        $tests = (Resolve-Path 'tools\windows\synthetic-launcher-controller\RuntimeBindingPolicyTests.cs').Path
+        & $compiler /nologo /noconfig /warnaserror+ /optimize+ /nostdlib+ /platform:x86 /target:exe `
+          /main:Cm0102.SyntheticLauncherController.RuntimeBindingPolicyTests `
+          "/reference:$framework\mscorlib.dll" "/reference:$framework\System.dll" "/out:$output" `
+          $policy $tests
+        if ($LASTEXITCODE -ne 0) { throw 'runtime binding compilation failed' }
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $output
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        $process = [System.Diagnostics.Process]::new()
+        $process.StartInfo = $startInfo
+        if (-not $process.Start()) { throw 'runtime binding test start failed' }
+        if (-not $process.WaitForExit(30000)) {
+          $process.Kill()
+          throw 'runtime binding test timed out'
+        }
+        $actual = $process.StandardOutput.ReadToEnd().Trim()
+        $diagnostics = $process.StandardError.ReadToEnd().Trim()
+        if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS 202') {
+          throw "unexpected runtime binding result: $actual"
         }

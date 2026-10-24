@@ -1,0 +1,524 @@
+#!/usr/bin/env python3
+"""Strict verifier for the authority-free build-unpinned binding policy."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import pathlib
+import re
+import stat
+import subprocess
+import tempfile
+
+
+SOURCE_PATH = "tools/windows/synthetic-launcher-controller/RuntimeBindingPolicy.cs"
+TEST_PATH = "tools/windows/synthetic-launcher-controller/RuntimeBindingPolicyTests.cs"
+README_PATH = "tools/windows/synthetic-launcher-controller/RUNTIME_BINDING.md"
+PROFILE_PATH = "config/synthetic-launcher-controller-runtime-v1.json"
+VERIFIER_PATH = "tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py"
+WORKFLOW_PATH = ".github/workflows/rust.yml"
+CONTROLLER_DIRECTORY = "tools/windows/synthetic-launcher-controller"
+MAX_BYTES = 256 * 1024
+GIT = pathlib.Path("/usr/bin/git")
+
+# Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
+FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
+    SOURCE_PATH: (26943, "32d7890f04894956e5b72b055c8326947559e5d30f3108558420eea68ecebe6c"),
+    TEST_PATH: (24400, "c726f5240a6ca0d4a9f7cce267ed25af64f1e2cc04784e67b8cf4b563710e8e5"),
+    README_PATH: (3571, "416b96ccb4b6599936a4542a608c5346989b1b06ab8f6ae9b1c38bfaada0aa9f"),
+    PROFILE_PATH: (5510, "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1"),
+    WORKFLOW_PATH: (7032, "bc405ad3eac006af3a6ade97848d222e8e9ce8b716ff2646736aba8fa24a8fb8"),
+}
+BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (VERIFIER_PATH,)
+EXPECTED_CONTROLLER_FILES = (
+    "ControllerEngine.cs", "ControllerEngineTests.cs", "ControllerPolicy.cs",
+    "ControllerPolicyTests.cs", "ENGINE.md", "README.md", "RUNTIME_BINDING.md",
+    "RUNTIME_CONTRACT.md", "RuntimeBindingPolicy.cs", "RuntimeBindingPolicyTests.cs",
+    "verify_controller_engine.py", "verify_controller_policy.py",
+    "verify_controller_runtime_contract.py", "verify_runtime_binding_policy.py",
+)
+
+
+class VerificationError(Exception):
+    pass
+
+
+def identity(raw: bytes) -> tuple[int, str]:
+    return len(raw), hashlib.sha256(raw).hexdigest()
+
+
+def require_path_components(path: pathlib.Path) -> None:
+    if not path.is_absolute():
+        raise VerificationError("path is not absolute")
+    current = pathlib.Path(path.anchor)
+    for part in path.parts[1:]:
+        current /= part
+        if stat.S_ISLNK(os.lstat(current).st_mode):
+            raise VerificationError("symbolic path component")
+
+
+def read_bound(path: pathlib.Path) -> bytes:
+    require_path_components(path)
+    before = os.stat(path, follow_symlinks=False)
+    if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > MAX_BYTES:
+        raise VerificationError("invalid bound file " + os.fspath(path))
+    descriptor = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode):
+            raise VerificationError("bound input changed type")
+        raw = bytearray()
+        while True:
+            chunk = os.read(descriptor, min(65536, MAX_BYTES + 1 - len(raw)))
+            if not chunk:
+                break
+            raw.extend(chunk)
+            if len(raw) > MAX_BYTES:
+                raise VerificationError("input exceeds byte limit")
+        after = os.stat(path, follow_symlinks=False)
+    finally:
+        os.close(descriptor)
+    fields = lambda value: (value.st_dev, value.st_ino, value.st_mode, value.st_nlink,
+        value.st_uid, value.st_gid, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+    if fields(before) != fields(opened) or fields(before) != fields(after) or len(raw) != before.st_size:
+        raise VerificationError("input changed during read")
+    return bytes(raw)
+
+
+def decode_source(raw: bytes, label: str) -> str:
+    if raw.startswith(b"\xef\xbb\xbf") or b"\r" in raw or b"\0" in raw or not raw.endswith(b"\n"):
+        raise VerificationError(label + " encoding")
+    try:
+        text = raw.decode("ascii", "strict")
+    except UnicodeDecodeError as error:
+        raise VerificationError(label + " non-ASCII source") from error
+    if any(marker in text for marker in ("//", "/*", "*/")) or re.search(r"(?m)^\s*#", text):
+        raise VerificationError(label + " comments or directives")
+    if re.search(r"\\(?:u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|x[0-9A-Fa-f]{1,4})", text):
+        raise VerificationError(label + " escaped identifier")
+    if re.search(r'(?:@|\$)"', text):
+        raise VerificationError(label + " unsupported string form")
+    return text
+
+
+def compact_code(text: str, label: str) -> tuple[str, list[str]]:
+    strings: list[str] = []
+
+    def replace(match: re.Match[str]) -> str:
+        value = match.group(0)[1:-1]
+        if "\\" in value:
+            raise VerificationError(label + " escaped string")
+        strings.append(value)
+        return '""'
+
+    without_strings = re.sub(r'"(?:[^"\\]|\\.)*"', replace, text)
+    if "@" in without_strings:
+        raise VerificationError(label + " verbatim identifier")
+    return re.sub(r"\s+", "", without_strings), strings
+
+
+def verify_authority_surface(text: str, label: str, tests: bool) -> tuple[str, list[str]]:
+    if re.findall(r"(?m)^using\s+[^;]+;", text) != ["using System;"]:
+        raise VerificationError(label + " using surface")
+    compact, strings = compact_code(text, label)
+    forbidden = (
+        "DllImport", "LibraryImport", "Runtime.InteropServices", "System.IO",
+        "System.Diagnostics", "System.Net", "System.Reflection", "System.Threading",
+        "System.Security", "System.Timers", "System.CodeDom", "System.ComponentModel",
+        "System.Media", "System.Configuration", "System.Activities", "Microsoft.CSharp",
+        "Microsoft.Win32", "extern", "unsafe", "dynamic", "global::", "Environment.",
+        "AppDomain.", "Activator.", "Marshal.", "IntPtr", "SafeHandle", "GCHandle",
+        "File.", "Directory.", "Process.", "Registry.", "Socket.", "HttpClient",
+        "DateTime", "Stopwatch", "Random(", "Guid.", "Type.GetType", ".GetMethod",
+        ".Invoke", "typeof(", ".GetType", "ResourceManager", "Console.Open",
+        "Console.Read", "Console.In", "Console.Set", "Console.Error", "delegate", "=>",
+        "String.Concat", "Encoding.", "CodeDomProvider", "WindowsIdentity",
+        "RandomNumberGenerator", "ResourceWriter", "RemotingConfiguration",
+    )
+    for value in forbidden:
+        if tests and value in ("System.Threading", "delegate"):
+            continue
+        if value in compact:
+            raise VerificationError(label + " forbidden token " + value)
+    source_without_strings = re.sub(r'"(?:[^"\\]|\\.)*"', '""', text)
+    source_without_strings = re.sub(r"\s*\.\s*", ".", source_without_strings)
+    observed_system_members = set(re.findall(
+        r"\bSystem(?:\.[A-Za-z_][A-Za-z0-9_]*)+", source_without_strings))
+    allowed_system_members = {"System.Threading.ManualResetEvent", "System.Threading.Thread",
+        "System.Threading.ThreadStart"} if tests else set()
+    if observed_system_members != allowed_system_members:
+        raise VerificationError(label + " qualified System surface")
+    if not tests and "Console." in compact:
+        raise VerificationError(label + " console authority")
+    if re.search(r"\b(?:CreateProcess\w*|ShellExecute\w*|WinExec)\(", compact):
+        raise VerificationError(label + " native authority invocation")
+    return compact, strings
+
+
+def extract_block(text: str, marker: str, label: str) -> str:
+    marker_index = text.find(marker)
+    if marker_index < 0:
+        raise VerificationError(label + " marker")
+    opening = text.find("{", marker_index + len(marker))
+    if opening < 0:
+        raise VerificationError(label + " opening brace")
+    depth = 0
+    for index in range(opening, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[opening + 1:index]
+    raise VerificationError(label + " closing brace")
+
+
+def require_order(text: str, values: tuple[str, ...], label: str) -> None:
+    position = -1
+    for value in values:
+        position = text.find(value, position + 1)
+        if position < 0:
+            raise VerificationError(label + " order " + value)
+
+
+def require_count(text: str, value: str, expected: int, label: str) -> None:
+    actual = text.count(value)
+    if actual != expected:
+        raise VerificationError(label + " count " + value + " " + str(actual))
+
+
+def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, workflow: str) -> None:
+    compact, strings = verify_authority_surface(source, "runtime binding policy", False)
+    test_compact, _ = verify_authority_surface(tests, "runtime binding tests", True)
+    if "Main(" in compact or len(re.findall(r"(?:private|internal|public)staticintMain\(\)", test_compact)) != 1:
+        raise VerificationError("entrypoint surface")
+    for forbidden in ("RuntimeBindingExpectations", "ControllerEngine", "ControllerPolicy",
+            "AttemptState", "Permit", "IController", "ICommonControllerPort"):
+        if forbidden in compact:
+            raise VerificationError("forward policy surface " + forbidden)
+    required_types = (
+        "internalenumRuntimeImageRole", "internalenumRuntimeImageBindingState",
+        "internalenumRuntimeBuildBinding",
+        "internalenumDeclaredFixtureStatus", "internalstaticclassFixedRuntimeBindingContract",
+        "internalsealedclassRuntimeArtifactIdentity", "internalsealedclassRuntimeContractFacts",
+        "internalsealedclassRuntimeImageDeclarationFacts",
+        "internalsealedclassRuntimeObjectBindingRequirementFacts",
+        "internalsealedclassRuntimeRouteDeclarationFacts",
+        "internalsealedclassRuntimeOuterJobDeclarationFacts",
+        "internalsealedclassRuntimeBindingFacts", "internalsealedclassRuntimeBindingState",
+        "internalstaticclassRuntimeBindingPolicy", "internalsealedclassBuildUnpinnedRefusal",
+    )
+    for value in required_types:
+        require_count(compact, value, 1, "policy type")
+    if compact.count("internalreadonly") != 71:
+        raise VerificationError("immutable fact field count")
+    for literal in (
+        "cm0102-synthetic-launcher-controller-runtime-v1",
+        "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1",
+        "f469671fd3d8f4986ced0448a70a023d225ed529802cee63cabb43f6fbca2ad6",
+        "SyntheticLauncherSupervisor.exe", "SyntheticLauncherController.exe",
+        "SyntheticLauncherLockedPreflight.exe", "SyntheticLauncherFixture.exe",
+        "SyntheticLauncherTimeoutFixture.exe", "SyntheticLauncherTimeoutChild.exe",
+        "SyntheticLauncherController.public.v1.json",
+        "SyntheticLauncherController.private.v1.json", "SyntheticLauncherReport.v1.json",
+        "ui-success-v1", "tree-timeout-v1", "locked-refusal-v1",
+    ):
+        if literal not in strings:
+            raise VerificationError("missing fixed literal " + literal)
+    if "PublicBuildManifestBindingUnbound&&facts.PublicBuildManifestBindingIdentity==null" not in compact or \
+            "BuildBinding==RuntimeBuildBinding.BuildUnpinned" not in compact:
+        raise VerificationError("build-unpinned manifest boundary")
+    for value in (
+        "LiveExecutionNotRun", "ProcessCreationUnreachable", "QualificationIneligible",
+        "OriginalExecutionNotRun", "OriginalBehaviorUnqualified", "NoImageExecutionObserved",
+        "NoObjectObservationAttempted", "NoLiveJobObservationAttempted",
+    ):
+        if ("facts." + value) not in compact:
+            raise VerificationError("contract refusal field " + value)
+    if "facts.LiveExecutionNotRun&&facts.ProcessCreationUnreachable&&facts.QualificationIneligible" not in compact:
+        raise VerificationError("unreachable refusal conjunction")
+    validate = extract_block(compact,
+        "internalstaticBuildUnpinnedRefusalValidate(RuntimeBindingStatestate,RuntimeBindingFactsfacts)",
+        "validate")
+    require_order(validate, (
+        "state!=null", "state.TryGetRefusalBinding(outscenario,outgeneration)",
+        "stateReady&&facts!=null", "ExactContract(facts.Contract)",
+        "ExactUnboundImage(facts.Supervisor", "ExactUnboundImage(facts.Controller",
+        "ExactUnboundImage(facts.LockedPreflight", "ExactUiFixture(facts.UiFixture)",
+        "ExactUnboundImage(facts.TimeoutRoot", "ExactUnboundImage(facts.TimeoutChild",
+        "ExactObjectBindingRequirements(facts.ObjectBindingRequirements)",
+        "ExactRoute(facts.UiRoute", "ExactRoute(facts.TimeoutRoute",
+        "ExactRoute(facts.LockedRoute", "ExactOuterJob(facts.UiOuterJob",
+        "ExactOuterJob(facts.TimeoutOuterJob", "ExactOuterJob(facts.LockedOuterJob",
+        "newBuildUnpinnedRefusal(",
+    ), "validation")
+    refusal = extract_block(compact, "internalsealedclassBuildUnpinnedRefusal", "refusal")
+    for value in ("owner", "scenario", "generation", "profileId", "profileByteCount",
+            "profileSha256", "consumed"):
+        if value not in refusal:
+            raise VerificationError("refusal binding " + value)
+    accept = extract_block(compact,
+        "internalboolAcceptRefusal(RuntimeBindingPolicy.BuildUnpinnedRefusalrefusal)",
+        "refusal acceptance")
+    require_order(accept, ("lock(sync)", "terminal||rejected", "refusal==null", "refusal.Consume(",
+        "rejected=true", "terminal=true", "ineligible=true", "unreachable=true"),
+        "refusal acceptance")
+    consume = extract_block(compact,
+        "internalboolConsume(RuntimeBindingStatecandidateOwner,stringcandidateScenario",
+        "refusal consumption")
+    require_order(consume, ("lock(sync)", "consumed||", "consumed=true", "returntrue"),
+        "refusal consumption")
+    assert_body = extract_block(test_compact, "privatestaticvoidAssert(boolvalue)", "assertion")
+    if assert_body != 'assertions++;if(!value)thrownewInvalidOperationException(""+assertions.ToString());':
+        raise VerificationError("test assertion body")
+    main_body = extract_block(test_compact, "privatestaticintMain()", "test main")
+    require_order(main_body, ("AcceptanceCases();", "ContractMutationCases();",
+        "ImageMutationCases();", "RouteMutationCases();", "OuterJobMutationCases();",
+        "ObjectBindingRequirementMutationCases();", "TopLevelNullCases();",
+        "RefusalOwnershipCases();", "ConcurrentRefusalCase();", "if(assertions!=202)",
+        "Console.WriteLine("), "test main")
+    for value in ("for(intmutation=1;mutation<=17;mutation++)",
+            "for(intimage=0;image<6;image++)", "for(introute=0;route<3;route++)",
+            "for(intjob=0;job<3;job++)", "for(intmutation=1;mutation<=21;mutation++)",
+            "for(intmutation=0;mutation<14;mutation++)", "AcceptRefusal(null)",
+            "System.Threading.ManualResetEvent", "ThreadStart(delegate",
+            "firstAccepted!=secondAccepted", "PASS "):
+        if value not in test_compact and value not in tests:
+            raise VerificationError("missing negative test " + value)
+    if identity(profile_raw) != (5510,
+            "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1"):
+        raise VerificationError("runtime profile identity")
+    profile = json.loads(profile_raw.decode("ascii", "strict"))
+    expected_state = {"build_binding": "build-unpinned", "live_execution_status": "not-run",
+        "original_behavior_qualified": False, "original_execution_status": "not-run",
+        "process_creation_reachable": False, "qualification_eligible": False}
+    if profile.get("contract_state") != expected_state:
+        raise VerificationError("runtime profile refusal state")
+    expected_status = {"controller_image": "unbound", "locked_preflight_image": "unbound",
+        "retained_run_harness": "absent", "runtime_implementation_verifier": "absent",
+        "runtime_private_schema": "absent", "supervisor_image": "unbound",
+        "timeout_child_image": "unbound", "timeout_root_image": "unbound",
+        "ui_fixture_image": "bound-not-run"}
+    if profile.get("status") != expected_status:
+        raise VerificationError("runtime profile image status")
+    normalized_readme = re.sub(r"\s+", " ", readme).lower()
+    for phrase in ("build-unpinned refusal", "caller supplies no expected values",
+            "public build-manifest binding is unbound", "makes no claim that compiled files are absent",
+            "object-binding requirements", "regular files", "alternate-mount rejection",
+            "returns only a `BuildUnpinnedRefusal`", "not a forward permit", "PASS 202",
+            "must not execute"):
+        if phrase.lower() not in normalized_readme:
+            raise VerificationError("README boundary " + phrase)
+    for value in ("verify_runtime_binding_policy.py self-test",
+            "RuntimeBindingPolicyTests.exe",
+            "/main:Cm0102.SyntheticLauncherController.RuntimeBindingPolicyTests",
+            "PASS 202", "WaitForExit(30000)"):
+        if value not in workflow:
+            raise VerificationError("workflow binding gate " + value)
+
+
+def run_git(repo: pathlib.Path, arguments: list[str]) -> bytes:
+    environment = {
+        "PATH": "/usr/bin:/bin", "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_NO_REPLACE_OBJECTS": "1", "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_KEY_0": "core.hooksPath", "GIT_CONFIG_VALUE_0": "/dev/null",
+        "GIT_CONFIG_KEY_1": "extensions.objectFormat", "GIT_CONFIG_VALUE_1": "sha1",
+        "LC_ALL": "C",
+    }
+    completed = subprocess.run([os.fspath(GIT), "--no-replace-objects",
+        "-c", "protocol.file.allow=never", "-c", "core.fsmonitor=false", *arguments],
+        cwd=repo, env=environment, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, timeout=20, check=False)
+    if completed.returncode != 0 or completed.stderr or len(completed.stdout) > MAX_BYTES:
+        raise VerificationError("Git command failed")
+    return completed.stdout
+
+
+def validate_commit(repo: pathlib.Path, commit: str) -> None:
+    if re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+        raise VerificationError("source commit is not a full lowercase hash")
+    if run_git(repo, ["cat-file", "-t", commit]) != b"commit\n":
+        raise VerificationError("source object is not a commit")
+    resolved = run_git(repo, ["rev-parse", "--verify", commit + "^{commit}"]).decode().strip()
+    head = run_git(repo, ["rev-parse", "--verify", "HEAD^{commit}"]).decode().strip()
+    if resolved != commit or head != commit:
+        raise VerificationError("source commit is not exact HEAD")
+
+
+def verify_inventory(repo: pathlib.Path, commit: str) -> None:
+    prefix = CONTROLLER_DIRECTORY + "/"
+    committed = run_git(repo, ["ls-tree", "-r", "--name-only", commit, "--",
+        CONTROLLER_DIRECTORY]).decode("ascii", "strict").splitlines()
+    expected = [prefix + name for name in EXPECTED_CONTROLLER_FILES]
+    if committed != sorted(expected):
+        raise VerificationError("controller commit inventory")
+    directory = repo / CONTROLLER_DIRECTORY
+    require_path_components(directory)
+    observed = []
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            if entry.is_symlink() or not entry.is_file(follow_symlinks=False):
+                raise VerificationError("controller filesystem inventory type")
+            observed.append(entry.name)
+    if sorted(observed) != sorted(EXPECTED_CONTROLLER_FILES):
+        raise VerificationError("controller filesystem inventory")
+
+
+def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str]]:
+    if not GIT.is_file() or not repo_argument.is_absolute() or \
+            repo_argument.resolve(strict=True) != repo_argument:
+        raise VerificationError("repository path")
+    repo = repo_argument
+    require_path_components(repo)
+    if pathlib.Path(run_git(repo, ["rev-parse", "--show-toplevel"]).decode().strip()) != repo:
+        raise VerificationError("repository is not canonical top level")
+    if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
+        raise VerificationError("verifier is not executing from canonical path")
+    validate_commit(repo, commit)
+    verify_inventory(repo, commit)
+    captured: dict[str, bytes] = {}
+    identities: dict[str, tuple[int, str]] = {}
+    for relative in BOUND_PATHS:
+        raw = read_bound(repo / relative)
+        if relative in FROZEN_IDENTITIES and identity(raw) != FROZEN_IDENTITIES[relative]:
+            raise VerificationError(relative + " frozen identity")
+        if raw != run_git(repo, ["show", commit + ":" + relative]):
+            raise VerificationError(relative + " differs from source commit")
+        captured[relative] = raw
+        identities[relative] = identity(raw)
+    verify_policy(decode_source(captured[SOURCE_PATH], "runtime binding policy"),
+        decode_source(captured[TEST_PATH], "runtime binding tests"),
+        captured[README_PATH].decode("ascii", "strict"), captured[PROFILE_PATH],
+        captured[WORKFLOW_PATH].decode("ascii", "strict"))
+    for relative, original in captured.items():
+        if read_bound(repo / relative) != original:
+            raise VerificationError(relative + " changed across aggregate verification")
+    verify_inventory(repo, commit)
+    validate_commit(repo, commit)
+    return identities
+
+
+def self_test() -> None:
+    repo = pathlib.Path(__file__).parents[3]
+    if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
+        raise VerificationError("verifier is not executing from canonical path")
+    source = decode_source(read_bound(repo / SOURCE_PATH), "runtime binding policy")
+    tests = decode_source(read_bound(repo / TEST_PATH), "runtime binding tests")
+    readme = read_bound(repo / README_PATH).decode("ascii", "strict")
+    profile = read_bound(repo / PROFILE_PATH)
+    workflow_raw = read_bound(repo / WORKFLOW_PATH)
+    workflow = workflow_raw.decode("ascii", "strict")
+    verify_policy(source, tests, readme, profile, workflow)
+    if identity(workflow_raw) != FROZEN_IDENTITIES[WORKFLOW_PATH]:
+        raise AssertionError("workflow frozen identity")
+    for mutation in (
+        "System.IO.File.ReadAllText(\"x\")", "System.Diagnostics.Process.Start(\"x\")",
+        "[DllImport(\"x\")] extern static void X();", "unsafe { }", "dynamic value",
+        "System.Reflection.Assembly.Load(\"x\")", "DateTime.UtcNow", "delegate { }",
+        "Func<int> value = () => 1", "Console.OpenStandardInput()",
+        "System.Security.Principal.WindowsIdentity.GetCurrent()",
+        "new System.Resources.ResourceWriter(\"x\")",
+        "System.Runtime.Remoting.RemotingConfiguration.Configure(\"x\",false)",
+        "System . Diagnostics . Process . Start(\"x\")",
+    ):
+        try:
+            verify_authority_surface("using System;\n" + mutation + ";\n", "mutation", False)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted authority mutation")
+    disabled_assert = tests.replace(
+        'if (!value) throw new InvalidOperationException("assertion-failed-" + assertions.ToString());',
+        "if (!value) assertions++;")
+    try:
+        verify_policy(source, disabled_assert, readme, profile, workflow)
+    except VerificationError:
+        pass
+    else:
+        raise AssertionError("accepted disabled assertion")
+    for old, new in (
+        ("BuildUnpinnedRefusal", "Permit"),
+        ("facts.PublicBuildManifestBindingIdentity == null",
+            "facts.PublicBuildManifestBindingIdentity != null"),
+        ("facts.LiveExecutionNotRun && facts.ProcessCreationUnreachable",
+            "facts.LiveExecutionNotRun && !facts.ProcessCreationUnreachable"),
+    ):
+        changed = source.replace(old, new, 1)
+        try:
+            verify_policy(changed, tests, readme, profile, workflow)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted policy weakening")
+    for suffix in (b"\nif: false\n", b"\ncontinue-on-error: true\n", b"\nexit 0\n"):
+        if identity(workflow_raw + suffix) == FROZEN_IDENTITIES[WORKFLOW_PATH]:
+            raise AssertionError("accepted workflow mutation")
+    with tempfile.TemporaryDirectory() as directory:
+        replacement_repo = pathlib.Path(directory)
+        git_environment = {"PATH": "/usr/bin:/bin", "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": "/dev/null", "LC_ALL": "C"}
+        def control_git(arguments: list[str]) -> bytes:
+            completed = subprocess.run([os.fspath(GIT), *arguments], cwd=replacement_repo,
+                env=git_environment, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, timeout=10, check=False)
+            if completed.returncode != 0:
+                raise AssertionError("replacement control setup")
+            return completed.stdout
+        control_git(["init", "--quiet"])
+        control_git(["config", "user.name", "runtime-binding-self-test"])
+        control_git(["config", "user.email", "runtime-binding-self-test.invalid"])
+        marker = replacement_repo / "marker"
+        marker.write_text("first\n", encoding="ascii")
+        control_git(["add", "marker"])
+        control_git(["commit", "--quiet", "-m", "first"])
+        first = control_git(["rev-parse", "HEAD"]).decode("ascii").strip()
+        marker.write_text("replacement\n", encoding="ascii")
+        control_git(["commit", "--quiet", "-am", "replacement"])
+        replacement = control_git(["rev-parse", "HEAD"]).decode("ascii").strip()
+        control_git(["replace", first, replacement])
+        if control_git(["show", first + ":marker"]) != b"replacement\n":
+            raise AssertionError("replacement control inactive")
+        if run_git(replacement_repo, ["show", first + ":marker"]) != b"first\n":
+            raise AssertionError("replacement object affected bound Git read")
+    with tempfile.TemporaryDirectory() as directory:
+        copied = pathlib.Path(directory) / pathlib.Path(__file__).name
+        copied.write_bytes(pathlib.Path(__file__).read_bytes())
+        completed = subprocess.run(["/usr/bin/python3", os.fspath(copied), "self-test"],
+            cwd=directory, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, timeout=10, check=False)
+        if completed.returncode == 0:
+            raise AssertionError("copied verifier executed successfully")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    modes = parser.add_subparsers(dest="mode", required=True)
+    modes.add_parser("self-test")
+    check = modes.add_parser("verify")
+    check.add_argument("--repo", required=True, type=pathlib.Path)
+    check.add_argument("--source-commit", required=True)
+    arguments = parser.parse_args()
+    try:
+        if arguments.mode == "self-test":
+            self_test()
+            result = None
+        else:
+            result = verify(arguments.repo, arguments.source_commit)
+    except (VerificationError, AssertionError, OSError, subprocess.SubprocessError,
+            json.JSONDecodeError) as error:
+        print("FAIL " + str(error))
+        return 1
+    if result is None:
+        print("PASS runtime-binding-self-test")
+    else:
+        print(json.dumps({"files": {key: {"byte_count": value[0], "sha256": value[1]}
+            for key, value in sorted(result.items())}, "status": "runtime-binding-verified"},
+            sort_keys=True, separators=(",", ":")))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
