@@ -13,7 +13,7 @@ A research and reconstruction programme for the **entire Championship Manager 01
 
 The laboratory is the first enabling product. It runs repeatable experiments against the original game and a pinned Bosman build, records evidence, and verifies the replacement. The reconstructed game and simulator use **Rust**. The browser interface uses **React and TypeScript** with the Rust core compiled to WebAssembly. Python supports existing reverse-engineering tooling.
 
-Status: P00/B0 map-only inventory is active, 24 October 2026. The pinned public function/global map now has a deterministic Rust importer and reconciled provenance report. No game simulator, qualified Bosman build, VPS service, or reconstructed engine exists yet; original-backed work is blocked on the official private inputs.
+Status: P00/B0 inventory is active, 24 October 2026. The pinned public function/global map has a deterministic Rust importer and reconciled provenance report. The supplied executable is the exact official 3.9.68 PE32 expected by the pinned Bosman source, and all imported addresses have been validated against its sections. The supplied installed data is modified and cannot be registered as the clean baseline. No qualified Bosman runtime job, VPS service, or reconstructed engine exists yet.
 
 Start with [ROADMAP.md](ROADMAP.md), [non-negotiables](docs/NON_NEGOTIABLES.md), [stack decisions](docs/architecture/TECH_STACK.md), and the [simulator design](docs/architecture/SIMULATOR.md). The detailed [implementation roadmap](docs/roadmap/implementation-roadmap.md) links all phase gates. [Sources and limitations](docs/research/SOURCES.md) distinguish inspected code from proposed behaviour.
 
@@ -23,10 +23,11 @@ Current implementation and blockers are recorded in [programme progress](docs/st
 cargo run -p lab-cli -- import-map \
   --source-dir /path/to/cm0102-function-map \
   --lock-manifest config/upstream-lock.json \
+  --executable /private/path/to/cm0102.exe \
   --output target/b0-evidence/function-map-import.json
 ```
 
-The generated evidence artifact is intentionally untracked. It retains every imported row as an upstream hypothesis and reports address validation as pending until the original executable is qualified.
+The generated evidence artifact is intentionally untracked. It retains every imported row as an upstream hypothesis. Omit `--executable` only for map-only work; the artifact then explicitly reports address validation as pending.
 
 Whole-game scope includes management, world simulation, competition rules, match engines, databases, save/load, news, navigation, presentation, settings and supported modes. Match fidelity is one workstream.
 
