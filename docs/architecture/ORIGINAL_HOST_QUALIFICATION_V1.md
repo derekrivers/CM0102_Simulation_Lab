@@ -25,9 +25,9 @@ A private strict locator, retained outside Git, supplies only:
 - `iso_file`
 - `optical_root`
 
-Unknown/missing fields, relative paths, aliases, reparse points, case-colliding files, unreadable entries, input mutation during inspection, and identity mismatch fail closed. Locator objects and traversed entries are opened without following reparse points, their filesystem identities/final paths are checked for containment and distinctness, and handles prevent replacement during inspection. Tree digests include type-tagged directory as well as file rows. The clean tree is captured twice and both snapshots must match. Raw paths never enter public output.
+Unknown/missing fields, relative paths, aliases, reparse points, case-colliding files, hardlinks, unreadable entries, input mutation during inspection, and identity mismatch fail closed. Locator objects and traversed entries are opened without following reparse points, their filesystem identities/final paths and link counts are checked for containment and distinctness, and handles prevent replacement during inspection. Tree digests include type-tagged directory as well as file rows. The clean manifest's file parents define the exact allowed directory set, so an otherwise invisible extra empty directory is a mismatch. The clean tree is captured twice and both snapshots must match. Raw paths never enter public output.
 
-The calling harness binds hashes for expectations, locator, every source, compiler and output executable, plus the exact command, source commit, exit status, stderr identity and canonical stdout identity. It builds outside the repository and invokes the probe directly through WSL interop with a 30-minute outer timeout, 4 MiB stream caps and mode-private capture. It refuses an existing destination and publishes a sanitized canonical run manifest only after the strict output verifier succeeds. It does not use a `cmd.exe`/PowerShell launch wrapper and does not pass a CM path.
+The calling harness binds hashes for expectations, locator, every source, the exact x86 compiler and its language-resource companion, and the output executable, plus the exact command, source commit, exit status, stderr identity and canonical stdout identity. Expectations must be the canonical file at the named commit. The harness snapshots the verified compiler files into the private build directory, uses `/noconfig` plus explicit framework references, builds outside the repository, and invokes the probe directly through WSL interop with a 30-minute outer timeout, 4 MiB stream caps and mode-private capture. Before creating the destination it maps all locator paths into WSL and rejects containment or filesystem aliasing in either direction. It refuses an existing destination and publishes a sanitized canonical run manifest after every strictly verified full or minimal report whose process exit agrees with the report; eligibility is recorded separately, so unsafe and inconclusive attempts remain evidence without qualifying the host. It does not use a `cmd.exe`/PowerShell launch wrapper and does not pass a CM path.
 
 ## Required observations
 
@@ -44,7 +44,7 @@ Every required check reports `pass`, `fail`, or `error`; a missing check cannot 
 - zero CM01/02 processes before and after; and
 - fixed-candidate API/tool availability.
 
-Tree summaries expose count, bytes, canonical row digest and mismatch counts only. They never expose relative filenames.
+Tree summaries expose count, bytes, canonical row digest, hardlink/object-alias counts and mismatch counts only. They never expose relative filenames.
 
 ## Canonical output and privacy
 

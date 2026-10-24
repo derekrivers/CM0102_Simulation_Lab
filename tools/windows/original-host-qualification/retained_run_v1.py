@@ -31,6 +31,12 @@ HARNESS_VERSION = "1.0.0"
 PROBE_TIMEOUT_SECONDS = 30 * 60
 BUILD_TIMEOUT_SECONDS = 5 * 60
 STREAM_CAP_BYTES = 4 * 1024 * 1024
+EXPECTATIONS_RELATIVE = "config/original-host-qualification-v1.json"
+EXPECTED_COMPILER_WINDOWS = r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe"
+EXPECTED_COMPILER_UI_WINDOWS = (
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\1033\cscui.dll"
+)
+GAME_LIKE = re.compile(r"(?:cm0?1[-_ ]?0?2|champ(?:ionship)?[-_ ]*man(?:ager)?)", re.IGNORECASE)
 SOURCE_PATHS = (
     "tools/windows/original-host-qualification/CanonicalJson.cs",
     "tools/windows/original-host-qualification/OriginalHostQualification.cs",
@@ -57,28 +63,52 @@ def digest_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def file_identity(path: pathlib.Path) -> dict[str, object]:
+def read_plain_bytes(path: pathlib.Path) -> tuple[bytes, dict[str, object]]:
     before = path.stat(follow_symlinks=False)
     if not stat.S_ISREG(before.st_mode) or path.is_symlink():
         raise HarnessError("identity target is not a plain regular file")
-    digest = hashlib.sha256()
-    count = 0
-    with path.open("rb") as source:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode) or (before.st_dev, before.st_ino) != (
+            opened.st_dev,
+            opened.st_ino,
+        ):
+            raise HarnessError("identity target changed before open")
+        chunks = []
         while True:
-            chunk = source.read(1024 * 1024)
+            chunk = os.read(descriptor, 1024 * 1024)
             if not chunk:
                 break
-            count += len(chunk)
-            digest.update(chunk)
+            chunks.append(chunk)
+        finished = os.fstat(descriptor)
+    finally:
+        os.close(descriptor)
     after = path.stat(follow_symlinks=False)
-    if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
-        after.st_dev,
-        after.st_ino,
-        after.st_size,
-        after.st_mtime_ns,
-    ):
+    fingerprints = {
+        (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns)
+        for item in (before, opened, finished, after)
+    }
+    if len(fingerprints) != 1:
         raise HarnessError("identity target changed while hashing")
-    return {"byte_count": count, "sha256": digest.hexdigest()}
+    raw = b"".join(chunks)
+    return raw, {"byte_count": len(raw), "sha256": digest_bytes(raw)}
+
+
+def file_identity(path: pathlib.Path) -> dict[str, object]:
+    return read_plain_bytes(path)[1]
+
+
+def require_identity(
+    path: pathlib.Path, expected: dict[str, object], context: str
+) -> None:
+    if file_identity(path) != expected:
+        raise HarnessError(f"{context} identity changed")
+
+
+def reject_game_like_name(value: str) -> None:
+    if GAME_LIKE.search(value):
+        raise HarnessError("game-like executable/name is forbidden")
 
 
 def _kill(process: subprocess.Popen[bytes]) -> None:
@@ -93,6 +123,7 @@ def capture_bounded(
 ) -> tuple[int, bytes, bytes]:
     if not argv or not os.path.isabs(argv[0]):
         raise HarnessError("command executable must be an absolute path")
+    reject_game_like_name(pathlib.Path(argv[0]).name)
     process = subprocess.Popen(
         argv,
         stdin=subprocess.DEVNULL,
@@ -174,6 +205,79 @@ def to_windows_path(path: pathlib.Path) -> str:
     return result
 
 
+def from_windows_path(value: str) -> pathlib.Path:
+    wslpath = pathlib.Path("/usr/bin/wslpath")
+    if not wslpath.is_file():
+        raise HarnessError("wslpath is unavailable")
+    raw = run_small([str(wslpath), "-u", "--", value]).decode("utf-8", "strict")
+    result = raw.rstrip("\r\n")
+    if not result or "\n" in result or "\r" in result or not os.path.isabs(result):
+        raise HarnessError("invalid Windows locator mapping")
+    return pathlib.Path(result)
+
+
+def resolve_nearest(path: pathlib.Path) -> pathlib.Path:
+    absolute = pathlib.Path(os.path.normpath(str(path.absolute())))
+    missing = []
+    cursor = absolute
+    while not cursor.exists() and not cursor.is_symlink():
+        if cursor.parent == cursor:
+            raise HarnessError("path has no resolvable parent")
+        missing.append(cursor.name)
+        cursor = cursor.parent
+    resolved = cursor.resolve(strict=True)
+    for component in reversed(missing):
+        resolved /= component
+    return resolved
+
+
+def paths_overlap(left: pathlib.Path, right: pathlib.Path) -> bool:
+    left_key = tuple(part.casefold() for part in left.parts)
+    right_key = tuple(part.casefold() for part in right.parts)
+    shortest = min(len(left_key), len(right_key))
+    return left_key[:shortest] == right_key[:shortest]
+
+
+def existing_projections(path: pathlib.Path):
+    full = resolve_nearest(path)
+    cursor = full
+    suffix: tuple[str, ...] = ()
+    while not cursor.exists():
+        suffix = (cursor.name, *suffix)
+        cursor = cursor.parent
+    while True:
+        yield cursor, tuple(part.casefold() for part in suffix)
+        if cursor.parent == cursor:
+            return
+        suffix = (cursor.name, *suffix)
+        cursor = cursor.parent
+
+
+def paths_alias_or_overlap(left: pathlib.Path, right: pathlib.Path) -> bool:
+    if paths_overlap(left, right):
+        return True
+    for left_anchor, left_suffix in existing_projections(left):
+        for right_anchor, right_suffix in existing_projections(right):
+            try:
+                same = os.path.samefile(left_anchor, right_anchor)
+            except OSError:
+                same = False
+            if same:
+                shortest = min(len(left_suffix), len(right_suffix))
+                if left_suffix[:shortest] == right_suffix[:shortest]:
+                    return True
+    return False
+
+
+def mapped_locator_paths(locator: dict[str, object]) -> list[pathlib.Path]:
+    result = []
+    for key in sorted(verify_output.PRIVATE_LOCATOR_KEYS - {"schema_version"}):
+        value = locator[key]
+        assert isinstance(value, str)
+        result.append(resolve_nearest(from_windows_path(value)))
+    return result
+
+
 def git_bytes(repo: pathlib.Path, revision: str, relative: str) -> bytes:
     git = pathlib.Path("/usr/bin/git")
     return run_small(
@@ -216,6 +320,70 @@ def source_bindings(
     return bindings, snapshots
 
 
+def committed_expectations(
+    repo: pathlib.Path, revision: str, supplied: pathlib.Path
+) -> tuple[pathlib.Path, bytes, dict[str, object]]:
+    repository_path = repo / pathlib.PurePosixPath(EXPECTATIONS_RELATIVE)
+    repository_stat = repository_path.stat(follow_symlinks=False)
+    if repository_path.is_symlink() or not stat.S_ISREG(repository_stat.st_mode):
+        raise HarnessError("canonical expectations is not a plain regular file")
+    canonical_path = repository_path.resolve(strict=True)
+    supplied_path = supplied.resolve(strict=True)
+    if supplied_path != canonical_path:
+        raise HarnessError("expectations must use the canonical repository path")
+    raw, identity = read_plain_bytes(canonical_path)
+    if raw != git_bytes(repo, revision, EXPECTATIONS_RELATIVE):
+        raise HarnessError("expectations differ from source commit")
+    return canonical_path, raw, identity
+
+
+def validate_compiler_windows_path(path: str, name: str) -> None:
+    reject_game_like_name(name)
+    if name.casefold() != "csc.exe":
+        raise HarnessError("compiler name is not csc.exe")
+    if path.replace("/", "\\").casefold() != EXPECTED_COMPILER_WINDOWS.casefold():
+        raise HarnessError("compiler is not the exact x86 Framework compiler")
+
+
+def validate_compiler_ui_windows_path(path: str, name: str) -> None:
+    reject_game_like_name(name)
+    if name.casefold() != "cscui.dll":
+        raise HarnessError("compiler UI name is not cscui.dll")
+    if path.replace("/", "\\").casefold() != EXPECTED_COMPILER_UI_WINDOWS.casefold():
+        raise HarnessError("compiler UI is not the exact x86 Framework companion")
+
+
+def verified_compiler(
+    compiler: pathlib.Path, expectations: dict[str, object]
+) -> tuple[pathlib.Path, bytes, dict[str, object]]:
+    resolved = compiler.resolve(strict=True)
+    validate_compiler_windows_path(to_windows_path(resolved), resolved.name)
+    raw, identity = read_plain_bytes(resolved)
+    expected_identity = {
+        "byte_count": expectations["compiler_bytes"],
+        "sha256": expectations["compiler_sha256"],
+    }
+    if identity != expected_identity:
+        raise HarnessError("compiler identity does not match committed expectations")
+    return resolved, raw, identity
+
+
+def verified_compiler_ui(
+    compiler: pathlib.Path, expectations: dict[str, object]
+) -> tuple[pathlib.Path, bytes, dict[str, object]]:
+    candidate = compiler.parent / "1033" / "cscui.dll"
+    resolved = candidate.resolve(strict=True)
+    validate_compiler_ui_windows_path(to_windows_path(resolved), resolved.name)
+    raw, identity = read_plain_bytes(resolved)
+    expected_identity = {
+        "byte_count": expectations["compiler_ui_bytes"],
+        "sha256": expectations["compiler_ui_sha256"],
+    }
+    if identity != expected_identity:
+        raise HarnessError("compiler UI identity does not match committed expectations")
+    return resolved, raw, identity
+
+
 def command_binding(argv: list[str], roles: list[str]) -> dict[str, object]:
     if len(argv) != len(roles):
         raise HarnessError("command role mismatch")
@@ -243,15 +411,30 @@ def write_exclusive(path: pathlib.Path, value: bytes) -> None:
         raise
 
 
-def prepare_destination(destination: pathlib.Path, repo: pathlib.Path) -> pathlib.Path:
+def write_verified_snapshot(
+    path: pathlib.Path,
+    value: bytes,
+    expected: dict[str, object],
+    mode: int,
+) -> None:
+    write_exclusive(path, value)
+    os.chmod(path, mode)
+    require_identity(path, expected, "snapshot")
+
+
+def prepare_destination(
+    destination: pathlib.Path,
+    repo: pathlib.Path,
+    locator_objects: list[pathlib.Path],
+) -> pathlib.Path:
     absolute = destination.absolute()
     if absolute.exists() or absolute.is_symlink():
         raise HarnessError("retained destination already exists")
-    repo_resolved = repo.resolve(strict=True)
-    parent = absolute.parent.resolve(strict=True)
-    candidate = parent / absolute.name
-    if candidate == repo_resolved or repo_resolved in candidate.parents:
-        raise HarnessError("retained destination must be outside the repository")
+    candidate = resolve_nearest(absolute)
+    protected = [repo.resolve(strict=True), *locator_objects]
+    for item in protected:
+        if paths_alias_or_overlap(candidate, item):
+            raise HarnessError("retained destination overlaps protected input")
     os.mkdir(candidate, 0o700)
     if stat.S_IMODE(candidate.stat().st_mode) != 0o700:
         raise HarnessError("retained destination is not mode-private")
@@ -275,17 +458,47 @@ def expected_exit(report: dict[str, object]) -> int:
     return 64 if checks[0]["detail_code"] == "usage-or-config" else 3
 
 
+def validate_exit_pair(report: object, exit_code: int) -> dict[str, object]:
+    if not isinstance(report, dict) or exit_code != expected_exit(report):
+        raise HarnessError("probe exit code contradicts verified report")
+    return report
+
+
+def is_qualification_eligible(report: dict[str, object], exit_code: int) -> bool:
+    return (
+        report["summary"]["completeness"] == "complete"
+        and exit_code == 0
+        and report["summary"]["safety_verdict"]
+        == "eligible-for-synthetic-launcher-test"
+    )
+
+
 def retained_run(args: argparse.Namespace) -> None:
     repo = args.repo.resolve(strict=True)
-    compiler = args.compiler.resolve(strict=True)
-    expectations = args.expectations.resolve(strict=True)
     locator = args.private_locator.resolve(strict=True)
     bindings, source_snapshots = source_bindings(repo, args.source_commit)
-    compiler_identity = file_identity(compiler)
-    expectations_identity = file_identity(expectations)
-    locator_identity = file_identity(locator)
-    destination = prepare_destination(args.retained_dir, repo)
+    expectations, expectations_raw, expectations_identity = committed_expectations(
+        repo, args.source_commit, args.expectations
+    )
+    expectations_value, loaded_expectations_raw = verify_output.load_expectations(
+        expectations
+    )
+    if loaded_expectations_raw != expectations_raw:
+        raise HarnessError("expectations changed while parsing")
+    compiler, compiler_raw, compiler_identity = verified_compiler(
+        args.compiler, expectations_value
+    )
+    compiler_ui, compiler_ui_raw, compiler_ui_identity = verified_compiler_ui(
+        compiler, expectations_value
+    )
+    locator_value, loaded_locator_raw = verify_output.load_private_locator(locator)
+    locator_raw, locator_identity = read_plain_bytes(locator)
+    if loaded_locator_raw != locator_raw:
+        raise HarnessError("private locator changed while parsing")
+    locator_objects = mapped_locator_paths(locator_value)
+    destination = prepare_destination(args.retained_dir, repo, locator_objects)
     executable = destination / "build" / "OriginalHostQualification.exe"
+    reject_game_like_name(executable.name)
     snapshot_paths = []
     for name, source_bytes in source_snapshots.items():
         snapshot = destination / "build" / name
@@ -294,14 +507,26 @@ def retained_run(args: argparse.Namespace) -> None:
         snapshot_paths.append(snapshot)
     expectations_snapshot = destination / "build" / "expectations.json"
     locator_snapshot = destination / "build" / "private-locator.json"
-    write_exclusive(expectations_snapshot, expectations.read_bytes())
-    write_exclusive(locator_snapshot, locator.read_bytes())
+    compiler_snapshot = destination / "build" / "csc.exe"
+    compiler_ui_directory = destination / "build" / "1033"
+    os.mkdir(compiler_ui_directory, 0o700)
+    compiler_ui_snapshot = compiler_ui_directory / "cscui.dll"
+    write_exclusive(expectations_snapshot, expectations_raw)
+    write_exclusive(locator_snapshot, locator_raw)
+    write_verified_snapshot(compiler_snapshot, compiler_raw, compiler_identity, 0o700)
+    write_verified_snapshot(
+        compiler_ui_snapshot, compiler_ui_raw, compiler_ui_identity, 0o400
+    )
     os.chmod(expectations_snapshot, 0o400)
     os.chmod(locator_snapshot, 0o400)
     if file_identity(expectations_snapshot) != expectations_identity:
         raise HarnessError("expectations snapshot identity mismatch")
     if file_identity(locator_snapshot) != locator_identity:
         raise HarnessError("locator snapshot identity mismatch")
+    if file_identity(compiler_snapshot) != compiler_identity:
+        raise HarnessError("compiler snapshot identity mismatch")
+    if file_identity(compiler_ui_snapshot) != compiler_ui_identity:
+        raise HarnessError("compiler UI snapshot identity mismatch")
     verify_output.static_source(
         [
             destination / "build" / pathlib.PurePosixPath(relative).name
@@ -315,12 +540,16 @@ def retained_run(args: argparse.Namespace) -> None:
         for relative in SOURCE_PATHS
     ]
     build_argv = [
-        str(compiler),
+        str(compiler_snapshot),
         "/nologo",
+        "/noconfig",
         "/warnaserror+",
         "/optimize+",
         "/platform:x86",
         "/target:exe",
+        "/r:System.dll",
+        "/r:System.Core.dll",
+        "/r:System.Drawing.dll",
         "/r:System.Security.dll",
         "/r:System.Web.Extensions.dll",
         "/r:System.Windows.Forms.dll",
@@ -330,10 +559,14 @@ def retained_run(args: argparse.Namespace) -> None:
     build_roles = [
         "compiler",
         "nologo",
+        "no-default-response-file",
         "warnings-as-errors",
         "optimize",
         "platform-x86",
         "target-exe",
+        "reference-system",
+        "reference-system-core",
+        "reference-system-drawing",
         "reference-system-security",
         "reference-system-web-extensions",
         "reference-system-windows-forms",
@@ -344,6 +577,12 @@ def retained_run(args: argparse.Namespace) -> None:
     build_binding = command_binding(build_argv, build_roles)
     if file_identity(compiler) != compiler_identity:
         raise HarnessError("compiler changed before build")
+    if file_identity(compiler_snapshot) != compiler_identity:
+        raise HarnessError("compiler snapshot changed before build")
+    if file_identity(compiler_ui) != compiler_ui_identity:
+        raise HarnessError("compiler UI changed before build")
+    if file_identity(compiler_ui_snapshot) != compiler_ui_identity:
+        raise HarnessError("compiler UI snapshot changed before build")
     build_exit, build_stdout, build_stderr = capture_bounded(
         build_argv, BUILD_TIMEOUT_SECONDS, STREAM_CAP_BYTES
     )
@@ -353,6 +592,12 @@ def retained_run(args: argparse.Namespace) -> None:
     os.chmod(executable, 0o700)
     if file_identity(compiler) != compiler_identity:
         raise HarnessError("compiler changed during build")
+    if file_identity(compiler_snapshot) != compiler_identity:
+        raise HarnessError("compiler snapshot changed during build")
+    if file_identity(compiler_ui) != compiler_ui_identity:
+        raise HarnessError("compiler UI changed during build")
+    if file_identity(compiler_ui_snapshot) != compiler_ui_identity:
+        raise HarnessError("compiler UI snapshot changed during build")
 
     probe_argv = [
         str(executable),
@@ -384,6 +629,12 @@ def retained_run(args: argparse.Namespace) -> None:
     )
     if file_identity(compiler) != compiler_identity:
         raise HarnessError("compiler changed before retained publication")
+    if file_identity(compiler_snapshot) != compiler_identity:
+        raise HarnessError("compiler snapshot changed before retained publication")
+    if file_identity(compiler_ui) != compiler_ui_identity:
+        raise HarnessError("compiler UI changed before retained publication")
+    if file_identity(compiler_ui_snapshot) != compiler_ui_identity:
+        raise HarnessError("compiler UI snapshot changed before retained publication")
     if file_identity(executable) != executable_identity:
         raise HarnessError("probe executable changed during run")
     if file_identity(expectations_snapshot) != expectations_identity:
@@ -396,24 +647,24 @@ def retained_run(args: argparse.Namespace) -> None:
     report_path = destination / "probe-output.json"
     write_exclusive(report_path, stdout)
     verify_output.verify(report_path, locator_snapshot, expectations_snapshot)
-    report = verify_output.decode_json(stdout)
-    if not isinstance(report, dict) or exit_code != expected_exit(report):
-        raise HarnessError("probe exit code contradicts verified report")
-    if report["probe"]["source_revision"] != args.source_commit:
-        raise HarnessError("report source revision mismatch")
-    if report["probe"]["executable"] != executable_identity:
-        raise HarnessError("report executable identity mismatch")
-    if report["probe"]["expectations_sha256"] != expectations_identity["sha256"]:
-        raise HarnessError("report expectations identity mismatch")
-    if report["probe"]["private_locator_sha256"] != locator_identity["sha256"]:
-        raise HarnessError("report locator identity mismatch")
-    if report["summary"]["completeness"] != "complete":
-        raise HarnessError("retained production run must be complete")
+    report = validate_exit_pair(verify_output.decode_json(stdout), exit_code)
+    complete = report["summary"]["completeness"] == "complete"
+    if complete:
+        if report["probe"]["source_revision"] != args.source_commit:
+            raise HarnessError("report source revision mismatch")
+        if report["probe"]["executable"] != executable_identity:
+            raise HarnessError("report executable identity mismatch")
+        if report["probe"]["expectations_sha256"] != expectations_identity["sha256"]:
+            raise HarnessError("report expectations identity mismatch")
+        if report["probe"]["private_locator_sha256"] != locator_identity["sha256"]:
+            raise HarnessError("report locator identity mismatch")
+    qualification_eligible = is_qualification_eligible(report, exit_code)
 
     manifest = {
         "bindings": {
             "build_command": build_binding,
             "compiler": compiler_identity,
+            "compiler_ui": compiler_ui_identity,
             "expectations": expectations_identity,
             "private_locator": locator_identity,
             "probe_command": probe_binding,
@@ -450,6 +701,7 @@ def retained_run(args: argparse.Namespace) -> None:
             "canonical_stdout": True,
             "completeness": report["summary"]["completeness"],
             "privacy_locator_enforced": True,
+            "qualification_eligible": qualification_eligible,
             "result": "pass",
             "safety_verdict": report["summary"]["safety_verdict"],
         },
@@ -501,16 +753,226 @@ def self_test() -> None:
         binding = command_binding(["/bin/true"], ["tool"])
         if binding["argument_count"] != 1 or len(binding["sha256"]) != 64:
             raise AssertionError("command binding")
+        reject_game_like_name("csc.exe")
+        validate_compiler_windows_path(EXPECTED_COMPILER_WINDOWS, "csc.exe")
+        validate_compiler_ui_windows_path(
+            EXPECTED_COMPILER_UI_WINDOWS, "cscui.dll"
+        )
+        for wrong_path, wrong_name in (
+            (r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe", "csc.exe"),
+            (EXPECTED_COMPILER_WINDOWS, "other.exe"),
+            (EXPECTED_COMPILER_WINDOWS, "cm0102.exe"),
+        ):
+            try:
+                validate_compiler_windows_path(wrong_path, wrong_name)
+            except HarnessError:
+                pass
+            else:
+                raise AssertionError("compiler path/name rejection")
+        for wrong_path, wrong_name in (
+            (
+                r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\1033\cscui.dll",
+                "cscui.dll",
+            ),
+            (EXPECTED_COMPILER_UI_WINDOWS, "other.dll"),
+            (EXPECTED_COMPILER_UI_WINDOWS, "cm0102.dll"),
+        ):
+            try:
+                validate_compiler_ui_windows_path(wrong_path, wrong_name)
+            except HarnessError:
+                pass
+            else:
+                raise AssertionError("compiler UI path/name rejection")
+        for forbidden_name in ("cm0102.exe", "Championship-Manager.exe"):
+            try:
+                reject_game_like_name(forbidden_name)
+            except HarnessError:
+                pass
+            else:
+                raise AssertionError("game-like name rejection")
+        forbidden_executable = root / "cm0102.exe"
+        forbidden_executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        forbidden_executable.chmod(0o700)
+        try:
+            capture_bounded([str(forbidden_executable)], 1, 16)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("game-like execution rejection")
+        identity_fixture = root / "identity.bin"
+        identity_fixture.write_bytes(b"verified")
+        expected_identity = file_identity(identity_fixture)
+        identity_fixture.write_bytes(b"replaced")
+        try:
+            require_identity(identity_fixture, expected_identity, "fixture")
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("identity drift rejection")
+        bad_snapshot = root / "bad-snapshot.exe"
+        try:
+            write_verified_snapshot(bad_snapshot, b"different", expected_identity, 0o700)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("snapshot identity rejection")
+        symlink_fixture = root / "identity-link"
+        symlink_fixture.symlink_to(identity_fixture)
+        try:
+            file_identity(symlink_fixture)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("identity symlink rejection")
+
+        full_report = {
+            "checks": [{"detail_code": "eligible"}],
+            "summary": {
+                "completeness": "complete",
+                "safety_verdict": "eligible-for-synthetic-launcher-test",
+            },
+        }
+        unsafe_report = json.loads(json.dumps(full_report))
+        unsafe_report["summary"]["safety_verdict"] = "unsafe"
+        minimal_report = {
+            "checks": [{"detail_code": "unhandled-self-test"}],
+            "summary": {"completeness": "incomplete", "safety_verdict": "inconclusive"},
+        }
+        usage_report = json.loads(json.dumps(minimal_report))
+        usage_report["checks"][0]["detail_code"] = "usage-or-config"
+        for report, exit_code in (
+            (full_report, 0),
+            (unsafe_report, 2),
+            (minimal_report, 3),
+            (usage_report, 64),
+        ):
+            validate_exit_pair(report, exit_code)
+            try:
+                validate_exit_pair(report, 99)
+            except HarnessError:
+                pass
+            else:
+                raise AssertionError("exit/report mismatch rejection")
+
+        private_value = {
+            "clean_manifest": r"C:\private\clean.tsv",
+            "clean_tree": r"C:\private\clean",
+            "installed_tree": r"C:\private\installed",
+            "iso_file": r"C:\private\disc.iso",
+            "optical_root": "D:\\",
+            "schema_version": 1,
+            "virtual_store_tree": r"C:\private\virtual",
+        }
+        expectations_value = {
+            "clean_file_count": 1,
+            "clean_manifest_bytes": 10,
+            "clean_manifest_sha256": "1" * 64,
+            "clean_total_bytes": 20,
+            "compiler_bytes": 60,
+            "compiler_sha256": "2" * 64,
+            "compiler_ui_bytes": 61,
+            "compiler_ui_sha256": "6" * 64,
+            "iso_bytes": 30,
+            "iso_sha256": "3" * 64,
+            "optical_executable_bytes": 50,
+            "optical_executable_sha256": "5" * 64,
+            "optical_volume_label": "CM0102",
+            "original_executable_bytes": 40,
+            "original_executable_sha256": "4" * 64,
+            "profile_id": "self-test",
+            "registry_exact_access_mask": 0x000F003F,
+            "registry_key_id": "cm0102-install-location",
+            "registry_subkey": "Software\\Vendor\\Product",
+            "registry_value_name": "Location",
+            "required_api_ids": sorted(verify_output.REQUIRED_API_IDS),
+            "required_tool_ids": ["csc-x86", "powershell", "python313"],
+            "schema_version": 1,
+        }
+        strict_private = root / "strict-private.json"
+        strict_expectations = root / "strict-expectations.json"
+        strict_private.write_bytes(verify_output.canonical(private_value))
+        strict_expectations.write_bytes(verify_output.canonical(expectations_value))
+        strict_full = verify_output.synthetic_full_document(
+            expectations_value,
+            strict_expectations.read_bytes(),
+            strict_private.read_bytes(),
+        )
+        strict_cases = [(strict_full, 0)]
+        strict_unsafe = json.loads(json.dumps(strict_full))
+        strict_unsafe["guards"]["game_process_count_after"] = 1
+        unsafe_check = next(
+            item
+            for item in strict_unsafe["checks"]
+            if item["id"] == "no-game-process-after"
+        )
+        unsafe_check["outcome"] = "fail"
+        unsafe_check["detail_code"] = "present"
+        strict_unsafe["summary"]["passed_count"] -= 1
+        strict_unsafe["summary"]["failed_count"] += 1
+        strict_unsafe["summary"]["safety_verdict"] = "unsafe"
+        strict_cases.append((strict_unsafe, 2))
+        minimal_detail = "unhandled-self-test"
+        strict_minimal = {
+            "capabilities": {},
+            "checks": [{"detail_code": minimal_detail, "id": "probe", "outcome": "error", "required": True}],
+            "errors": [{"category": "probe", "check_id": "probe", "detail_code": minimal_detail}],
+            "guards": {"cm0102_launched": False},
+            "host": {},
+            "inputs": {},
+            "probe": {},
+            "registry": {},
+            "run": {},
+            "schema_version": 1,
+            "session": {},
+            "summary": {
+                "comparison_verdict": "not-run",
+                "completeness": "incomplete",
+                "direct_wsl_launch_safe": False,
+                "error_count": 1,
+                "failed_count": 0,
+                "original_execution_status": "not-run",
+                "passed_count": 0,
+                "required_check_count": 1,
+                "safety_verdict": "inconclusive",
+            },
+            "tokens": {},
+        }
+        strict_cases.append((strict_minimal, 3))
+        for index, (report, exit_code) in enumerate(strict_cases):
+            producer = root / f"strict-producer-{index}"
+            payload = verify_output.canonical(report)
+            producer.write_text(
+                "#!/usr/bin/python3\n"
+                "import sys\n"
+                f"sys.stdout.buffer.write({payload!r})\n"
+                f"sys.exit({exit_code})\n",
+                encoding="utf-8",
+            )
+            os.chmod(producer, 0o700)
+            actual_exit, actual_stdout, actual_stderr = capture_bounded(
+                [str(producer)], 2, STREAM_CAP_BYTES
+            )
+            if actual_stderr != b"":
+                raise AssertionError("strict producer wrote stderr")
+            report_path = root / f"strict-report-{index}.json"
+            report_path.write_bytes(actual_stdout)
+            verify_output.verify(report_path, strict_private, strict_expectations)
+            decoded = verify_output.decode_json(report_path.read_bytes())
+            validate_exit_pair(decoded, actual_exit)
+            if is_qualification_eligible(decoded, actual_exit) != (index == 0):
+                raise AssertionError(
+                    "qualification eligibility did not distinguish full from unsafe/incomplete"
+                )
         repo = root / "repo"
         repo.mkdir()
-        for relative in BOUND_PATHS:
+        for relative in (*BOUND_PATHS, EXPECTATIONS_RELATIVE):
             source = repo / relative
             source.parent.mkdir(parents=True, exist_ok=True)
             source.write_text(f"// {source.name}\n", encoding="utf-8")
         git = "/usr/bin/git"
         for argv in (
             [git, "-C", str(repo), "init", "-q"],
-            [git, "-C", str(repo), "add", "--", *BOUND_PATHS],
+            [git, "-C", str(repo), "add", "--", *BOUND_PATHS, EXPECTATIONS_RELATIVE],
             [
                 git,
                 "-C",
@@ -534,6 +996,39 @@ def self_test() -> None:
             pathlib.PurePosixPath(item).name for item in BOUND_PATHS
         }:
             raise AssertionError("source binding fixture")
+        expectations_path, expectations_bytes, expectations_identity = committed_expectations(
+            repo, revision, repo / EXPECTATIONS_RELATIVE
+        )
+        if expectations_path != (repo / EXPECTATIONS_RELATIVE).resolve() or expectations_identity != verify_output.bytes_identity(expectations_bytes):
+            raise AssertionError("committed expectations fixture")
+        alternate_expectations = root / "alternate-expectations.json"
+        alternate_expectations.write_bytes(expectations_bytes)
+        try:
+            committed_expectations(repo, revision, alternate_expectations)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("noncanonical expectations rejection")
+        canonical_expectations = repo / EXPECTATIONS_RELATIVE
+        canonical_expectations.write_bytes(b"dirty")
+        try:
+            committed_expectations(repo, revision, canonical_expectations)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("dirty expectations rejection")
+        canonical_expectations.write_bytes(expectations_bytes)
+        expectations_backing = root / "expectations-backing.json"
+        canonical_expectations.rename(expectations_backing)
+        canonical_expectations.symlink_to(expectations_backing)
+        try:
+            committed_expectations(repo, revision, canonical_expectations)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("symlink expectations rejection")
+        canonical_expectations.unlink()
+        expectations_backing.rename(canonical_expectations)
         (repo / SOURCE_PATHS[0]).write_text("// dirty\n", encoding="utf-8")
         try:
             source_bindings(repo, revision)
@@ -541,15 +1036,36 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("dirty source rejection")
-        retained = prepare_destination(root / "retained", repo)
+        protected = root / "protected"
+        protected.mkdir()
+        protected_alias = root / "protected-alias"
+        protected_alias.symlink_to(protected, target_is_directory=True)
+        retained = prepare_destination(root / "retained", repo, [protected.resolve()])
         if stat.S_IMODE(retained.stat().st_mode) != 0o700:
             raise AssertionError("private retained mode")
         try:
-            prepare_destination(retained, repo)
+            prepare_destination(retained, repo, [protected.resolve()])
         except HarnessError:
             pass
         else:
             raise AssertionError("destination no-replace")
+        overlap_candidates = (
+            repo / "retained-inside-repo",
+            root / "missing-segment" / ".." / "repo" / "normalized-inside-repo",
+            protected / "retained-inside-input",
+            protected_alias / "retained-through-alias",
+            root / "future-parent",
+        )
+        future_locator = resolve_nearest(root / "future-parent" / "missing" / "virtual")
+        for candidate in overlap_candidates:
+            objects = [protected.resolve(), future_locator]
+            try:
+                prepare_destination(candidate, repo, objects)
+            except HarnessError:
+                if candidate.exists():
+                    raise AssertionError("overlap rejection created destination")
+            else:
+                raise AssertionError("destination overlap rejection")
 
 
 def main() -> int:

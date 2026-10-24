@@ -11,8 +11,8 @@ the original PE32 executable.
 
 ```bat
 set CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe
-%CSC% /nologo /warnaserror+ /optimize+ /platform:x86 /target:exe /r:System.Security.dll /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualification.exe CanonicalJson.cs OriginalHostQualification.cs
-%CSC% /nologo /warnaserror+ /optimize+ /platform:x86 /target:exe /main:Cm0102.OriginalHostQualification.OriginalHostQualificationTests /r:System.Security.dll /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualificationTests.exe CanonicalJson.cs OriginalHostQualification.cs OriginalHostQualificationTests.cs
+%CSC% /nologo /noconfig /warnaserror+ /optimize+ /platform:x86 /target:exe /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Security.dll /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualification.exe CanonicalJson.cs OriginalHostQualification.cs
+%CSC% /nologo /noconfig /warnaserror+ /optimize+ /platform:x86 /target:exe /main:Cm0102.OriginalHostQualification.OriginalHostQualificationTests /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Security.dll /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualificationTests.exe CanonicalJson.cs OriginalHostQualification.cs OriginalHostQualificationTests.cs
 OriginalHostQualificationTests.exe
 ```
 
@@ -46,14 +46,31 @@ python3 tools/windows/original-host-qualification/retained_run_v1.py run \
   --retained-dir /outside-git/new-retained-run-directory
 ```
 
-The destination must not exist and must be outside the repository. The harness
-verifies source bytes against the named commit, writes commit-bound read-only
-source snapshots into a mode-private build directory, invokes `csc.exe` and
-the probe directly without a shell, and enforces a 30-minute probe timeout and
-independent 4 MiB stdout/stderr caps. It refuses identity drift and publishes
-`retained-run-v1.json` only after the captured stdout passes the strict
-verifier. The retained manifest contains hashes and sanitized argument roles,
-never locator paths or a game command.
+The expectations argument must resolve to the canonical repository file, whose
+exact bytes must equal that path in the named commit. The compiler must resolve
+exactly to
+`C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe` and match the
+size/hash committed in those expectations. The harness copies those verified
+compiler bytes and the exact `1033\cscui.dll` companion into its private build
+directory and executes that snapshot. Both identities must match the committed
+expectations.
+
+The build uses `/noconfig`, so an adjacent, unbound `csc.rsp` cannot alter the
+compiler invocation.
+
+The destination must not exist. Before creating it, the harness parses the
+locator, maps every Windows locator path into WSL, resolves existing objects or
+the nearest parent of a missing object, and rejects containment or aliases in
+either direction with the repository or any locator object. It writes
+commit-bound read-only source snapshots into the mode-private build directory,
+invokes the compiler snapshot and probe directly without a shell, and enforces
+a 30-minute probe timeout and independent 4 MiB stdout/stderr caps. It refuses
+identity drift and publishes `retained-run-v1.json` after every strictly
+verified full or minimal report whose process exit status agrees with the
+report. `verification.qualification_eligible` is separate from verifier
+success; unsafe or incomplete evidence remains retained but is never eligible.
+The manifest contains hashes and sanitized argument roles, never locator paths
+or a game command.
 
 For independent verification of captured stdout, both the public expectations
 and private locator are mandatory:

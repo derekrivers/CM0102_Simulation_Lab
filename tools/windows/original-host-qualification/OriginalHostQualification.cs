@@ -363,6 +363,10 @@ namespace Cm0102.OriginalHostQualification
         public string OpticalVolumeLabel;
         public long OpticalExecutableBytes;
         public string OpticalExecutableSha256;
+        public long CompilerBytes;
+        public string CompilerSha256;
+        public long CompilerUiBytes;
+        public string CompilerUiSha256;
         public string RegistryKeyId;
         public string RegistrySubkey;
         public string RegistryValueName;
@@ -379,7 +383,8 @@ namespace Cm0102.OriginalHostQualification
                 "original_executable_sha256", "iso_bytes", "iso_sha256", "optical_volume_label",
                 "optical_executable_bytes", "optical_executable_sha256", "registry_key_id",
                 "registry_subkey", "registry_value_name", "registry_exact_access_mask",
-                "required_api_ids", "required_tool_ids"
+                "required_api_ids", "required_tool_ids", "compiler_bytes", "compiler_sha256",
+                "compiler_ui_bytes", "compiler_ui_sha256"
             };
             FileIdentity sourceIdentity;
             Dictionary<string, object> value = StrictJson.ReadObject(path, keys, out sourceIdentity);
@@ -397,6 +402,10 @@ namespace Cm0102.OriginalHostQualification
             result.OpticalVolumeLabel = StrictJson.String(value, "optical_volume_label");
             result.OpticalExecutableBytes = StrictJson.Integer(value, "optical_executable_bytes");
             result.OpticalExecutableSha256 = StrictJson.Sha256(value, "optical_executable_sha256");
+            result.CompilerBytes = StrictJson.Integer(value, "compiler_bytes");
+            result.CompilerSha256 = StrictJson.Sha256(value, "compiler_sha256");
+            result.CompilerUiBytes = StrictJson.Integer(value, "compiler_ui_bytes");
+            result.CompilerUiSha256 = StrictJson.Sha256(value, "compiler_ui_sha256");
             result.RegistryKeyId = StrictJson.String(value, "registry_key_id");
             result.RegistrySubkey = StrictJson.String(value, "registry_subkey");
             result.RegistryValueName = StrictJson.String(value, "registry_value_name");
@@ -411,7 +420,9 @@ namespace Cm0102.OriginalHostQualification
                 result.CleanManifestBytes <= 0 || result.CleanManifestBytes > 1024 * 1024 ||
                 result.OriginalExecutableBytes <= 0 || result.OriginalExecutableBytes > (1L << 34) ||
                 result.IsoBytes <= 0 || result.IsoBytes > (1L << 40) ||
-                result.OpticalExecutableBytes <= 0 || result.OpticalExecutableBytes > (1L << 34))
+                result.OpticalExecutableBytes <= 0 || result.OpticalExecutableBytes > (1L << 34) ||
+                result.CompilerBytes <= 0 || result.CompilerBytes > (1L << 34) ||
+                result.CompilerUiBytes <= 0 || result.CompilerUiBytes > (1L << 34))
                 throw new UsageException();
             ValidateSupported(result.RequiredApiIds, CapabilityCatalog.ApiIds);
             ValidateSupported(result.RequiredToolIds, CapabilityCatalog.ToolIds);
@@ -842,8 +853,9 @@ namespace Cm0102.OriginalHostQualification
         {
             FileSnapshot manifestSnapshot = FileSnapshot.Read(locator.CleanManifest, 1024 * 1024);
             Dictionary<string, ManifestRow> expectedRows = ManifestRow.Parse(manifestSnapshot.Bytes);
-            CleanCaptureObservation before = ObserveCleanCapture(expectedRows);
-            CleanCaptureObservation after = ObserveCleanCapture(expectedRows);
+            HashSet<string> expectedDirectories = ManifestRow.ExpectedDirectories(expectedRows.Keys);
+            CleanCaptureObservation before = ObserveCleanCapture(expectedRows, expectedDirectories);
+            CleanCaptureObservation after = ObserveCleanCapture(expectedRows, expectedDirectories);
             bool manifestMatches = QualificationPolicy.IdentityMatches(manifestSnapshot.Identity,
                 expectations.CleanManifestBytes, expectations.CleanManifestSha256);
             return new CleanObservation
@@ -857,7 +869,8 @@ namespace Cm0102.OriginalHostQualification
             };
         }
 
-        private CleanCaptureObservation ObserveCleanCapture(Dictionary<string, ManifestRow> expectedRows)
+        private CleanCaptureObservation ObserveCleanCapture(Dictionary<string, ManifestRow> expectedRows,
+            HashSet<string> expectedDirectories)
         {
             TreeManifest tree = TreeManifest.Capture(locator.CleanTree, true);
             int missing = 0;
@@ -871,11 +884,14 @@ namespace Cm0102.OriginalHostQualification
             }
             foreach (string actual in tree.Rows.Keys)
                 if (!expectedRows.ContainsKey(actual)) extra++;
+            int directoryMissing;
+            int directoryExtra;
+            QualificationPolicy.DirectoryDifference(tree, expectedDirectories, out directoryMissing, out directoryExtra);
             TreeRow executable;
             bool hasExecutable = tree.Rows.TryGetValue("cm0102.exe", out executable);
             bool treeMatches = tree.FileCount == expectations.CleanFileCount && tree.TotalBytes == expectations.CleanTotalBytes &&
                 expectedRows.Count == expectations.CleanFileCount && missing == 0 && extra == 0 && mismatched == 0 &&
-                tree.CaseCollisionCount == 0 && tree.ReparseCount == 0 && tree.UnstableCount == 0 &&
+                directoryMissing == 0 && directoryExtra == 0 && tree.IsPlain(true) &&
                 hasExecutable && executable.Bytes == expectations.OriginalExecutableBytes &&
                 executable.Sha256 == expectations.OriginalExecutableSha256;
             FileIdentity executableIdentity = hasExecutable ?
@@ -891,6 +907,8 @@ namespace Cm0102.OriginalHostQualification
                 MissingCount = missing,
                 ExtraCount = extra,
                 MismatchCount = mismatched,
+                DirectoryMissingCount = directoryMissing,
+                DirectoryExtraCount = directoryExtra,
                 WritableOpenCount = tree.WritableOpenCount
             };
         }
@@ -1003,7 +1021,7 @@ namespace Cm0102.OriginalHostQualification
             if (id == "advapi32-registry") return NativeMethods.ExportsPresent("advapi32.dll", new string[] { "RegOpenKeyExA", "RegQueryInfoKeyA" });
             if (id == "advapi32-token") return NativeMethods.ExportsPresent("advapi32.dll", new string[] { "OpenProcessToken", "DuplicateTokenEx", "GetTokenInformation" });
             if (id == "kernel32-filesystem") return NativeMethods.ExportsPresent("kernel32.dll", new string[] { "CreateFileW", "GetFinalPathNameByHandleW", "GetFileInformationByHandle" });
-            if (id == "user32-desktop") return NativeMethods.ExportsPresent("user32.dll", new string[] { "OpenInputDesktopW", "GetUserObjectInformationW" });
+            if (id == "user32-desktop") return NativeMethods.ExportsPresent("user32.dll", new string[] { "OpenInputDesktop", "GetUserObjectInformationW" });
             if (id == "wtsapi32-session") return NativeMethods.ExportsPresent("wtsapi32.dll", new string[] { "WTSQuerySessionInformationW" });
             throw new InvalidOperationException("unknown-api-id");
         }
@@ -1042,6 +1060,17 @@ namespace Cm0102.OriginalHostQualification
         public static bool IdentityMatches(FileIdentity actual, long expectedBytes, string expectedSha256)
         {
             return actual != null && actual.Bytes == expectedBytes && actual.Sha256 == expectedSha256;
+        }
+
+        public static void DirectoryDifference(TreeManifest tree, HashSet<string> expected,
+            out int missing, out int extra)
+        {
+            missing = 0;
+            extra = 0;
+            foreach (string expectedDirectory in expected)
+                if (!tree.DirectoryPaths.Contains(expectedDirectory)) missing++;
+            foreach (string actualDirectory in tree.DirectoryPaths)
+                if (!expected.Contains(actualDirectory)) extra++;
         }
 
         public static bool IsComplete(IEnumerable<CheckRecord> checks)
@@ -1260,12 +1289,16 @@ namespace Cm0102.OriginalHostQualification
         public int MissingCount;
         public int ExtraCount;
         public int MismatchCount;
+        public int DirectoryMissingCount;
+        public int DirectoryExtraCount;
         public int WritableOpenCount;
 
         public SortedDictionary<string, object> ToJson()
         {
             return JsonObjects.Object(
                 "executable", JsonObjects.Object("expected_match", ExecutableMatches, "identity", Executable.ToJson()),
+                "directory_extra_count", DirectoryExtraCount,
+                "directory_missing_count", DirectoryMissingCount,
                 "extra_count", ExtraCount,
                 "mismatch_count", MismatchCount,
                 "missing_count", MissingCount,
@@ -1386,6 +1419,7 @@ namespace Cm0102.OriginalHostQualification
         public long Bytes;
         public long LastWrite;
         public uint Attributes;
+        public uint NumberOfLinks;
         public bool IsDirectory { get { return (Attributes & (uint)FileAttributes.Directory) != 0; } }
         public bool IsReparsePoint { get { return (Attributes & (uint)FileAttributes.ReparsePoint) != 0; } }
         public string ObjectId { get { return VolumeSerial.ToString("x8", CultureInfo.InvariantCulture) + ":" + FileIndex.ToString("x16", CultureInfo.InvariantCulture); } }
@@ -1393,7 +1427,7 @@ namespace Cm0102.OriginalHostQualification
         public bool Same(NativeFileIdentity other)
         {
             return other != null && VolumeSerial == other.VolumeSerial && FileIndex == other.FileIndex && Bytes == other.Bytes &&
-                LastWrite == other.LastWrite && Attributes == other.Attributes;
+                LastWrite == other.LastWrite && Attributes == other.Attributes && NumberOfLinks == other.NumberOfLinks;
         }
     }
 
@@ -1521,6 +1555,21 @@ namespace Cm0102.OriginalHostQualification
             }
             return rows;
         }
+
+        public static HashSet<string> ExpectedDirectories(IEnumerable<string> paths)
+        {
+            HashSet<string> result = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "." };
+            foreach (string path in paths)
+            {
+                int separator = path.LastIndexOf('/');
+                while (separator > 0)
+                {
+                    result.Add(path.Substring(0, separator));
+                    separator = path.LastIndexOf('/', separator - 1);
+                }
+            }
+            return result;
+        }
     }
 
     internal static class DictionaryCompat
@@ -1550,8 +1599,11 @@ namespace Cm0102.OriginalHostQualification
         public int CaseCollisionCount;
         public int ReparseCount;
         public int UnstableCount;
+        public int ObjectAliasCount;
+        public int HardlinkCount;
         public int WritableOpenCount;
         public Dictionary<string, TreeRow> Rows;
+        public HashSet<string> DirectoryPaths;
         public string RootObjectIdSha256;
 
         public static TreeManifest CaptureOptional(string root)
@@ -1574,7 +1626,8 @@ namespace Cm0102.OriginalHostQualification
                 Present = false,
                 RootObjectIdSha256 = Hashing.StringSha256("absent"),
                 TreeSha256 = Hashing.BytesSha256(new byte[0]),
-                Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase)
+                Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase),
+                DirectoryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             };
         }
 
@@ -1595,8 +1648,10 @@ namespace Cm0102.OriginalHostQualification
                     Present = true,
                     DirectoryCount = 1,
                     RootObjectIdSha256 = Hashing.StringSha256(openedRoot.Identity.ObjectId),
-                    Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase)
+                    Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase),
+                    DirectoryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "." }
                 };
+                HashSet<string> objectIds = new HashSet<string>(StringComparer.Ordinal) { openedRoot.Identity.ObjectId };
                 if (testWriteOpen && NativeMethods.CanOpenForWrite(canonicalRoot, true)) result.WritableOpenCount++;
                 HashSet<string> exact = new HashSet<string>(StringComparer.Ordinal);
                 HashSet<string> foldedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -1612,7 +1667,9 @@ namespace Cm0102.OriginalHostQualification
                         string relative = Relative(canonicalRoot, child);
                         RecordName(relative, exact, foldedPaths, result);
                         result.DirectoryCount++;
+                        result.DirectoryPaths.Add(relative);
                         VerifiedPath opened = PathSafety.OpenVerified(child, true, canonicalRoot, false);
+                        if (!objectIds.Add(opened.Identity.ObjectId)) result.ObjectAliasCount++;
                         if (opened.Identity.IsReparsePoint)
                         {
                             result.ReparseCount++;
@@ -1632,12 +1689,14 @@ namespace Cm0102.OriginalHostQualification
                         RecordName(relative, exact, foldedPaths, result);
                         using (VerifiedPath metadata = PathSafety.OpenVerified(file, false, canonicalRoot, false, false))
                         {
+                            if (!objectIds.Add(metadata.Identity.ObjectId)) result.ObjectAliasCount++;
                             if (metadata.Identity.IsReparsePoint)
                             {
                                 result.ReparseCount++;
                                 digestRows.Add("R\t" + relative + "\n");
                                 continue;
                             }
+                            if (metadata.Identity.NumberOfLinks > 1) result.HardlinkCount++;
                             if (testWriteOpen && NativeMethods.CanOpenForWrite(file, false)) result.WritableOpenCount++;
                             using (VerifiedPath opened = PathSafety.OpenVerified(file, false, canonicalRoot, true))
                             {
@@ -1691,7 +1750,8 @@ namespace Cm0102.OriginalHostQualification
                 ReparseCount = 1,
                 RootObjectIdSha256 = Hashing.StringSha256(rootObjectId),
                 TreeSha256 = Hashing.BytesSha256(Encoding.UTF8.GetBytes("R\t.\n")),
-                Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase)
+                Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase),
+                DirectoryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "." }
             };
         }
 
@@ -1722,13 +1782,15 @@ namespace Cm0102.OriginalHostQualification
         {
             return Present == other.Present && FileCount == other.FileCount && DirectoryCount == other.DirectoryCount &&
                 TotalBytes == other.TotalBytes && TreeSha256 == other.TreeSha256 && CaseCollisionCount == other.CaseCollisionCount &&
-                ReparseCount == other.ReparseCount && RootObjectIdSha256 == other.RootObjectIdSha256 &&
+                ReparseCount == other.ReparseCount && ObjectAliasCount == other.ObjectAliasCount && HardlinkCount == other.HardlinkCount &&
+                RootObjectIdSha256 == other.RootObjectIdSha256 &&
                 UnstableCount == 0 && other.UnstableCount == 0;
         }
 
         public bool IsPlain(bool requirePresent)
         {
-            return (!requirePresent || Present) && ReparseCount == 0 && CaseCollisionCount == 0 && UnstableCount == 0;
+            return (!requirePresent || Present) && ReparseCount == 0 && CaseCollisionCount == 0 && UnstableCount == 0 &&
+                ObjectAliasCount == 0 && HardlinkCount == 0;
         }
 
         public SortedDictionary<string, object> ToJson()
@@ -1737,6 +1799,8 @@ namespace Cm0102.OriginalHostQualification
                 "case_collision_count", CaseCollisionCount,
                 "directory_count", DirectoryCount,
                 "file_count", FileCount,
+                "hardlink_count", HardlinkCount,
+                "object_alias_count", ObjectAliasCount,
                 "present", Present,
                 "reparse_count", ReparseCount,
                 "root_object_id_sha256", RootObjectIdSha256,
@@ -1933,6 +1997,21 @@ namespace Cm0102.OriginalHostQualification
             throw new InvalidOperationException("open-current-thread-token-" + error.ToString(CultureInfo.InvariantCulture));
         }
 
+        public static SafeKernelHandle DuplicateCurrentTokenForImpersonation()
+        {
+            IntPtr token;
+            if (!OpenProcessToken(GetCurrentProcess(), TokenQuery | TokenDuplicate | TokenImpersonate, out token))
+                throw new InvalidOperationException("open-current-token-for-duplicate");
+            try
+            {
+                IntPtr duplicated;
+                if (!DuplicateTokenEx(token, TokenQuery | TokenImpersonate, IntPtr.Zero, 2, 2, out duplicated))
+                    throw new InvalidOperationException("duplicate-current-token");
+                return new SafeKernelHandle(duplicated);
+            }
+            finally { CloseHandle(token); }
+        }
+
         public static long RegistryLastWrite(string subkey)
         {
             IntPtr handle;
@@ -1990,6 +2069,7 @@ namespace Cm0102.OriginalHostQualification
                 Bytes = ((long)information.FileSizeHigh << 32) | information.FileSizeLow,
                 FileIndex = ((ulong)information.FileIndexHigh << 32) | information.FileIndexLow,
                 LastWrite = ((long)information.LastWriteTime.High << 32) | information.LastWriteTime.Low,
+                NumberOfLinks = information.NumberOfLinks,
                 VolumeSerial = information.VolumeSerialNumber
             };
         }

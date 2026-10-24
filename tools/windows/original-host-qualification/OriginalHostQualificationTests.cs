@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 
 namespace Cm0102.OriginalHostQualification
@@ -19,12 +21,15 @@ namespace Cm0102.OriginalHostQualification
             Run("strict-expectations", TestStrictExpectations);
             Run("strict-private-config", TestStrictPrivateConfig);
             Run("tree-manifest-stability", TestTreeManifestStability);
+            Run("manifest-directory-exactness", TestManifestDirectoryExactness);
             Run("tree-plain-qualification", TestTreePlainQualification);
             Run("case-collision", TestCaseCollision);
             Run("actual-reparse", TestActualReparse);
             Run("object-alias", TestObjectAlias);
+            Run("outside-tree-hardlink", TestOutsideTreeHardlink);
             Run("unreadable-and-share-protected", TestUnreadableAndShareProtected);
             Run("qualification-policies", TestQualificationPolicies);
+            Run("actual-token-restoration", TestActualTokenRestoration);
             Run("clean-iso-identity-mismatch", TestCleanIsoIdentityMismatch);
             Run("installed-virtual-store-mutation", TestInstalledVirtualStoreMutation);
             Run("completeness", TestCompleteness);
@@ -96,6 +101,8 @@ namespace Cm0102.OriginalHostQualification
                 File.WriteAllText(path, valid, new UTF8Encoding(false));
                 Expectations expectations = Expectations.Load(path);
                 Assert(expectations.RegistryExactAccessMask == 0x000f003f);
+                Assert(expectations.CompilerBytes == 1);
+                Assert(expectations.CompilerUiBytes == 1);
                 Assert(expectations.SourceIdentity.Sha256 == Hashing.BytesSha256(new UTF8Encoding(false).GetBytes(valid)));
 
                 File.WriteAllText(path, valid.Replace("{\"schema_version\":1", "{\"schema_version\":1,\"schema_version\":1"), new UTF8Encoding(false));
@@ -108,6 +115,12 @@ namespace Cm0102.OriginalHostQualification
                 AssertThrowsUsage(delegate { Expectations.Load(path); });
 
                 File.WriteAllText(path, valid.Replace("\"clean_total_bytes\":1", "\"clean_total_bytes\":-1"), new UTF8Encoding(false));
+                AssertThrowsUsage(delegate { Expectations.Load(path); });
+
+                File.WriteAllText(path, valid.Replace("\"compiler_bytes\":1", "\"compiler_bytes\":0"), new UTF8Encoding(false));
+                AssertThrowsUsage(delegate { Expectations.Load(path); });
+
+                File.WriteAllText(path, valid.Replace("\"compiler_ui_bytes\":1", "\"compiler_ui_bytes\":0"), new UTF8Encoding(false));
                 AssertThrowsUsage(delegate { Expectations.Load(path); });
 
                 File.WriteAllText(path, valid.Replace("\"csc-x86\",\"powershell\"", "\"powershell\",\"csc-x86\""), new UTF8Encoding(false));
@@ -129,6 +142,8 @@ namespace Cm0102.OriginalHostQualification
                 "\"clean_manifest_bytes\":1,\"clean_manifest_sha256\":\"" + hash + "\",\"original_executable_bytes\":1," +
                 "\"original_executable_sha256\":\"" + hash + "\",\"iso_bytes\":1,\"iso_sha256\":\"" + hash + "\"," +
                 "\"optical_volume_label\":\"TEST\",\"optical_executable_bytes\":1,\"optical_executable_sha256\":\"" + hash + "\"," +
+                "\"compiler_bytes\":1,\"compiler_sha256\":\"" + hash + "\"," +
+                "\"compiler_ui_bytes\":1,\"compiler_ui_sha256\":\"" + hash + "\"," +
                 "\"registry_key_id\":\"test\",\"registry_subkey\":\"SOFTWARE\\\\test\",\"registry_value_name\":\"Path\"," +
                 "\"registry_exact_access_mask\":983103," +
                 "\"required_api_ids\":[\"advapi32-registry\",\"advapi32-token\",\"kernel32-filesystem\",\"user32-desktop\",\"wtsapi32-session\"]," +
@@ -205,6 +220,31 @@ namespace Cm0102.OriginalHostQualification
             Assert(!new TreeManifest { Present = true, ReparseCount = 1 }.IsPlain(true));
             Assert(!new TreeManifest { Present = true, CaseCollisionCount = 1 }.IsPlain(true));
             Assert(!new TreeManifest { Present = true, UnstableCount = 1 }.IsPlain(true));
+            Assert(!new TreeManifest { Present = true, ObjectAliasCount = 1 }.IsPlain(true));
+            Assert(!new TreeManifest { Present = true, HardlinkCount = 1 }.IsPlain(true));
+        }
+
+        private static void TestManifestDirectoryExactness()
+        {
+            string root = NewTemporaryDirectory();
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(root, "Data"));
+                Directory.CreateDirectory(Path.Combine(root, "empty"));
+                File.WriteAllText(Path.Combine(root, "Data", "one.dat"), "one", new UTF8Encoding(false));
+                TreeManifest tree = TreeManifest.Capture(root, false);
+                HashSet<string> expected = ManifestRow.ExpectedDirectories(new string[] { "Data/one.dat" });
+                int missing;
+                int extra;
+                QualificationPolicy.DirectoryDifference(tree, expected, out missing, out extra);
+                Assert(missing == 0);
+                Assert(extra == 1);
+                expected = ManifestRow.ExpectedDirectories(new string[] { "Data/one.dat", "Missing/two.dat" });
+                QualificationPolicy.DirectoryDifference(tree, expected, out missing, out extra);
+                Assert(missing == 1);
+                Assert(extra == 1);
+            }
+            finally { Directory.Delete(root, true); }
         }
 
         private static void TestCaseCollision()
@@ -248,8 +288,35 @@ namespace Cm0102.OriginalHostQualification
                 if (!CreateHardLinkW(alias, original, IntPtr.Zero))
                     throw new InvalidOperationException("create-synthetic-hardlink-" + Marshal.GetLastWin32Error());
                 Assert(!PathSafety.AreDistinctExistingObjects(new string[] { original, alias }));
+                TreeManifest manifest = TreeManifest.Capture(root, false);
+                Assert(manifest.ObjectAliasCount == 1);
+                Assert(manifest.HardlinkCount == 2);
+                Assert(!manifest.IsPlain(true));
             }
             finally { Directory.Delete(root, true); }
+        }
+
+        private static void TestOutsideTreeHardlink()
+        {
+            string root = NewTemporaryDirectory();
+            string outside = NewTemporaryDirectory();
+            try
+            {
+                string original = Path.Combine(outside, "original.bin");
+                string link = Path.Combine(root, "linked.bin");
+                File.WriteAllText(original, "outside-object", new UTF8Encoding(false));
+                if (!CreateHardLinkW(link, original, IntPtr.Zero))
+                    throw new InvalidOperationException("create-outside-hardlink-" + Marshal.GetLastWin32Error());
+                TreeManifest manifest = TreeManifest.Capture(root, false);
+                Assert(manifest.ObjectAliasCount == 0);
+                Assert(manifest.HardlinkCount == 1);
+                Assert(!manifest.IsPlain(true));
+            }
+            finally
+            {
+                Directory.Delete(root, true);
+                Directory.Delete(outside, true);
+            }
         }
 
         private static void TestUnreadableAndShareProtected()
@@ -282,6 +349,57 @@ namespace Cm0102.OriginalHostQualification
             Assert(QualificationPolicy.ExplorerRegistryDenied(5));
             Assert(!QualificationPolicy.ExplorerRegistryDenied(0));
         }
+
+        private static void TestActualTokenRestoration()
+        {
+            bool initialWasThreadToken;
+            TokenObservation initial = TokenObservation.EffectiveCurrent(out initialWasThreadToken);
+            Assert(!initialWasThreadToken);
+            using (Process current = Process.GetCurrentProcess()) Assert(initial.SessionId == current.SessionId);
+            using (SafeKernelHandle duplicate = NativeMethods.DuplicateCurrentTokenForImpersonation())
+            {
+                using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(duplicate.DangerousGetHandle()))
+                {
+                    bool duringWasThreadToken;
+                    TokenObservation during = TokenObservation.EffectiveCurrent(out duringWasThreadToken);
+                    Assert(duringWasThreadToken);
+                    Assert(during.SessionId == initial.SessionId);
+                    Assert(during.SecurityEquivalent(initial));
+                    context.Undo();
+                }
+                AssertTokenRestored(initial, initialWasThreadToken);
+
+                bool observed = false;
+                try
+                {
+                    using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(duplicate.DangerousGetHandle()))
+                    {
+                        try
+                        {
+                            bool duringWasThreadToken;
+                            TokenObservation during = TokenObservation.EffectiveCurrent(out duringWasThreadToken);
+                            Assert(duringWasThreadToken);
+                            Assert(during.SecurityEquivalent(initial));
+                            throw new SyntheticTokenException();
+                        }
+                        finally { context.Undo(); }
+                    }
+                }
+                catch (SyntheticTokenException) { observed = true; }
+                Assert(observed);
+                AssertTokenRestored(initial, initialWasThreadToken);
+            }
+        }
+
+        private static void AssertTokenRestored(TokenObservation initial, bool initialWasThreadToken)
+        {
+            bool restoredWasThreadToken;
+            TokenObservation restored = TokenObservation.EffectiveCurrent(out restoredWasThreadToken);
+            Assert(restoredWasThreadToken == initialWasThreadToken);
+            Assert(restored.SecurityEquivalent(initial));
+        }
+
+        private sealed class SyntheticTokenException : Exception { }
 
         private static void TestCleanIsoIdentityMismatch()
         {

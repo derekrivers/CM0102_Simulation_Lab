@@ -162,6 +162,10 @@ EXPECTATION_KEYS = {
     "clean_manifest_bytes",
     "clean_manifest_sha256",
     "clean_total_bytes",
+    "compiler_bytes",
+    "compiler_sha256",
+    "compiler_ui_bytes",
+    "compiler_ui_sha256",
     "iso_bytes",
     "iso_sha256",
     "optical_executable_bytes",
@@ -191,6 +195,8 @@ def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
         "clean_file_count",
         "clean_manifest_bytes",
         "clean_total_bytes",
+        "compiler_bytes",
+        "compiler_ui_bytes",
         "iso_bytes",
         "optical_executable_bytes",
         "original_executable_bytes",
@@ -201,6 +207,8 @@ def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
         "clean_file_count": 1_000_000,
         "clean_manifest_bytes": 1024 * 1024,
         "clean_total_bytes": 1 << 50,
+        "compiler_bytes": 1 << 34,
+        "compiler_ui_bytes": 1 << 34,
         "iso_bytes": 1 << 40,
         "optical_executable_bytes": 1 << 34,
         "original_executable_bytes": 1 << 34,
@@ -210,6 +218,8 @@ def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
             raise ValueError(f"expectations.{key}")
     for key in (
         "clean_manifest_sha256",
+        "compiler_sha256",
+        "compiler_ui_sha256",
         "iso_sha256",
         "optical_executable_sha256",
         "original_executable_sha256",
@@ -294,6 +304,8 @@ def tree(value: object, name: str) -> dict[str, object]:
             "case_collision_count",
             "directory_count",
             "file_count",
+            "hardlink_count",
+            "object_alias_count",
             "present",
             "reparse_count",
             "root_object_id_sha256",
@@ -308,6 +320,8 @@ def tree(value: object, name: str) -> dict[str, object]:
         "case_collision_count",
         "directory_count",
         "file_count",
+        "hardlink_count",
+        "object_alias_count",
         "reparse_count",
         "total_bytes",
         "unstable_count",
@@ -324,6 +338,8 @@ def tree(value: object, name: str) -> dict[str, object]:
             "case_collision_count",
             "directory_count",
             "file_count",
+            "hardlink_count",
+            "object_alias_count",
             "reparse_count",
             "total_bytes",
             "unstable_count",
@@ -546,10 +562,10 @@ def validate_full_schema(
     for side in ("before", "after"):
         capture = strict_object(
             clean[side],
-            {"executable", "extra_count", "mismatch_count", "missing_count", "tree", "tree_expected_match", "writable_open_count"},
+            {"directory_extra_count", "directory_missing_count", "executable", "extra_count", "mismatch_count", "missing_count", "tree", "tree_expected_match", "writable_open_count"},
             f"inputs.clean.{side}",
         )
-        for key in ("extra_count", "mismatch_count", "missing_count", "writable_open_count"):
+        for key in ("directory_extra_count", "directory_missing_count", "extra_count", "mismatch_count", "missing_count", "writable_open_count"):
             if integer(capture[key], f"inputs.clean.{side}.{key}") < 0:
                 raise ValueError(f"inputs.clean.{side}.{key}")
         boolean(capture["tree_expected_match"], f"inputs.clean.{side}.tree_expected_match")
@@ -574,7 +590,11 @@ def validate_full_schema(
             and capture["missing_count"] == 0
             and capture["extra_count"] == 0
             and capture["mismatch_count"] == 0
+            and capture["directory_missing_count"] == 0
+            and capture["directory_extra_count"] == 0
             and tree_value["case_collision_count"] == 0
+            and tree_value["hardlink_count"] == 0
+            and tree_value["object_alias_count"] == 0
             and tree_value["reparse_count"] == 0
             and tree_value["unstable_count"] == 0
             and executable_wrapper["expected_match"] is True
@@ -689,12 +709,16 @@ def validate_full_schema(
         item["present"] is True
         and item["reparse_count"] == 0
         and item["case_collision_count"] == 0
+        and item["hardlink_count"] == 0
+        and item["object_alias_count"] == 0
         and item["unstable_count"] == 0
         for item in (installed_before, installed_after)
     )
     virtual_plain = all(
         item["reparse_count"] == 0
         and item["case_collision_count"] == 0
+        and item["hardlink_count"] == 0
+        and item["object_alias_count"] == 0
         and item["unstable_count"] == 0
         for item in (virtual_before, virtual_after)
     )
@@ -956,6 +980,8 @@ def static_source(paths: list[pathlib.Path]) -> None:
         extern_count = len(re.findall(r"\bextern\b", source, re.IGNORECASE))
         if "libraryimport" in normalized or "dllimportattribute" in normalized:
             raise ValueError(f"{path.name}: unapproved interop attribute")
+        if re.search(r"\bentrypoint=", normalized):
+            raise ValueError(f"{path.name}: DllImport EntryPoint is forbidden")
         if len(declarations) != attribute_count or len(declarations) != extern_count:
             raise ValueError(f"{path.name}: unparsed DllImport declaration")
         for library, method in declarations:
@@ -979,6 +1005,8 @@ def synthetic_full_document(
         "case_collision_count": 0,
         "directory_count": 1,
         "file_count": expectations["clean_file_count"],
+        "hardlink_count": 0,
+        "object_alias_count": 0,
         "present": True,
         "reparse_count": 0,
         "root_object_id_sha256": "d" * 64,
@@ -990,6 +1018,8 @@ def synthetic_full_document(
         "case_collision_count": 0,
         "directory_count": 0,
         "file_count": 0,
+        "hardlink_count": 0,
+        "object_alias_count": 0,
         "present": False,
         "reparse_count": 0,
         "root_object_id_sha256": hashlib.sha256("absent".encode("utf-16le")).hexdigest(),
@@ -1002,6 +1032,8 @@ def synthetic_full_document(
         "sha256": expectations["original_executable_sha256"],
     }
     clean_capture = {
+        "directory_extra_count": 0,
+        "directory_missing_count": 0,
         "executable": {"expected_match": True, "identity": expected_executable},
         "extra_count": 0,
         "mismatch_count": 0,
@@ -1207,6 +1239,10 @@ def self_test() -> None:
             "clean_manifest_bytes": 10,
             "clean_manifest_sha256": "1" * 64,
             "clean_total_bytes": 20,
+            "compiler_bytes": 60,
+            "compiler_sha256": "2" * 64,
+            "compiler_ui_bytes": 61,
+            "compiler_ui_sha256": "6" * 64,
             "iso_bytes": 30,
             "iso_sha256": "3" * 64,
             "optical_executable_bytes": 50,
@@ -1256,6 +1292,26 @@ def self_test() -> None:
         full_output.write_bytes(canonical(unsafe_hidden))
         expect_rejected(
             lambda: verify(full_output, private, expectations), "hidden unsafe observation"
+        )
+        alias_hidden = decode_json(canonical(full))
+        alias_hidden["guards"]["installed_tree"]["before"]["object_alias_count"] = 1
+        alias_hidden["guards"]["installed_tree"]["after"]["object_alias_count"] = 1
+        full_output.write_bytes(canonical(alias_hidden))
+        expect_rejected(
+            lambda: verify(full_output, private, expectations), "hidden object alias"
+        )
+        hardlink_hidden = decode_json(canonical(full))
+        hardlink_hidden["guards"]["installed_tree"]["before"]["hardlink_count"] = 1
+        hardlink_hidden["guards"]["installed_tree"]["after"]["hardlink_count"] = 1
+        full_output.write_bytes(canonical(hardlink_hidden))
+        expect_rejected(
+            lambda: verify(full_output, private, expectations), "hidden hardlink"
+        )
+        directory_hidden = decode_json(canonical(full))
+        directory_hidden["inputs"]["clean"]["before"]["directory_extra_count"] = 1
+        full_output.write_bytes(canonical(directory_hidden))
+        expect_rejected(
+            lambda: verify(full_output, private, expectations), "hidden directory mismatch"
         )
         check = {
             "detail_code": "self-test",
@@ -1320,6 +1376,7 @@ def self_test() -> None:
             "new FileStream(x, FileMode.Open, File Access . Read Write);".replace(" ", ""),
             "new FileStream(x, FileMode.Open);",
             '[DllImport("kernel32.dll")] static extern int Beep(int a, int b);',
+            '[DllImport("kernel32.dll", Entry /* disguise */ Point = "WinExec")] static extern int GetCurrentProcess();',
         )
         for index, source in enumerate(banned_samples):
             banned = root / f"banned-{index}.cs"
