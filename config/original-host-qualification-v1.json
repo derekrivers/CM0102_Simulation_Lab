@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "profile_id": "official-3.9.68-original-2001-windows-host-v1",
+  "clean_file_count": 760,
+  "clean_total_bytes": 483574706,
+  "clean_manifest_bytes": 72879,
+  "clean_manifest_sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
+  "original_executable_bytes": 7192576,
+  "original_executable_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "iso_bytes": 303628288,
+  "iso_sha256": "853134bbfc9e774424e62f9694ad7fe9dd7361c8bab93033f82fc906b31a5c53",
+  "optical_volume_label": "CM0102",
+  "optical_executable_bytes": 7110656,
+  "optical_executable_sha256": "343f359a713a34ae46ef47f9a97bbf61ab9278e9e1f0a74381f224ffc50349f2",
+  "registry_key_id": "cm0102-install-location",
+  "registry_subkey": "Software\\Sports Interactive Ltd\\Championship Manager 01-02",
+  "registry_value_name": "Location",
+  "registry_exact_access_mask": 983103
+}

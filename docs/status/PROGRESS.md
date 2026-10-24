@@ -56,7 +56,7 @@ Updated: 24 October 2026 (Europe/London)
 2. Expand the coverage register from direct observation when matching data and a qualified execution path become available.
 3. Add failed-attempt retention and stronger nested-output/resource controls before expanding the adapter beyond its single bounded profile.
 4. Emit matching observation bundles from real backends through the reviewed comparison contract.
-5. Implement the first original-executable observation route with a medium-integrity Windows launch token, per-attempt working copy, bounded process lifetime, and no dependency on the user's modified installation before any original/Bosman parity claim.
+5. Implement, review and retain the read-only x86 Windows host-qualification probe before implementing the first synthetic launcher test or any original-executable observation route.
 
 ## Model routing record
 
