@@ -1,0 +1,35 @@
+name: Runtime Binding Base Guard
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  immutable-runtime-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Preserve the base-reviewed runtime verifier bootstrap
+      shell: /bin/bash --noprofile --norc -euo pipefail {0}
+      env:
+        BASH_ENV: /dev/null
+        ENV: /dev/null
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+        [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+        test "$GITHUB_SHA" = "$BASE_SHA"
+        /usr/bin/git fetch --no-tags origin "$HEAD_SHA"
+        test "$(/usr/bin/git cat-file -t "$BASE_SHA")" = commit
+        test "$(/usr/bin/git cat-file -t "$HEAD_SHA")" = commit
+        /usr/bin/git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+          .github/workflows/rust.yml \
+          .github/workflows/runtime-binding-base-guard.yml
