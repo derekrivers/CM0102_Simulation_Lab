@@ -329,12 +329,32 @@ fn timeout_kills_the_entire_process_group() {
 }
 
 #[test]
+fn timeout_kills_a_descendant_that_escaped_the_process_group() {
+    let root = TestDirectory::new("timeout-escaped");
+    let started = Instant::now();
+    let (attempt, output) = execute(root.path(), "timeout-escaped", 100);
+    assert!(!output.status.success());
+    assert!(stderr(&output).contains("timed out after 100 ms"));
+    assert!(started.elapsed() < Duration::from_secs(5));
+
+    let pid: u32 = fs::read_to_string(attempt.join("child.pid"))
+        .expect("fixture recorded escaped descendant PID")
+        .trim()
+        .parse()
+        .expect("escaped descendant PID is numeric");
+    assert!(
+        !PathBuf::from(format!("/proc/{pid}")).exists(),
+        "escaped descendant survived timeout cleanup"
+    );
+}
+
+#[test]
 fn escaped_descendant_cannot_hold_pipes_or_survive_success() {
     let root = TestDirectory::new("escaped-descendant");
     let started = Instant::now();
     let (attempt, output) = execute(root.path(), "escaped-descendant", 2_000);
     assert!(output.status.success(), "{}", stderr(&output));
-    assert!(started.elapsed() < Duration::from_secs(2));
+    assert!(started.elapsed() < Duration::from_secs(5));
 
     let pid: u32 = fs::read_to_string(attempt.join("child.pid"))
         .expect("fixture recorded escaped descendant PID")

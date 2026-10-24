@@ -281,8 +281,7 @@ pub fn execute_process(
     let input_handle = match spawn_input(stdin, request_bytes, Arc::clone(&io_cancel)) {
         Ok(handle) => handle,
         Err(error) => {
-            terminate_process_group(process_group, &mut child);
-            return Err(error);
+            return Err(terminate_with_reason(process_group, &mut child, error));
         }
     };
     let stdout_handle = match spawn_capture(
@@ -294,7 +293,7 @@ pub fn execute_process(
     ) {
         Ok(handle) => handle,
         Err(error) => {
-            terminate_process_group(process_group, &mut child);
+            let error = terminate_with_reason(process_group, &mut child, error);
             io_cancel.store(true, Ordering::Release);
             let _ = join_input(input_handle);
             return Err(error);
@@ -309,7 +308,7 @@ pub fn execute_process(
     ) {
         Ok(handle) => handle,
         Err(error) => {
-            terminate_process_group(process_group, &mut child);
+            let error = terminate_with_reason(process_group, &mut child, error);
             io_cancel.store(true, Ordering::Release);
             let _ = join_input(input_handle);
             let _ = join_capture(stdout_handle);
@@ -320,32 +319,42 @@ pub fn execute_process(
     let deadline = Instant::now() + Duration::from_millis(request.timeout_ms);
     let status = loop {
         if let Ok(stream) = limit_rx.try_recv() {
-            terminate_process_group(process_group, &mut child);
+            let error = terminate_with_reason(
+                process_group,
+                &mut child,
+                format!("backend {stream} exceeded its configured byte limit"),
+            );
             io_cancel.store(true, Ordering::Release);
             let _ = join_input(input_handle);
             let _ = join_capture(stdout_handle);
             let _ = join_capture(stderr_handle);
-            return Err(format!(
-                "backend {stream} exceeded its configured byte limit"
-            ));
+            return Err(error);
         }
         match child.try_wait() {
             Err(error) => {
-                terminate_process_group(process_group, &mut child);
+                let error = terminate_with_reason(
+                    process_group,
+                    &mut child,
+                    format!("wait for backend: {error}"),
+                );
                 io_cancel.store(true, Ordering::Release);
                 let _ = join_input(input_handle);
                 let _ = join_capture(stdout_handle);
                 let _ = join_capture(stderr_handle);
-                return Err(format!("wait for backend: {error}"));
+                return Err(error);
             }
             Ok(Some(status)) => break status,
             Ok(None) if Instant::now() >= deadline => {
-                terminate_process_group(process_group, &mut child);
+                let error = terminate_with_reason(
+                    process_group,
+                    &mut child,
+                    format!("backend timed out after {} ms", request.timeout_ms),
+                );
                 io_cancel.store(true, Ordering::Release);
                 let _ = join_input(input_handle);
                 let _ = join_capture(stdout_handle);
                 let _ = join_capture(stderr_handle);
-                return Err(format!("backend timed out after {} ms", request.timeout_ms));
+                return Err(error);
             }
             Ok(None) => thread::sleep(Duration::from_millis(2)),
         }
@@ -675,10 +684,27 @@ fn join_input(handle: JoinHandle<Result<(), String>>) -> Result<(), String> {
         .map_err(|_| "backend input thread panicked".to_owned())?
 }
 
-fn terminate_process_group(process_group: i32, child: &mut Child) {
+fn terminate_process_group(process_group: i32, child: &mut Child) -> Result<(), String> {
     kill_process_group(process_group);
-    let _ = child.wait();
-    let _ = cleanup_adopted_children();
+    let wait_result = child
+        .wait()
+        .map(|_| ())
+        .map_err(|error| format!("wait for terminated backend: {error}"));
+    let cleanup_result = cleanup_adopted_children();
+    match (wait_result, cleanup_result) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Err(error), Ok(())) | (Ok(()), Err(error)) => Err(error),
+        (Err(wait_error), Err(cleanup_error)) => Err(format!(
+            "{wait_error}; descendant cleanup also failed: {cleanup_error}"
+        )),
+    }
+}
+
+fn terminate_with_reason(process_group: i32, child: &mut Child, reason: String) -> String {
+    match terminate_process_group(process_group, child) {
+        Ok(()) => reason,
+        Err(error) => format!("{reason}; process cleanup failed: {error}"),
+    }
 }
 
 fn kill_process_group(process_group: i32) {

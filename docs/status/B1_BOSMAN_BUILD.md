@@ -58,4 +58,4 @@ The other 44 tests used their pinned CMake definitions without changes. A future
 
 ## Gate status
 
-The pinned source, exact executable input, generated translation, native binary identity, resource envelope, and applicable upstream unit tests are now qualified. Clean data and a repeated upstream smoke path are also now qualified in a separate evidence record. B1 remains open until the Bosman-specific process adapter runs one isolated job and retains the expected endpoint, logs, and replay manifest. No original/Bosman parity claim is made here.
+The pinned source, exact executable input, generated translation, native binary identity, resource envelope, and applicable upstream unit tests are now qualified. Clean data and two successful upstream smoke observations are recorded separately; that ordinary runner does not fix seed/clock state and is not deterministic replay evidence. B1 remains open until the Bosman-specific process adapter runs one controlled isolated job and retains the expected endpoint, logs, and replay manifest. No original/Bosman parity claim is made here.

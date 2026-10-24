@@ -107,6 +107,17 @@ fn run() -> Result<(), String> {
                 thread::sleep(Duration::from_secs(30));
             }
         }
+        "timeout-escaped" => {
+            let child = Command::new("/usr/bin/setsid")
+                .args(["/bin/sleep", "30"])
+                .spawn()
+                .map_err(|error| format!("spawn timeout escaped descendant: {error}"))?;
+            fs::write("child.pid", format!("{}\n", child.id()))
+                .map_err(|error| format!("write escaped descendant PID: {error}"))?;
+            loop {
+                thread::sleep(Duration::from_secs(30));
+            }
+        }
         "escaped-descendant" => {
             let child = Command::new("/usr/bin/setsid")
                 .args(["/bin/sleep", "30"])
