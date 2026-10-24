@@ -358,7 +358,81 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     for marker, expected_body in exact_foundations.items():
         if extract_block(compact, marker, marker) != expected_body:
             raise VerificationError("exact policy foundation " + marker)
+    exact_constructors = {
+        "internalRuntimeArtifactIdentity(longbyteCount,stringsha256)":
+            "ByteCount=byteCount;Sha256=sha256;",
+        "internalRuntimeContractFacts(stringprofileId,RuntimeArtifactIdentityruntimeProfile":
+            "ProfileId=profileId;RuntimeProfile=runtimeProfile;BuildBinding=buildBinding;"
+            "PublicBuildManifestBindingUnbound=publicBuildManifestBindingUnbound;"
+            "PublicBuildManifestBindingIdentity=publicBuildManifestBindingIdentity;"
+            "LiveExecutionNotRun=liveExecutionNotRun;"
+            "ProcessCreationUnreachable=processCreationUnreachable;"
+            "QualificationIneligible=qualificationIneligible;"
+            "OriginalExecutionNotRun=originalExecutionNotRun;"
+            "OriginalBehaviorUnqualified=originalBehaviorUnqualified;"
+            "NoImageExecutionObserved=noImageExecutionObserved;"
+            "NoObjectObservationAttempted=noObjectObservationAttempted;"
+            "NoLiveJobObservationAttempted=noLiveJobObservationAttempted;",
+        "internalRuntimeImageDeclarationFacts(RuntimeImageRolerole,stringfixedName":
+            "Role=role;FixedName=fixedName;DeclaredBindingState=bindingState;"
+            "DeclaredIdentity=identity;",
+        "internalRuntimeObjectBindingRequirementFacts(stringpublicConfigurationName":
+            "PublicConfigurationName=publicConfigurationName;"
+            "PrivateConfigurationName=privateConfigurationName;ReportName=reportName;"
+            "RequireHeldExactParent=requireHeldExactParent;"
+            "RequireCanonicalFinalPaths=requireCanonicalFinalPaths;"
+            "RequireObjectIds=requireObjectIds;RequireSameVolume=requireSameVolume;"
+            "RequireRegularFiles=requireRegularFiles;"
+            "RequireAlternateMountRejection=requireAlternateMountRejection;"
+            "RequirePairwiseDistinctObjects=requirePairwiseDistinctObjects;"
+            "RequireSingleLinkFiles=requireSingleLinkFiles;"
+            "RequireNoReparsePoints=requireNoReparsePoints;"
+            "RequireNoAlternateDataStreams=requireNoAlternateDataStreams;"
+            "RequireStableBeforeAfter=requireStableBeforeAfter;"
+            "RequireRuntimeCopiesNotHardlinks=requireRuntimeCopiesNotHardlinks;"
+            "RequirePrivateConfigurationWithoutExecutablePath="
+            "requirePrivateConfigurationWithoutExecutablePath;"
+            "RequireRebindBefore=requireRebindBefore;RequireRebindAfter=requireRebindAfter;",
+        "internalRuntimeRouteDeclarationFacts(stringscenario,RuntimeImageRoleworker":
+            "Scenario=scenario;Worker=worker;PrimaryTarget=primaryTarget;Descendant=descendant;"
+            "WorkerProcessCreationCapabilityDeclared=workerProcessCreationCapabilityDeclared;"
+            "ExpectedFixtureStatus=expectedFixtureStatus;",
+        "internalRuntimeOuterJobDeclarationFacts(stringscenario,intactiveProcessLimit":
+            "Scenario=scenario;ActiveProcessLimit=activeProcessLimit;"
+            "ProcessMemoryLimitBytes=processMemoryLimitBytes;"
+            "JobMemoryLimitBytes=jobMemoryLimitBytes;RequireKillOnClose=requireKillOnClose;"
+            "RequireBreakawayForbidden=requireBreakawayForbidden;"
+            "RequireNestedInnerJob=requireNestedInnerJob;"
+            "RequireNonInheritableHandle=requireNonInheritableHandle;"
+            "DeclareSupervisorNotMember=declareSupervisorNotMember;"
+            "RequireUnnamedJob=requireUnnamedJob;"
+            "RequireWorkerCreatedSuspended=requireWorkerCreatedSuspended;"
+            "RequireWorkerAssignedBeforeResume=requireWorkerAssignedBeforeResume;"
+            "RequireWorkerMembershipQuery=requireWorkerMembershipQuery;"
+            "RequiredWorkerResumeCallCount=requiredWorkerResumeCallCount;",
+        "internalRuntimeBindingFacts(RuntimeContractFactscontract":
+            "Contract=contract;Supervisor=supervisor;Controller=controller;"
+            "LockedPreflight=lockedPreflight;UiFixture=uiFixture;TimeoutRoot=timeoutRoot;"
+            "TimeoutChild=timeoutChild;ObjectBindingRequirements=objectBindingRequirements;"
+            "UiRoute=uiRoute;TimeoutRoute=timeoutRoute;LockedRoute=lockedRoute;"
+            "UiOuterJob=uiOuterJob;TimeoutOuterJob=timeoutOuterJob;"
+            "LockedOuterJob=lockedOuterJob;",
+    }
+    for marker, expected_body in exact_constructors.items():
+        if extract_block(compact, marker, marker) != expected_body:
+            raise VerificationError("exact fact constructor " + marker)
     expected_bodies = {
+        "privatestaticboolExactHash(stringvalue)":
+            "if(value==null||value.Length!=64)returnfalse;"
+            "for(intindex=0;index<value.Length;index++)"
+            "if(!((value[index]>='0'&&value[index]<='9')||"
+            "(value[index]>='a'&&value[index]<='f')))returnfalse;"
+            "returnvalue!=newString('0',64);",
+        "privatestaticboolExactIdentity(RuntimeArtifactIdentityobserved,"
+        "longexpectedByteCount,stringexpectedSha256)":
+            "returnobserved!=null&&observed.ByteCount==expectedByteCount&&"
+            "ExactHash(observed.Sha256)&&String.Equals(observed.Sha256,expectedSha256,"
+            "StringComparison.Ordinal);",
         "internalstaticstringNameFor(RuntimeImageRolerole)":
             "switch(role){caseRuntimeImageRole.Supervisor:return\"\";caseRuntimeImageRole.Controller:return\"\";caseRuntimeImageRole.LockedPreflight:return\"\";caseRuntimeImageRole.UiFixture:return\"\";caseRuntimeImageRole.TimeoutRoot:return\"\";caseRuntimeImageRole.TimeoutChild:return\"\";default:returnnull;}",
         "internalstaticboolIsScenario(stringvalue)":
@@ -701,6 +775,13 @@ def self_test() -> None:
             "RequireNoReparsePoints = requireNoReparsePoints;\n"
             "            RequireNoReparsePoints = true;"),
          tests.replace("bool noReparse = true;", "bool noReparse = false;")),
+        (source.replace("RequireNoReparsePoints = requireNoReparsePoints;",
+            "requireNoReparsePoints = !requireNoReparsePoints;\n"
+            "            RequireNoReparsePoints = requireNoReparsePoints;"),
+         tests.replace("bool noReparse = true;", "bool noReparse = false;")),
+        (source.replace("observed.ByteCount == expectedByteCount &&", ""),
+         tests.replace("profile.ByteCount + 1, profile.Sha256",
+            "profile.ByteCount + 1, new String('2', 64)")),
         (source.replace(
             'case RuntimeImageRole.Supervisor: return "SyntheticLauncherSupervisor.exe";',
             'case RuntimeImageRole.Controller: return "SyntheticLauncherSupervisor.exe";', 1).replace(
