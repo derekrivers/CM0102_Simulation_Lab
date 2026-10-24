@@ -141,6 +141,15 @@ def verify_authority_surface(text: str, label: str, tests: bool) -> tuple[str, l
             continue
         if value in compact:
             raise VerificationError(label + " forbidden token " + value)
+    allowed_system_members = {
+        "System.Threading.ManualResetEvent", "System.Threading.Thread",
+        "System.Threading.ThreadStart",
+    } if tests else set()
+    system_remainder = compact
+    for allowed in sorted(allowed_system_members, key=len, reverse=True):
+        system_remainder = system_remainder.replace(allowed, "")
+    if "System." in system_remainder:
+        raise VerificationError(label + " System member surface")
     if not tests and "Console." in compact:
         raise VerificationError(label + " console authority")
     if re.search(r"\b(?:CreateProcess\w*|ShellExecute\w*|WinExec)\(", compact):
@@ -441,6 +450,9 @@ def self_test() -> None:
         "new System.Timers.Timer()",
         "System.CodeDom.Compiler.CodeDomProvider.CreateProvider(\"x\")",
         "new string(new char[] { (char)80 })",
+        "new System.Resources.ResourceWriter(\"x\")",
+        "System.Runtime.Remoting.RemotingConfiguration.Configure(\"x\",false)",
+        "new System.Text.StringBuilder()",
     )
     for mutation in mutations:
         try:
