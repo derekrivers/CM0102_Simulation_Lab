@@ -304,8 +304,7 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     for value in required_types:
         require_count(compact, value, 1, "policy type")
     declared_types = tuple(re.findall(
-        r"\b(?:internal|private|public)\s+(?:(?:static|sealed)\s+)*"
-        r"(?:class|enum|struct|interface)\s+([A-Za-z_][A-Za-z0-9_]*)", source))
+        r"\b(?:class|enum|struct|interface)\s+([A-Za-z_][A-Za-z0-9_]*)", source))
     if declared_types != (
             "RuntimeImageRole", "RuntimeImageBindingState", "RuntimeBuildBinding",
             "DeclaredFixtureStatus", "FixedRuntimeBindingContract", "RuntimeArtifactIdentity",
@@ -838,7 +837,7 @@ def self_test() -> None:
             "        private static bool ExactHash(string value)"),
         ("namespace Cm0102.SyntheticLauncherController\n{",
             "namespace Cm0102.SyntheticLauncherController\n{\n"
-            "    internal static class Object\n"
+            "    internal partial class Object\n"
             "    {\n"
             "        internal static bool ReferenceEquals(object first, object second)\n"
             "        {\n"
