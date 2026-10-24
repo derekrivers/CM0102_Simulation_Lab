@@ -805,7 +805,39 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
         raise ComparisonError("invalid CLI entrypoint row")
     string_index_size = 4 if heap_sizes & 0x01 else 2
     guid_index_size = 4 if heap_sizes & 0x02 else 2
+    blob_index_size = 4 if heap_sizes & 0x04 else 2
+
+    def table_index_size(table: int) -> int:
+        return 4 if rows.get(table, 0) >= 0x10000 else 2
+
+    def coded_index_size(tables: tuple[int, ...], tag_bits: int) -> int:
+        limit = 1 << (16 - tag_bits)
+        return 4 if any(rows.get(table, 0) >= limit for table in tables) else 2
+
     module_size = 2 + string_index_size + 3 * guid_index_size
+    table_sizes = {
+        0: module_size,
+        1: coded_index_size((0, 1, 26, 35), 2) + 2 * string_index_size,
+        2: (
+            4
+            + 2 * string_index_size
+            + coded_index_size((1, 2, 27), 2)
+            + table_index_size(4)
+            + table_index_size(6)
+        ),
+        3: table_index_size(4),
+        4: 2 + string_index_size + blob_index_size,
+        5: table_index_size(6),
+        6: 8 + string_index_size + blob_index_size + table_index_size(8),
+    }
+    method_row = row_cursor
+    for table in range(6):
+        method_row += rows.get(table, 0) * table_sizes[table]
+        if method_row > tables_end:
+            raise ComparisonError("truncated CLI table rows before MethodDef")
+    method_end = method_row + entrypoint_rid * table_sizes[6]
+    if method_end > tables_end:
+        raise ComparisonError("truncated CLI entrypoint MethodDef row")
     if row_cursor + module_size > tables_end:
         raise ComparisonError("truncated CLI Module row")
     generation = u16(raw, row_cursor, tables_end)
@@ -1626,6 +1658,7 @@ def self_test() -> None:
         (0x400 + 0x80 + 34, 2, 0, "Module name"),
         (0x400 + 0x80 + 38, 2, 1, "Module EncId"),
         (0x400 + 0x80 + 40, 2, 1, "Module EncBaseId"),
+        (0x400 + 24 + 4, 4, 42, "truncated entrypoint MethodDef row"),
         (0x400 + 0x38, 4, 0, "Strings heap size"),
         (0x400 + 0x4C, 4, 0, "US heap size"),
         (0x400 + 0x58, 4, 0, "Blob heap size"),
