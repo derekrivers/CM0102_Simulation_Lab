@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -23,6 +24,9 @@ WORKFLOW_PATH = ".github/workflows/rust.yml"
 CONTROLLER_DIRECTORY = "tools/windows/synthetic-launcher-controller"
 MAX_BYTES = 256 * 1024
 GIT = pathlib.Path("/usr/bin/git")
+WORKFLOW_SHA_PLACEHOLDER = "RUNTIME_BINDING_VERIFIER_SHA256"
+NORMALIZED_WORKFLOW_IDENTITY = (
+    8304, "d33de62313993bf2c40ff667e10c98f9698bcbad1883f3bfa36863a9d0f29833")
 
 # Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
 FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
@@ -145,6 +149,33 @@ def read_bound_at(root_descriptor: int, relative: str) -> bytes:
     if fields(before) != fields(opened) or fields(before) != fields(after) or len(raw) != before.st_size:
         raise VerificationError("descriptor-relative input changed during read")
     return bytes(raw)
+
+
+def validate_execution_source(repo: pathlib.Path, expected_raw: bytes) -> None:
+    canonical = repo / VERIFIER_PATH
+    executing = os.fspath(pathlib.Path(__file__).absolute())
+    if executing == os.fspath(canonical):
+        return
+    match = re.fullmatch(r"/proc/self/fd/([0-9]+)", executing)
+    if match is None:
+        raise VerificationError("verifier execution source")
+    descriptor = int(match.group(1))
+    observed = os.fstat(descriptor)
+    required_seals = fcntl.F_SEAL_SEAL | fcntl.F_SEAL_SHRINK | \
+        fcntl.F_SEAL_GROW | fcntl.F_SEAL_WRITE
+    if not stat.S_ISREG(observed.st_mode) or observed.st_size != len(expected_raw) or \
+            fcntl.fcntl(descriptor, fcntl.F_GET_SEALS) != required_seals:
+        raise VerificationError("verifier snapshot state")
+    raw = bytearray()
+    offset = 0
+    while len(raw) <= MAX_BYTES:
+        chunk = os.pread(descriptor, min(65536, MAX_BYTES + 1 - len(raw)), offset)
+        if not chunk:
+            break
+        raw.extend(chunk)
+        offset += len(chunk)
+    if bytes(raw) != expected_raw:
+        raise VerificationError("executing verifier snapshot identity")
 
 
 def decode_source(raw: bytes, label: str) -> str:
@@ -275,6 +306,13 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
         require_count(compact, value, 1, "policy type")
     if compact.count("internalreadonly") != 71:
         raise VerificationError("immutable fact field count")
+    readonly_fields = re.findall(r"internal\s+readonly\s+[A-Za-z0-9_.<>\[\]]+\s+([A-Z][A-Za-z0-9]+);",
+        source)
+    parameter_aliases = {"DeclaredBindingState": "bindingState", "DeclaredIdentity": "identity"}
+    for field in set(readonly_fields):
+        parameter = parameter_aliases.get(field, field[0].lower() + field[1:])
+        if compact.count(field + "=" + parameter + ";") < readonly_fields.count(field):
+            raise VerificationError("readonly constructor normalization " + field)
     expected_strings = (
         "cm0102-synthetic-launcher-controller-runtime-v1",
         "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1",
@@ -348,11 +386,22 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     require_order(accept, ("lock(sync)", "terminal||rejected", "refusal==null", "refusal.Consume(",
         "rejected=true", "terminal=true", "ineligible=true", "unreachable=true"),
         "refusal acceptance")
+    expected_accept = 'lock(sync){if(terminal||rejected)returnfalse;if(refusal==null||!refusal.Consume(this,scenario,generation,FixedRuntimeBindingContract.ProfileId,FixedRuntimeBindingContract.RuntimeProfileByteCount,FixedRuntimeBindingContract.RuntimeProfileSha256)){rejected=true;generation++;returnfalse;}terminal=true;ineligible=true;unreachable=true;generation++;returntrue;}'
+    if accept != expected_accept:
+        raise VerificationError("exact refusal acceptance")
     consume = extract_block(compact,
         "internalboolConsume(RuntimeBindingStatecandidateOwner,stringcandidateScenario",
         "refusal consumption")
     require_order(consume, ("lock(sync)", "consumed||", "consumed=true", "returntrue"),
         "refusal consumption")
+    expected_consume = 'lock(sync){if(consumed||!Object.ReferenceEquals(owner,candidateOwner)||!String.Equals(scenario,candidateScenario,StringComparison.Ordinal)||generation!=candidateGeneration||!String.Equals(profileId,candidateProfileId,StringComparison.Ordinal)||profileByteCount!=candidateProfileByteCount||!String.Equals(profileSha256,candidateProfileSha256,StringComparison.Ordinal))returnfalse;consumed=true;returntrue;}'
+    if consume != expected_consume:
+        raise VerificationError("exact refusal consumption")
+    snapshot = extract_block(compact,
+        "internalboolTryGetRefusalBinding(outstringboundScenario,outintboundGeneration)",
+        "refusal snapshot")
+    if snapshot != 'lock(sync){boundScenario=scenario;boundGeneration=generation;return!terminal&&!rejected;}':
+        raise VerificationError("exact refusal snapshot")
     assert_body = extract_block(test_compact, "privatestaticvoidAssert(boolvalue)", "assertion")
     if assert_body != 'assertions++;if(!value)thrownewInvalidOperationException(""+assertions.ToString());':
         raise VerificationError("test assertion body")
@@ -436,21 +485,15 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
             "must not execute"):
         if phrase.lower() not in normalized_readme:
             raise VerificationError("README boundary " + phrase)
-    if re.search(r"(?m)^\s*(?:if|continue-on-error):", workflow) or any(value in workflow for value in (
-            "|| true", "exit 0", "Set-Alias", "function python", "function sha256sum",
-            "python3()", "sha256sum()", "$env:PATH", "PATH=")):
-        raise VerificationError("workflow disabling or command shadowing")
-    verification_step = (
-        "    - name: Verify authority-free runtime binding policy\n"
-        "      run: |\n"
-        f'        echo "{verifier_sha256}  {VERIFIER_PATH}" | sha256sum --check --strict -\n'
-        f"        python3 {VERIFIER_PATH} self-test\n"
-        f"        python3 {VERIFIER_PATH} verify \\\n"
-        '          --repo "$GITHUB_WORKSPACE" \\\n'
-        '          --source-commit "$GITHUB_SHA"\n')
-    if workflow.count(verification_step) != 1:
-        raise VerificationError("exact workflow verification step")
-    for value in ("verify_runtime_binding_policy.py self-test",
+    if workflow.count(verifier_sha256) != 1:
+        raise VerificationError("workflow verifier digest binding")
+    normalized_workflow = workflow.replace(verifier_sha256, WORKFLOW_SHA_PLACEHOLDER)
+    if identity(normalized_workflow.encode("ascii", "strict")) != NORMALIZED_WORKFLOW_IDENTITY:
+        raise VerificationError("normalized workflow identity")
+    for value in ("run_bound_runtime_verifier self-test",
+            "run_bound_runtime_verifier verify", "/usr/bin/python3 -I -B -c",
+            "os.O_NOFOLLOW", "os.memfd_create", "fcntl.F_ADD_SEALS", "fcntl.F_SEAL_WRITE",
+            '"/proc/self/fd/"+str(snapshot)', 'os.execve("/usr/bin/python3"',
             "RuntimeBindingPolicyTests.exe",
             "/main:Cm0102.SyntheticLauncherController.RuntimeBindingPolicyTests",
             "PASS 202", "WaitForExit(30000)"):
@@ -527,8 +570,6 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str
             raise VerificationError("repository descriptor identity")
         if pathlib.Path(run_git(repo, ["rev-parse", "--show-toplevel"]).decode().strip()) != repo:
             raise VerificationError("repository is not canonical top level")
-        if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
-            raise VerificationError("verifier is not executing from canonical path")
         validate_commit(repo, commit)
         verify_inventory(repo, commit, root_descriptor)
         captured: dict[str, bytes] = {}
@@ -541,6 +582,7 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str
                 raise VerificationError(relative + " differs from source commit")
             captured[relative] = raw
             identities[relative] = identity(raw)
+        validate_execution_source(repo, captured[VERIFIER_PATH])
         verify_policy(decode_source(captured[SOURCE_PATH], "runtime binding policy"),
             decode_source(captured[TEST_PATH], "runtime binding tests"),
             captured[README_PATH].decode("ascii", "strict"), captured[PROFILE_PATH],
@@ -558,15 +600,16 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str
 
 
 def self_test() -> None:
-    repo = pathlib.Path(__file__).parents[3]
-    if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
-        raise VerificationError("verifier is not executing from canonical path")
+    repo = pathlib.Path.cwd().resolve(strict=True)
+    if pathlib.Path(run_git(repo, ["rev-parse", "--show-toplevel"]).decode().strip()) != repo:
+        raise VerificationError("self-test repository root")
     source = decode_source(read_bound(repo / SOURCE_PATH), "runtime binding policy")
     tests = decode_source(read_bound(repo / TEST_PATH), "runtime binding tests")
     readme = read_bound(repo / README_PATH).decode("ascii", "strict")
     profile = read_bound(repo / PROFILE_PATH)
     workflow_raw = read_bound(repo / WORKFLOW_PATH)
     verifier_raw = read_bound(repo / VERIFIER_PATH)
+    validate_execution_source(repo, verifier_raw)
     verifier_sha256 = identity(verifier_raw)[1]
     workflow = workflow_raw.decode("ascii", "strict")
     verify_policy(source, tests, readme, profile, workflow, verifier_sha256)
@@ -634,12 +677,12 @@ def self_test() -> None:
     else:
         raise AssertionError("accepted ambient console authority")
     workflow_mutations = (
-        workflow.replace("    - name: Verify authority-free runtime binding policy\n",
-            "    - name: Verify authority-free runtime binding policy\n      if: ${{ false }}\n", 1),
-        workflow.replace("    - name: Verify authority-free runtime binding policy\n",
-            "    - name: Verify authority-free runtime binding policy\n      continue-on-error: true\n", 1),
-        workflow.replace("        python3 " + VERIFIER_PATH + " self-test\n",
-            "        python3() { return 0; }\n        python3 " + VERIFIER_PATH + " self-test\n", 1),
+        workflow.replace("env:\n", "env:\n  BASH_ENV: ci-shadow.sh\n", 1),
+        workflow.replace("          $policy $tests\n", "          $policy ControllerEngine.cs $tests\n", 1),
+        workflow + "\n  execute-fixture:\n    runs-on: windows-latest\n"
+            "    steps:\n    - run: SyntheticLauncherFixture.exe\n",
+        workflow.replace("    - name: Build and run authority-free x86 runtime binding tests\n",
+            "    # - name: Build and run authority-free x86 runtime binding tests\n", 1),
     )
     for changed_workflow in workflow_mutations:
         try:

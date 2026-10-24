@@ -45,9 +45,11 @@ jobs:
           --source-commit "$GITHUB_SHA"
     - name: Verify authority-free runtime binding policy
       run: |
-        echo "ce2f89ff813524f927879ea207fe73c4a3308dce1e54189c690ff07a20954f4a  tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py" | sha256sum --check --strict -
-        python3 tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py self-test
-        python3 tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py verify \
+        run_bound_runtime_verifier() {
+          /usr/bin/env -i PATH=/usr/bin:/bin LC_ALL=C /usr/bin/python3 -I -B -c 'import fcntl,hashlib,os,stat,sys; source=os.open(sys.argv[1],os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC); before=os.fstat(source); raw=os.read(source,262145); after=os.fstat(source); ok=stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_size==len(raw) and len(raw)<=262144 and os.read(source,1)==b"" and (before.st_dev,before.st_ino,before.st_mode,before.st_nlink,before.st_size,before.st_mtime_ns,before.st_ctime_ns)==(after.st_dev,after.st_ino,after.st_mode,after.st_nlink,after.st_size,after.st_mtime_ns,after.st_ctime_ns) and hashlib.sha256(raw).hexdigest()==sys.argv[2]; ok or sys.exit(1); snapshot=os.memfd_create("runtime-binding-verifier",os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING); len(raw)==os.write(snapshot,raw) or sys.exit(1); fcntl.fcntl(snapshot,fcntl.F_ADD_SEALS,fcntl.F_SEAL_SEAL|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_GROW|fcntl.F_SEAL_WRITE); os.lseek(snapshot,0,os.SEEK_SET); os.set_inheritable(snapshot,True); os.close(source); os.execve("/usr/bin/python3",["/usr/bin/python3","-I","-B","/proc/self/fd/"+str(snapshot)]+sys.argv[3:],{"PATH":"/usr/bin:/bin","LC_ALL":"C","PYTHONDONTWRITEBYTECODE":"1"})' "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py" "3a2b5b0ac3839fa959a24dd3abc606353b16274c1271c4679aec40d1488fe130" "$@"
+        }
+        run_bound_runtime_verifier self-test
+        run_bound_runtime_verifier verify \
           --repo "$GITHUB_WORKSPACE" \
           --source-commit "$GITHUB_SHA"
     - name: Build
