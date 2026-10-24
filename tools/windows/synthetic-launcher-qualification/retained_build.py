@@ -742,7 +742,7 @@ def validate_cli_metadata(
         if byte_count > table_end - physical_cursor:
             raise HarnessError("CLI metadata table is truncated")
         physical_cursor += byte_count
-    if physical_cursor > table_end or table_end - physical_cursor > 3 or any(raw[physical_cursor:table_end]):
+    if physical_cursor > table_end or table_end - physical_cursor > 4 or any(raw[physical_cursor:table_end]):
         raise HarnessError("CLI metadata tables stream has invalid trailing bytes")
     strings_start, strings_end = streams["#Strings"]
     blob_start, blob_end = streams["#Blob"]
@@ -1309,7 +1309,7 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     strings_offset = 0xC0
     blob_offset = 0xD0
     for name, offset, size in (
-        (b"#~\0", table_offset, 56),
+        (b"#~\0", table_offset, 60),
         (b"#Strings\0", strings_offset, 15),
         (b"#Blob\0", blob_offset, 5),
     ):
@@ -1375,7 +1375,7 @@ def self_test() -> None:
     struct.pack_into("<Q", truncated_later_table, tables + 8, (1 << 0) | (1 << 6) | (1 << 8))
     struct.pack_into("<III", truncated_later_table, tables + 24, 1, 1, 1)
     truncated_later_table[tables + 36:tables + 60] = old_rows
-    struct.pack_into("<I", truncated_later_table, 0x3A0 + 4, 60)
+    struct.pack_into("<I", truncated_later_table, 0x3A0 + 4, 64)
     mutations.append(("truncated post-MethodDef table", bytes(truncated_later_table)))
     for label, changed in mutations:
         try:
