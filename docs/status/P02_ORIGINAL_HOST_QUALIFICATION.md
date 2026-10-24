@@ -2,13 +2,13 @@
 
 Date: 24 October 2026
 
-Status: preliminary read-only observations without an immutable probe artifact; host qualification, launcher implementation, and all original behaviour remain pending.
+Status: preliminary read-only observations without an immutable probe artifact; a versioned probe and retained-run harness now exist, but host qualification, launcher implementation, and all original behaviour remain pending.
 
 ## Evidence boundary
 
-These observations were collected on 24 October 2026 through bounded WSL and Windows PowerShell/`cmd.exe` inventory commands during the active Codex session. They included OS/session/process inventory, token privilege and integrity queries, registry value/ACL/access probes, tool discovery, filesystem mode/type/count/hash checks, independent Windows executable hashing, mounted-volume inspection, and process absence checks. No versioned probe script, canonical command transcript, sanitized output bundle, or artifact hashes were retained.
+These observations were collected on 24 October 2026 through bounded WSL and Windows PowerShell/`cmd.exe` inventory commands during the active Codex session. They included OS/session/process inventory, token privilege and integrity queries, registry value/ACL/access probes, tool discovery, filesystem mode/type/count/hash checks, independent Windows executable hashing, mounted-volume inspection, and process absence checks. That preliminary session retained no versioned probe transcript or sanitized output bundle. The later versioned probe and retained-run harness have passed synthetic build/tests only and have not yet produced live host evidence.
 
-The exact host, token, privilege, registry, and tooling statements below are therefore unverified operational observations that define what the reproducible qualification probe must test; they are not yet durable gate evidence. Before any original launch, rerun them through a reviewed versioned probe and retain its canonical request, sanitized outputs, tool revision, completeness flags, and hashes. Any discrepancy invalidates the provisional launcher assumptions.
+The exact host, token, privilege, registry, and tooling statements below are therefore unverified operational observations that define what the reproducible qualification probe must test; they are not yet durable gate evidence. The versioned [qualification contract](../architecture/ORIGINAL_HOST_QUALIFICATION_V1.md), read-only x86 probe, strict verifier, and bounded retained-run harness freeze that next step. Before any original launch, rerun the observations through the reviewed harness and retain its canonical sanitized outputs, tool revision, completeness flags, and hashes. Any discrepancy invalidates the provisional launcher assumptions.
 
 ## Observed host
 
