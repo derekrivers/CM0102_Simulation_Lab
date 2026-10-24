@@ -13,9 +13,20 @@ A research and reconstruction programme for the **entire Championship Manager 01
 
 The laboratory is the first enabling product. It runs repeatable experiments against the original game and a pinned Bosman build, records evidence, and verifies the replacement. The reconstructed game and simulator use **Rust**. The browser interface uses **React and TypeScript** with the Rust core compiled to WebAssembly. Python supports existing reverse-engineering tooling.
 
-Status: architecture and delivery plan, 24 October 2026. No simulator, VPS service or reconstructed engine has been implemented by this planning bundle.
+Status: P00/B0 map-only inventory is active, 24 October 2026. The pinned public function/global map now has a deterministic Rust importer and reconciled provenance report. No game simulator, qualified Bosman build, VPS service, or reconstructed engine exists yet; original-backed work is blocked on the official private inputs.
 
 Start with [ROADMAP.md](ROADMAP.md), [non-negotiables](docs/NON_NEGOTIABLES.md), [stack decisions](docs/architecture/TECH_STACK.md), and the [simulator design](docs/architecture/SIMULATOR.md). The detailed [implementation roadmap](docs/roadmap/implementation-roadmap.md) links all phase gates. [Sources and limitations](docs/research/SOURCES.md) distinguish inspected code from proposed behaviour.
+
+Current implementation and blockers are recorded in [programme progress](docs/status/PROGRESS.md). To import a checkout of the exact locked function-map revision:
+
+```sh
+cargo run -p lab-cli -- import-map \
+  --source-dir /path/to/cm0102-function-map \
+  --lock-manifest config/upstream-lock.json \
+  --output target/b0-evidence/function-map-import.json
+```
+
+The generated evidence artifact is intentionally untracked. It retains every imported row as an upstream hypothesis and reports address validation as pending until the original executable is qualified.
 
 Whole-game scope includes management, world simulation, competition rules, match engines, databases, save/load, news, navigation, presentation, settings and supported modes. Match fidelity is one workstream.
 

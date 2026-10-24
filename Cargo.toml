@@ -1,0 +1,8 @@
+[workspace]
+members = ["crates/lab-cli"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.99.1"
+license = "MIT"
