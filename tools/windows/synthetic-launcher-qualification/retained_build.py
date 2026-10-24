@@ -915,9 +915,43 @@ def validate_cli_metadata(
                 clause_size = 12
                 if raw[section_offset + 2:section_offset + 4] != b"\0\0":
                     raise HarnessError("CLI entrypoint small IL section header is invalid")
-            if kind & 0x01 == 0 or section_size < 4 or (section_size - 4) % clause_size:
+            if kind & 0x01 == 0 or section_size <= 4 or (section_size - 4) % clause_size:
                 raise HarnessError("CLI entrypoint exception section is invalid")
             map_rva(raw, sections, section_rva, section_size)
+            clause_cursor = section_offset + 4
+            clause_end = section_offset + section_size
+            while clause_cursor < clause_end:
+                if fat:
+                    clause_flags, try_offset, try_length, handler_offset, handler_length, union_value = (
+                        struct.unpack_from("<IIIIII", raw, clause_cursor)
+                    )
+                else:
+                    clause_flags, try_offset = struct.unpack_from("<HH", raw, clause_cursor)
+                    try_length = raw[clause_cursor + 4]
+                    handler_offset = struct.unpack_from("<H", raw, clause_cursor + 5)[0]
+                    handler_length = raw[clause_cursor + 7]
+                    union_value = struct.unpack_from("<I", raw, clause_cursor + 8)[0]
+                if clause_flags not in (0, 1, 2, 4):
+                    raise HarnessError("CLI entrypoint exception clause flags are invalid")
+                if (
+                    try_length == 0
+                    or handler_length == 0
+                    or try_offset + try_length > code_size
+                    or handler_offset + handler_length > code_size
+                ):
+                    raise HarnessError("CLI entrypoint exception clause range is invalid")
+                if clause_flags == 0:
+                    token_table = union_value >> 24
+                    token_rid = union_value & 0x00FFFFFF
+                    token_rows = {0x01: rows[1], 0x02: rows[2], 0x1B: rows[27]}
+                    if token_table not in token_rows or token_rid == 0 or token_rid > token_rows[token_table]:
+                        raise HarnessError("CLI entrypoint catch type token is invalid")
+                elif clause_flags == 1:
+                    if union_value >= code_size or union_value >= handler_offset:
+                        raise HarnessError("CLI entrypoint filter offset is invalid")
+                elif union_value != 0:
+                    raise HarnessError("CLI entrypoint finally/fault union is invalid")
+                clause_cursor += clause_size
             if kind & 0x80 == 0:
                 break
             section_rva += (section_size + 3) & ~3
@@ -1447,15 +1481,21 @@ def self_test() -> None:
     if validate_pe32_cli(bytes(fat_body), 2)["entrypoint_method_rid"] != 1:
         raise AssertionError("fat IL body positive control")
     eh_body = bytearray(base)
-    struct.pack_into("<HHII", eh_body, 0x500, 0x301B, 8, 1, 0)
-    eh_body[0x50C] = 0x2A
+    struct.pack_into("<HHII", eh_body, 0x500, 0x301B, 8, 2, 0)
+    eh_body[0x50C:0x50E] = b"\x2A\x2A"
     eh_body[0x510:0x514] = b"\x41\x1C\x00\x00"
-    eh_body[0x514:0x52C] = b"\0" * 24
+    struct.pack_into("<IIIIII", eh_body, 0x514, 2, 0, 1, 1, 1, 0)
     if validate_pe32_cli(bytes(eh_body), 2)["entrypoint_method_rid"] != 1:
         raise AssertionError("fat EH IL body positive control")
     malformed_eh = bytearray(eh_body)
     malformed_eh[0x511] = 27
     mutations.append(("malformed fat EH section", bytes(malformed_eh)))
+    out_of_range_eh = bytearray(eh_body)
+    struct.pack_into("<I", out_of_range_eh, 0x514 + 12, 2)
+    mutations.append(("out-of-range fat EH handler", bytes(out_of_range_eh)))
+    null_catch_eh = bytearray(eh_body)
+    struct.pack_into("<I", null_catch_eh, 0x514, 0)
+    mutations.append(("null fat EH catch token", bytes(null_catch_eh)))
     for label, changed in mutations:
         try:
             validate_pe32_cli(changed, 2)
