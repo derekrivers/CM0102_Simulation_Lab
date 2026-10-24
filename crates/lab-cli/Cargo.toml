@@ -15,3 +15,7 @@ sha2 = "0.10"
 [[bin]]
 name = "lab-protocol-fixture"
 path = "src/bin/lab-protocol-fixture.rs"
+
+[[bin]]
+name = "lab-bosman-adapter"
+path = "src/bin/lab-bosman-adapter.rs"

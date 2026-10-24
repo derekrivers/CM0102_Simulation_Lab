@@ -50,7 +50,7 @@ pub struct BackendIdentity {
     pub expected_executable_sha256: String,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BackendKind {
     #[serde(rename = "bosman-native")]
     BosmanNative,
@@ -59,7 +59,7 @@ pub enum BackendKind {
 }
 
 impl BackendKind {
-    fn as_str(self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Self::BosmanNative => "bosman-native",
             Self::SyntheticTest => "synthetic-test",
@@ -81,6 +81,28 @@ pub struct RunCommand {
     pub kind: String,
     #[serde(default)]
     pub parameters: Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BosmanSameSaveParameters {
+    pub mode: String,
+    pub days: u32,
+    pub jobs: u32,
+    pub runs: Vec<String>,
+    pub seed: u32,
+    pub fixed_clock: bool,
+    pub expected_save_relation: String,
+    pub input_slots: BosmanInputSlots,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BosmanInputSlots {
+    pub bosman_executable: usize,
+    pub clean_manifest: usize,
+    pub smoke_runner: usize,
+    pub python_interpreter: usize,
 }
 
 #[derive(Debug, Serialize)]
@@ -189,9 +211,31 @@ pub fn validate_request_file(path: &Path) -> Result<String, String> {
 pub fn execute_process(
     request_path: &Path,
     backend_executable: &Path,
+    backend_config: Option<&Path>,
     attempt_dir: &Path,
 ) -> Result<(), String> {
     let request = read_and_validate_request(request_path)?;
+    let backend_config = match (request.backend.kind, backend_config) {
+        (BackendKind::BosmanNative, Some(path)) => Some(
+            path.canonicalize()
+                .map_err(|error| format!("resolve private backend config: {error}"))?,
+        ),
+        (BackendKind::BosmanNative, None) => {
+            return Err("bosman-native execution requires --backend-config".to_owned());
+        }
+        (BackendKind::SyntheticTest, Some(_)) => {
+            return Err("synthetic-test execution rejects --backend-config".to_owned());
+        }
+        (BackendKind::SyntheticTest, None) => None,
+    };
+    if let Some(path) = &backend_config
+        && !path
+            .metadata()
+            .map_err(|error| format!("inspect private backend config: {error}"))?
+            .is_file()
+    {
+        return Err("private backend config must be a regular file".to_owned());
+    }
     let executable = backend_executable
         .canonicalize()
         .map_err(|error| format!("resolve backend executable: {error}"))?;
@@ -258,6 +302,9 @@ pub fn execute_process(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .process_group(0);
+    if let Some(path) = &backend_config {
+        command.env("LAB_BACKEND_CONFIG", path);
+    }
 
     let mut child = command
         .spawn()
@@ -427,8 +474,17 @@ fn read_and_validate_request(path: &Path) -> Result<RunRequest, String> {
             "request exceeds the {REQUEST_MAX_BYTES}-byte limit"
         ));
     }
+    parse_and_validate_request_bytes(&bytes)
+}
+
+pub fn parse_and_validate_request_bytes(bytes: &[u8]) -> Result<RunRequest, String> {
+    if bytes.len() as u64 > REQUEST_MAX_BYTES {
+        return Err(format!(
+            "request exceeds the {REQUEST_MAX_BYTES}-byte limit"
+        ));
+    }
     let mut request: RunRequest =
-        serde_json::from_slice(&bytes).map_err(|error| format!("parse request JSON: {error}"))?;
+        serde_json::from_slice(bytes).map_err(|error| format!("parse request JSON: {error}"))?;
     validate_request(&request)?;
     request.backend.source_revision.make_ascii_lowercase();
     request
@@ -517,6 +573,52 @@ fn validate_request(request: &RunRequest) -> Result<(), String> {
                 "commands[{index}].id duplicates an earlier command ID"
             ));
         }
+    }
+    if request.backend.kind == BackendKind::BosmanNative {
+        validate_bosman_request(request)?;
+    }
+    Ok(())
+}
+
+fn validate_bosman_request(request: &RunRequest) -> Result<(), String> {
+    const STOP: &str = "classic-same-save-normal-again-14-days-equal";
+    if request.expected_stop_condition != STOP {
+        return Err(format!(
+            "bosman-native expected_stop_condition must be {STOP:?}"
+        ));
+    }
+    if request.input_identities.len() != 4 {
+        return Err("bosman-native requests require exactly four input identities".to_owned());
+    }
+    if request.commands.len() != 1 {
+        return Err("bosman-native requests require exactly one command".to_owned());
+    }
+    let command = &request.commands[0];
+    if command.kind != "bosman-classic-same-save-v1" {
+        return Err("bosman-native command kind must be bosman-classic-same-save-v1".to_owned());
+    }
+    let parameters: BosmanSameSaveParameters =
+        serde_json::from_value(command.parameters.clone())
+            .map_err(|error| format!("parse bosman-native command parameters: {error}"))?;
+    let expected = BosmanSameSaveParameters {
+        mode: "classic".to_owned(),
+        days: 14,
+        jobs: 2,
+        runs: vec!["normal".to_owned(), "again".to_owned()],
+        seed: 1,
+        fixed_clock: true,
+        expected_save_relation: "byte-identical".to_owned(),
+        input_slots: BosmanInputSlots {
+            bosman_executable: 0,
+            clean_manifest: 1,
+            smoke_runner: 2,
+            python_interpreter: 3,
+        },
+    };
+    if parameters != expected {
+        return Err(
+            "bosman-native command parameters do not match the bounded v1 profile".to_owned(),
+        );
     }
     Ok(())
 }
@@ -1011,6 +1113,72 @@ mod tests {
             validate_request(&request)
                 .unwrap_err()
                 .contains("at least one input")
+        );
+    }
+
+    fn bounded_bosman_request() -> RunRequest {
+        RunRequest {
+            schema_version: 1,
+            attempt_id: "bosman-attempt-1".to_owned(),
+            scenario_id: "clean-same-save".to_owned(),
+            profile_id: "bosman-clean-3968".to_owned(),
+            backend: BackendIdentity {
+                kind: BackendKind::BosmanNative,
+                source_revision: "a".repeat(40),
+                expected_executable_sha256: "b".repeat(64),
+            },
+            expected_stop_condition: "classic-same-save-normal-again-14-days-equal".to_owned(),
+            timeout_ms: 600_000,
+            stdout_limit_bytes: OUTPUT_MIN_BYTES,
+            stderr_limit_bytes: OUTPUT_MIN_BYTES,
+            input_identities: (0..4)
+                .map(|index| InputIdentity {
+                    sha256: format!("{index:064x}"),
+                    byte_count: index,
+                })
+                .collect(),
+            commands: vec![RunCommand {
+                id: "same-save-1".to_owned(),
+                kind: "bosman-classic-same-save-v1".to_owned(),
+                parameters: serde_json::to_value(BosmanSameSaveParameters {
+                    mode: "classic".to_owned(),
+                    days: 14,
+                    jobs: 2,
+                    runs: vec!["normal".to_owned(), "again".to_owned()],
+                    seed: 1,
+                    fixed_clock: true,
+                    expected_save_relation: "byte-identical".to_owned(),
+                    input_slots: BosmanInputSlots {
+                        bosman_executable: 0,
+                        clean_manifest: 1,
+                        smoke_runner: 2,
+                        python_interpreter: 3,
+                    },
+                })
+                .unwrap(),
+            }],
+        }
+    }
+
+    #[test]
+    fn bosman_profile_is_exact_and_binds_distinct_input_slots() {
+        let request = bounded_bosman_request();
+        assert!(validate_request(&request).is_ok());
+
+        let mut wrong_days = request.clone();
+        wrong_days.commands[0].parameters["days"] = serde_json::json!(13);
+        assert!(
+            validate_request(&wrong_days)
+                .unwrap_err()
+                .contains("bounded v1 profile")
+        );
+
+        let mut remapped = request;
+        remapped.commands[0].parameters["input_slots"]["smoke_runner"] = serde_json::json!(0);
+        assert!(
+            validate_request(&remapped)
+                .unwrap_err()
+                .contains("bounded v1 profile")
         );
     }
 
