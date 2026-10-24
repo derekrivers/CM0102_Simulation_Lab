@@ -1098,7 +1098,7 @@ namespace Cm0102.OriginalHostQualification
         private SortedDictionary<string, object> ObserveCapabilities()
         {
             string windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            string system = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            string system = CapabilityCatalog.SystemX86Path();
             Dictionary<string, string> candidates = CapabilityCatalog.ToolPaths(windows, system);
             HashSet<string> requiredTools = new HashSet<string>(expectations.RequiredToolIds, StringComparer.Ordinal);
             List<object> tools = new List<object>();
@@ -1159,6 +1159,11 @@ namespace Cm0102.OriginalHostQualification
             "advapi32-registry", "advapi32-token", "kernel32-filesystem", "user32-desktop", "wtsapi32-session"
         };
         public static readonly string[] ToolIds = { "cdb", "cmd", "csc-x64", "csc-x86", "powershell", "python313", "windbg" };
+
+        public static string SystemX86Path()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
+        }
 
         public static Dictionary<string, string> ToolPaths(string windows, string system)
         {

@@ -36,6 +36,7 @@ namespace Cm0102.OriginalHostQualification
             Run("qualification-policies", TestQualificationPolicies);
             Run("restoration-cleanup", TestRestorationCleanup);
             Run("actual-token-restoration", TestActualTokenRestoration);
+            Run("capability-x86-system-path", TestCapabilityX86SystemPath);
             Run("clean-iso-identity-mismatch", TestCleanIsoIdentityMismatch);
             Run("installed-virtual-store-mutation", TestInstalledVirtualStoreMutation);
             Run("completeness", TestCompleteness);
@@ -468,6 +469,24 @@ namespace Cm0102.OriginalHostQualification
                 catch (SyntheticTokenException) { observed = true; }
                 Assert(observed);
                 AssertTokenRestored(initial, initialWasThreadToken);
+            }
+        }
+
+        private static void TestCapabilityX86SystemPath()
+        {
+            string windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            string expectedSystem = Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
+            string actualSystem = CapabilityCatalog.SystemX86Path();
+            Assert(!String.IsNullOrEmpty(windows));
+            Assert(!String.IsNullOrEmpty(actualSystem));
+            Assert(String.Equals(actualSystem, expectedSystem, StringComparison.OrdinalIgnoreCase));
+            Dictionary<string, string> tools = CapabilityCatalog.ToolPaths(windows, actualSystem);
+            foreach (string id in new string[] { "cmd", "powershell" })
+            {
+                Assert(File.Exists(tools[id]));
+                FileIdentity identity = FileIdentity.Read(tools[id]);
+                Assert(identity.Bytes > 0);
+                Assert(identity.Sha256.Length == 64);
             }
         }
 

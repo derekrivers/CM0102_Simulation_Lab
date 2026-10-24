@@ -44,7 +44,7 @@ Every required check reports `pass`, `fail`, or `error`; a missing check cannot 
 - ISO identity and optical-volume/root executable identity;
 - installed and VirtualStore aggregate manifests before and after the probe;
 - zero CM01/02 processes before and after; and
-- fixed-candidate API/tool availability.
+- fixed-candidate API/tool availability, resolving `cmd` and PowerShell from the explicit x86 system folder so the x86 probe does not trigger WOW64 path redirection or weaken final-path validation.
 
 Tree summaries expose count, bytes, canonical row digest, hardlink/object-alias counts and mismatch counts only. They never expose relative filenames.
 

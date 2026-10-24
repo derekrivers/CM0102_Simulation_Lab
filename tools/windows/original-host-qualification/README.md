@@ -89,6 +89,11 @@ remain forbidden. The verifier continues to accept the earlier bounded
 `unhandled-<stable-code>` form so retained version-1.0 minimal evidence remains
 verifiable.
 
+The x86 probe resolves `cmd.exe` and Windows PowerShell from
+`Environment.SpecialFolder.SystemX86`. Using the generic system-folder value in
+an x86 process can invoke WOW64 redirection and must not be worked around by
+relaxing the final-path equality guard.
+
 The attempt assumes the invoking account and operating system are not actively
 hostile during the run. Concurrent same-account interference invalidates the
 evidence; the harness does not claim to defeat swap-and-restore attacks by an
