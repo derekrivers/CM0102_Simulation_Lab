@@ -1,5 +1,4 @@
-mod process_contract;
-
+use lab_cli::process_contract;
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -240,17 +239,19 @@ fn run_validate_request(mut args: impl Iterator<Item = String>) -> ImportResult<
 fn run_execute_process(mut args: impl Iterator<Item = String>) -> ImportResult<()> {
     let mut request = None;
     let mut backend_executable = None;
+    let mut backend_config = None;
     let mut attempt_dir = None;
     while let Some(arg) = args.next() {
         let target = match arg.as_str() {
             "--request" if request.is_none() => &mut request,
             "--backend-executable" if backend_executable.is_none() => &mut backend_executable,
+            "--backend-config" if backend_config.is_none() => &mut backend_config,
             "--attempt-dir" if attempt_dir.is_none() => &mut attempt_dir,
             "--help" | "-h" => {
                 println!("{}", usage());
                 return Ok(());
             }
-            "--request" | "--backend-executable" | "--attempt-dir" => {
+            "--request" | "--backend-executable" | "--backend-config" | "--attempt-dir" => {
                 return Err(ImportError(format!("duplicate {arg} argument")));
             }
             _ => {
@@ -267,8 +268,13 @@ fn run_execute_process(mut args: impl Iterator<Item = String>) -> ImportResult<(
         .ok_or_else(|| ImportError("--backend-executable is required".to_owned()))?;
     let attempt_dir =
         attempt_dir.ok_or_else(|| ImportError("--attempt-dir is required".to_owned()))?;
-    process_contract::execute_process(&request, &backend_executable, &attempt_dir)
-        .map_err(ImportError)?;
+    process_contract::execute_process(
+        &request,
+        &backend_executable,
+        backend_config.as_deref(),
+        &attempt_dir,
+    )
+    .map_err(ImportError)?;
     println!("execution succeeded");
     Ok(())
 }
@@ -283,7 +289,7 @@ fn required_path_value(
 }
 
 fn usage() -> &'static str {
-    "Usage:\n  lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n  lab-cli validate-run --request FILE\n  lab-cli execute-process --request FILE --backend-executable FILE --attempt-dir DIR\n\nImports pinned function-map evidence, validates a bounded versioned execution request, or executes a validated local protocol backend in an isolated attempt directory."
+    "Usage:\n  lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n  lab-cli validate-run --request FILE\n  lab-cli execute-process --request FILE --backend-executable FILE [--backend-config FILE] --attempt-dir DIR\n\nImports pinned function-map evidence, validates a bounded versioned execution request, or executes a validated local protocol backend in an isolated attempt directory. Bosman-native execution requires a private --backend-config; synthetic execution rejects one."
 }
 
 fn import_map(

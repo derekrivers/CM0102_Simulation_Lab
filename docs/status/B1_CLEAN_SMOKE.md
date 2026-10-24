@@ -53,4 +53,37 @@ The digest-list aggregate `3507a688ea96adc5d89503c38f9927bb92b40ad5797cc60e27d84
 
 ## Scope
 
-This qualifies clean input identity and records two successful upstream startup/first-news/holiday smoke observations under the stated policy. It removes the clean-data blocker, but does not claim deterministic replay because the ordinary runner did not fix seed/clock state. It does not by itself close B1: the Bosman-specific protocol adapter must still produce the repository's versioned request, controlled execution context, captured logs, endpoint record, and replay manifest. It is not an original-versus-Bosman fidelity comparison.
+This qualifies clean input identity and records two successful upstream startup/first-news/holiday smoke observations under the stated policy. It removes the clean-data blocker, but does not claim deterministic replay because the ordinary runner did not fix seed/clock state. A separate controlled same-save invocation then ran `normal` and `again` with the runner's fixed clock and seed 1, advanced each save by 14 game days, observed 21,017 and 21,024 idle sleeps respectively, and reported byte-identical saves and `PASS`. Its retained 1,199-byte log has SHA-256 `97ff8b277e47ba1ce0602c8ebec9190a5349d7d5b5db95f709305c226df44550`; that pre-adapter observation established the endpoint before protocol integration.
+
+Neither smoke evidence nor same-save equality is an original-versus-Bosman fidelity comparison. The controlled route tests repeatability within the qualified Bosman build; the repository replay manifest therefore retains `comparison_verdict: not-run` until a distinct reference comparison is performed.
+
+## Supervised Bosman protocol acceptance
+
+The bounded adapter at repository revision `aecf1d9f13be8d428b3d9ad1d23c93662da00471` was built in release mode and transferred to the WSL worker. The 918,440-byte `lab-bosman-adapter` had SHA-256 `b09d8d6a0c0ec14972e12bad8d101fe36b5ab002d9c46dfe9a1c3d808cb12948`; the 1,237,912-byte `lab-cli` supervisor had SHA-256 `9b63cb927405c9d04b571baaa4053a67b073435a411d2cff256431b4346d666e`. The canonical request bound the following positional identities:
+
+| Slot | Input | Bytes | SHA-256 |
+|---:|---|---:|---|
+| 0 | qualified Bosman executable | 48,696,400 | `9a41f4a028f0dd1df71e3f9f18f9821a17f91947bb20e7ed0ba9fc18fcafa07b` |
+| 1 | clean-file manifest | 72,879 | `920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6` |
+| 2 | pinned smoke runner | 41,619 | `3428aeae65a2dcd899e123b8c9649d109404cd11c601d2c89947d872d8d7196b` |
+| 3 | Python 3.12 interpreter | 8,020,928 | `e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f` |
+
+The request SHA-256 was `1d0459f29811403dd894b7250b6fa47e14b797717cb7e3d56c731e0e674de866`. Before and after execution the adapter verified the exact manifest through its already-hashed open file and then all 760 clean-tree rows; it also rejected writable source entries and reverified the executable and runner. Python executed the already-verified runner through its inherited open file descriptor. The runner used classic mode, seed 1, its fixed clock, two jobs, the `normal,again` run set, and the 14-game-day endpoint. It reported:
+
+```text
+run   normal: saved after 14 game days in 83 s, idle sleeps 21016
+run   again: saved after 14 game days in 83 s, idle sleeps 21023
+ok    again: the save is the same as normal
+PASS
+```
+
+The supervisor completed in 1 minute 24.13 seconds with peak RSS 175,640 KiB, no swap, and exit status 0. It published four private evidence files:
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| canonical `request.json` | 1,209 | `1d0459f29811403dd894b7250b6fa47e14b797717cb7e3d56c731e0e674de866` |
+| `stdout.ndjson` | 1,242 | `0f18637ea9e91fd79a8485fe1c8f6566145e8ad98ac768f8d28e56159c6d73ce` |
+| sanitized `stderr.log` | 201 | `80e2c90d61df41844521407cf5f344c40c6ed8d4e189da68347d144d7b121b4e` |
+| `replay-manifest.json` | 2,000 | `414a5aa053ef8e572aa17470e5b3a758929999268300f51061f1eaf157267265` |
+
+The protocol has a matching handshake, contiguous sequences 0 through 5, explicit input-verification and run-completion progress, the byte-identical relation, and a final `succeeded` / `completed-target` frame for `classic-same-save-normal-again-14-days-equal`. A recursive scan found no private WSL home-path prefix in the retained attempt. The manifest's execution status is successful while its comparison verdict correctly remains `not-run`: this is a controlled Bosman self-repeat, not original/Bosman parity.
