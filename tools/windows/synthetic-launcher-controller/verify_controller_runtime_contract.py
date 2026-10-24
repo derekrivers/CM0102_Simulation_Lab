@@ -149,7 +149,7 @@ FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
     POLICY_PROFILE_PATH: (3002, "0c6d36a80786ff123e428ee5f0f0493306067b50bbf387c011864100d3fcd6c4"),
     POLICY_PRIVATE_SCHEMA_PATH: (2881, "f8b1ae19840c9bbb9dbc9ab32d8872e4b44f5091a9a5440ae851a78daed7a279"),
     FIXTURE_PATH: (20355, "d730bda0acc2cf89ab6e212f49620a2e42b00392a3976f1467c0931bce66ae1c"),
-    ARCHITECTURE_PATH: (23397, "f63c4759167555e84ea37da8b9a8c234df73d54efffb4b9d64af62e852d89449"),
+    ARCHITECTURE_PATH: (23840, "aaddf101ade96bf1ad2256e0ba92a3ee18dc12429b819480a67ce6967b3ddd66"),
     RUNTIME_README_PATH: (2282, "4842e90637262c407425d115e25d4047e7f9a663b2c50ec7a1317f328c8eccf3"),
 }
 
@@ -483,7 +483,9 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, dict[str, obje
     architecture = captured[ARCHITECTURE_PATH].decode("utf-8", "strict")
     readme = captured[RUNTIME_README_PATH].decode("utf-8", "strict")
     for required in ("build-unpinned", "SyntheticLauncherLockedPreflight.exe",
-                     "SyntheticLauncherTimeoutFixture.exe", "SyntheticLauncherSupervisor.exe"):
+                     "SyntheticLauncherTimeoutFixture.exe", "SyntheticLauncherSupervisor.exe",
+                     "worker-evidence document", "supervisor validates it",
+                     "proves the inner Job empty", "sole output artifact"):
         if required not in architecture or required not in readme + architecture:
             raise VerificationError("missing documented contract literal")
     if "game remains never launched" not in architecture:

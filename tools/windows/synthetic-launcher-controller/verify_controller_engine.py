@@ -22,15 +22,20 @@ VERIFIER_PATH = "tools/windows/synthetic-launcher-controller/verify_controller_e
 WORKFLOW_PATH = ".github/workflows/rust.yml"
 MAX_BYTES = 256 * 1024
 GIT = pathlib.Path("/usr/bin/git")
+WORKFLOW_SHA_PLACEHOLDER = "RUNTIME_BINDING_VERIFIER_SHA256"
+RUNTIME_IMPLEMENTATION_SHA_PLACEHOLDER = "RUNTIME_IMPLEMENTATION_VERIFIER_SHA256"
+NORMALIZED_WORKFLOW_IDENTITY = (
+    8569, "064001f956f304364d42bf7902cdff43d7e92b125399e3217986e2cff88f910c")
+STAGE2_NORMALIZED_WORKFLOW_IDENTITY = (
+    12189, "6bf69f017ed713a352142f1b02cae201c201e345991dda2606a3a0f4052c8dd3")
 
 FROZEN_IDENTITIES = {
     POLICY_PATH: (41856, "0bd6e9590a31f64326706377a0789ad9fef5b715815898d074bb73bd3dec329d"),
     ENGINE_PATH: (25413, "33d5d643f086c1bb057310d6368e8712b096e1165cd07946e11744426089082b"),
     TEST_PATH: (36652, "ee2517e0d77199aba4a7ee2c2870594bce745d1e3240ab925316f9fbd27df316"),
     README_PATH: (2718, "c3671bc8dfeb2c50afea0b219d211698eb4d2c9fb09340a07fba578c016ccba0"),
-    WORKFLOW_PATH: (8602, "8a6f8ca9ec13fc0fca925bcb7b3ce04c6aca02686a861c338255b95a7766d797"),
 }
-BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (VERIFIER_PATH,)
+BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (WORKFLOW_PATH, VERIFIER_PATH)
 CONTROLLER_DIRECTORY = "tools/windows/synthetic-launcher-controller"
 EXPECTED_CONTROLLER_FILES = (
     "ControllerEngine.cs", "ControllerEngineTests.cs", "ControllerPolicy.cs",
@@ -101,6 +106,26 @@ def decode_source(raw: bytes, label: str) -> str:
     if re.search(r'(?:@|\$)"', text):
         raise VerificationError(label + " unsupported string form")
     return text
+
+
+def workflow_stage(workflow: str) -> str:
+    binding_pattern = re.compile(
+        r'(?<=verify_runtime_binding_policy[.]py" ")[0-9a-f]{64}(?=" "[$]@")')
+    if len(binding_pattern.findall(workflow)) != 1:
+        raise VerificationError("workflow runtime-binding digest")
+    normalized = binding_pattern.sub(WORKFLOW_SHA_PLACEHOLDER, workflow)
+    if identity(normalized.encode("ascii", "strict")) == NORMALIZED_WORKFLOW_IDENTITY:
+        return "bootstrap"
+    implementation_pattern = re.compile(
+        r'(?<=verify_runtime_implementation[.]py" ")[0-9a-f]{64}(?=" "[$]@")')
+    if len(implementation_pattern.findall(normalized)) != 1:
+        raise VerificationError("workflow runtime-implementation digest")
+    normalized = implementation_pattern.sub(
+        RUNTIME_IMPLEMENTATION_SHA_PLACEHOLDER, normalized)
+    if identity(normalized.encode("ascii", "strict")) != \
+            STAGE2_NORMALIZED_WORKFLOW_IDENTITY:
+        raise VerificationError("workflow normalized identity")
+    return "stage2"
 
 
 def compact_code(text: str, label: str) -> tuple[str, list[str]]:
@@ -193,6 +218,7 @@ def require_order(text: str, values: tuple[str, ...], label: str) -> None:
 
 
 def verify_engine(engine: str, tests: str, readme: str, workflow: str) -> None:
+    stage = workflow_stage(workflow)
     compact, strings = verify_authority_surface(engine, "engine", False)
     test_compact, test_strings = verify_authority_surface(tests, "tests", True)
     if "Main(" in compact or require_main_count(test_compact) != 1:
@@ -341,6 +367,12 @@ def verify_engine(engine: str, tests: str, readme: str, workflow: str) -> None:
     ):
         if required not in workflow:
             raise VerificationError("workflow engine gate " + required)
+    if stage == "stage2":
+        for required in ("Verify synthetic launcher runtime implementation",
+                "RuntimeCanonicalData.cs", "RuntimeGate.cs", "RuntimeGateTests.cs",
+                "PASS runtime-gate-v1", "controller-policy-windows:\n    needs: build"):
+            if required not in workflow:
+                raise VerificationError("workflow Stage 2 gate " + required)
 
 
 def require_main_count(compact: str) -> int:
@@ -438,9 +470,6 @@ def self_test() -> None:
     tests = decode_source(read_bound(repo / TEST_PATH), "tests")
     readme = read_bound(repo / README_PATH).decode("ascii", "strict")
     workflow = read_bound(repo / WORKFLOW_PATH).decode("ascii", "strict")
-    workflow_raw = read_bound(repo / WORKFLOW_PATH)
-    if identity(workflow_raw) != FROZEN_IDENTITIES[WORKFLOW_PATH]:
-        raise AssertionError("workflow frozen identity")
     verify_engine(engine, tests, readme, workflow)
     mutations = (
         "System.IO.File.ReadAllText(\"x\")", "System.Diagnostics.Process.Start(\"x\")",
@@ -506,7 +535,11 @@ def self_test() -> None:
     else:
         raise AssertionError("accepted relocated policy call")
     for suffix in (b"\nif: false\n", b"\ncontinue-on-error: true\n", b"\nexit 0\n"):
-        if identity(workflow_raw + suffix) == FROZEN_IDENTITIES[WORKFLOW_PATH]:
+        try:
+            verify_engine(engine, tests, readme, workflow + suffix.decode("ascii"))
+        except VerificationError:
+            pass
+        else:
             raise AssertionError("accepted workflow mutation")
     with tempfile.TemporaryDirectory() as directory:
         replacement_repo = pathlib.Path(directory)

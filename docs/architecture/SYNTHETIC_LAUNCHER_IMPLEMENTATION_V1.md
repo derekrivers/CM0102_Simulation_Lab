@@ -1,8 +1,10 @@
 # Synthetic launcher implementation contract v1
 
-Status: frozen design input for Stage 2 implementation. It adds no execution
-authority and does not supersede the qualification contract. Production images,
-the fixture UI, the original executable and the game remain not run.
+Status: frozen Stage 2 implementation contract. The separately reviewed
+bootstrap rotation incorporated its reporting clarifications into the
+qualification contract and installed the one-use workflow transition. It adds
+no execution authority. Production images, the fixture UI, the original
+executable and the game remain not run.
 
 ## Scope and source boundary
 
@@ -290,17 +292,23 @@ the complete mocked scenario routes. Stage 3 substitutes only exact real
 identity/control bytes and does not change production sources or control-flow
 semantics.
 
-Before Stage 2 implementation begins, a separately reviewed workflow-bootstrap
-increment updates the installed base guard, rotates the frozen qualification
-document/verifier identities, applies this contract's two-party evidence and
-timeout/locked sequencing clarifications to the qualification document, and
-freezes the new workflow identity. Until that atomic rotation, this document is
-design input only and grants no permission to implement against a qualification
-text it does not supersede. The bootstrap executes only P/Invoke-free pure tests
-and the static verifier; it statically rejects P/Invoke, managed process launch,
-reflection, filesystem, registry, environment, network and GUI authority in
-those tests. Production images and the UI fixture remain compile/static-inspect
-only and can never be selected by a CI execution helper.
+The separately reviewed workflow-bootstrap increment updates the installed base
+guard, rotates the frozen qualification document/verifier identities, applies
+this contract's two-party evidence and timeout/locked sequencing clarifications
+to the qualification document, and installs one exact one-use transition from
+the bootstrap workflow to the Stage 2 static-verifier/pure-test workflow. The
+transition can add only the fixed sealed-verifier and P/Invoke-free pure-test
+steps, and only after the verifier and three pure-test inputs already exist on
+the reviewed base branch. The guard derives their identities from that trusted
+base and requires byte-identical head copies. Thus the Stage 2 implementation
+PR adds no workflow diff; after it merges and its files become trusted base
+inputs, a separate workflow-only activation PR consumes the transition. After
+that activation merges, all workflow changes are rejected again. The Stage 2
+workflow executes only P/Invoke-free pure tests and the static verifier, which
+rejects P/Invoke, managed process launch, reflection, filesystem, registry,
+environment, network and GUI authority in those tests. Production images and
+the UI fixture remain compile/static-inspect only and can never be selected by
+a CI execution helper.
 
 ## Required negative controls
 
