@@ -495,11 +495,16 @@ def verify_inventory(repo: pathlib.Path, commit: str, root_descriptor: int) -> N
         raise VerificationError("controller commit inventory")
     controller_descriptor = open_directory_at(root_descriptor, CONTROLLER_DIRECTORY)
     try:
-        observed = os.listdir(controller_descriptor)
-        for name in observed:
-            value = os.stat(name, dir_fd=controller_descriptor, follow_symlinks=False)
-            if not stat.S_ISREG(value.st_mode) or value.st_nlink != 1:
-                raise VerificationError("controller filesystem inventory type")
+        readable_descriptor = os.open(".", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW |
+            os.O_CLOEXEC, dir_fd=controller_descriptor)
+        try:
+            observed = os.listdir(readable_descriptor)
+            for name in observed:
+                value = os.stat(name, dir_fd=readable_descriptor, follow_symlinks=False)
+                if not stat.S_ISREG(value.st_mode) or value.st_nlink != 1:
+                    raise VerificationError("controller filesystem inventory type")
+        finally:
+            os.close(readable_descriptor)
     finally:
         os.close(controller_descriptor)
     if sorted(observed) != sorted(EXPECTED_CONTROLLER_FILES):
