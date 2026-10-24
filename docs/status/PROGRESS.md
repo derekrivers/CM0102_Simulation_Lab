@@ -6,8 +6,9 @@ Updated: 24 October 2026 (Europe/London)
 
 - Roadmap revision 3 was validated, independently reviewed, and merged in PR #1 at commit `d750f3b9f8839994b4258ee5720c4b489fded9f7`.
 - The pinned B0 map inventory importer was independently reviewed, corrected, re-reviewed with no findings, and merged in PR #2 at commit `28928e649d75b01dabe61b5cdcb9cc81cbbde3a7`.
-- A user-authorized Windows installation was copied to private storage and verified file-for-file against source hashes. Its `cm0102.exe` exactly matches official 3.9.68 as required by the pinned Bosman source. Input-qualification updates are in review and are not yet a merged checkpoint.
-- P00/B0 map-only inventory is active. No phase is complete.
+- The executable/input qualification and PE-backed map-address validation were independently reviewed with no findings and merged in PR #4 at commit `0e64c4acfea612de58409639f5bed7241c7d94a7`.
+- A user-authorized Windows installation was copied to private storage and verified file-for-file against source hashes. Its `cm0102.exe` exactly matches official 3.9.68 as required by the pinned Bosman source.
+- P00/B0 input inventory is active. No phase is complete.
 - The two foundational public repositories are checked out outside the public repository at their selected commits. The source lock and deterministic map importer are implemented in the B0 delivery increment.
 
 ## Established facts
