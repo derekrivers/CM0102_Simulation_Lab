@@ -378,11 +378,12 @@ def verify_local_paths(
 
 def git(repo_path: pathlib.Path, arguments: list[str]) -> bytes:
     completed = subprocess.run(
-        ["/usr/bin/git", "-C", os.fspath(repo_path), *arguments],
+        ["/usr/bin/git", "--no-replace-objects", "-C", os.fspath(repo_path), *arguments],
         cwd="/",
         env={
             "GIT_CONFIG_GLOBAL": "/dev/null",
             "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_NO_REPLACE_OBJECTS": "1",
             "LANG": "C",
             "LC_ALL": "C",
         },
@@ -527,6 +528,51 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted copied non-Git tree")
+        replacement_repo = temporary / "replacement-repo"
+        replacement_repo.mkdir()
+        test_environment = {
+            "GIT_AUTHOR_DATE": "2000-01-01T00:00:00Z",
+            "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
+            "GIT_AUTHOR_NAME": "fixture-test",
+            "GIT_COMMITTER_DATE": "2000-01-01T00:00:00Z",
+            "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+            "GIT_COMMITTER_NAME": "fixture-test",
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "LANG": "C",
+            "LC_ALL": "C",
+        }
+
+        def test_git(arguments: list[str]) -> bytes:
+            completed = subprocess.run(
+                ["/usr/bin/git", "-C", os.fspath(replacement_repo), *arguments],
+                cwd="/",
+                env=test_environment,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=10,
+                check=False,
+            )
+            if completed.returncode != 0 or completed.stderr:
+                raise AssertionError("replacement self-test Git command")
+            return completed.stdout
+
+        test_git(["init", "-q"])
+        bound = replacement_repo / "bound.txt"
+        bound.write_bytes(b"original\n")
+        test_git(["add", "bound.txt"])
+        original_tree = test_git(["write-tree"]).decode("ascii").strip()
+        original_commit = test_git(["commit-tree", original_tree, "-m", "original"]).decode("ascii").strip()
+        bound.write_bytes(b"replacement\n")
+        test_git(["add", "bound.txt"])
+        replacement_tree = test_git(["write-tree"]).decode("ascii").strip()
+        replacement_commit = test_git(["commit-tree", replacement_tree, "-m", "replacement"]).decode("ascii").strip()
+        test_git(["replace", original_commit, replacement_commit])
+        if test_git(["show", original_commit + ":bound.txt"]) != b"replacement\n":
+            raise AssertionError("replacement self-test positive control")
+        if git(replacement_repo, ["show", original_commit + ":bound.txt"]) != b"original\n":
+            raise AssertionError("Git replacement object affected binding")
     verify_local_paths(repo, root / FIXTURE_NAME, root / TEST_NAME, repo / "config" / PROFILE_NAME)
 
 

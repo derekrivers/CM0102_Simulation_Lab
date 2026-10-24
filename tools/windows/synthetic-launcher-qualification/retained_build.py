@@ -274,6 +274,7 @@ def git_command(repo: pathlib.Path, arguments: list[str], maximum: int = 2 * 102
     environment = {
         "GIT_CONFIG_GLOBAL": os.devnull,
         "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_NO_REPLACE_OBJECTS": "1",
         "LANG": "C",
         "LC_ALL": "C",
     }
@@ -281,7 +282,7 @@ def git_command(repo: pathlib.Path, arguments: list[str], maximum: int = 2 * 102
         environment["SystemRoot"] = os.environ.get("SystemRoot", r"C:\Windows")
         environment["WINDIR"] = environment["SystemRoot"]
     code, stdout, stderr = capture_bounded(
-        [os.fspath(git), "-C", os.fspath(repo), *arguments],
+        [os.fspath(git), "--no-replace-objects", "-C", os.fspath(repo), *arguments],
         repo,
         environment,
         20,
@@ -970,6 +971,51 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted hardlinked retained file")
+        replacement_repo = root / "replacement-repo"
+        replacement_repo.mkdir()
+        test_environment = {
+            "GIT_AUTHOR_DATE": "2000-01-01T00:00:00Z",
+            "GIT_AUTHOR_EMAIL": "fixture@example.invalid",
+            "GIT_AUTHOR_NAME": "fixture-test",
+            "GIT_COMMITTER_DATE": "2000-01-01T00:00:00Z",
+            "GIT_COMMITTER_EMAIL": "fixture@example.invalid",
+            "GIT_COMMITTER_NAME": "fixture-test",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "LANG": "C",
+            "LC_ALL": "C",
+        }
+
+        def test_git(arguments: list[str]) -> bytes:
+            completed = subprocess.run(
+                [os.fspath(find_git()), "-C", os.fspath(replacement_repo), *arguments],
+                cwd=os.fspath(root),
+                env=test_environment,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=10,
+                check=False,
+            )
+            if completed.returncode != 0 or completed.stderr:
+                raise AssertionError("replacement self-test Git command")
+            return completed.stdout
+
+        test_git(["init", "-q"])
+        bound = replacement_repo / "bound.txt"
+        bound.write_bytes(b"original\n")
+        test_git(["add", "bound.txt"])
+        original_tree = test_git(["write-tree"]).decode("ascii").strip()
+        original_commit = test_git(["commit-tree", original_tree, "-m", "original"]).decode("ascii").strip()
+        bound.write_bytes(b"replacement\n")
+        test_git(["add", "bound.txt"])
+        replacement_tree = test_git(["write-tree"]).decode("ascii").strip()
+        replacement_commit = test_git(["commit-tree", replacement_tree, "-m", "replacement"]).decode("ascii").strip()
+        test_git(["replace", original_commit, replacement_commit])
+        if test_git(["show", original_commit + ":bound.txt"]) != b"replacement\n":
+            raise AssertionError("replacement self-test positive control")
+        if git_command(replacement_repo, ["show", original_commit + ":bound.txt"]) != b"original\n":
+            raise AssertionError("Git replacement object affected build binding")
 
 
 def parser() -> argparse.ArgumentParser:
