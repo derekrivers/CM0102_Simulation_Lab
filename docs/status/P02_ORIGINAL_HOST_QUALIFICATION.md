@@ -2,13 +2,21 @@
 
 Date: 24 October 2026
 
-Status: preliminary read-only observations without an immutable probe artifact; a versioned probe and retained-run harness now exist, but host qualification, launcher implementation, and all original behaviour remain pending.
+Status: two immutable live probe attempts retained and independently verifiable, but host qualification remains inconclusive because both stopped at the same sanitized .NET exception. Launcher implementation and all original behaviour remain pending.
 
 ## Evidence boundary
 
-These observations were collected on 24 October 2026 through bounded WSL and Windows PowerShell/`cmd.exe` inventory commands during the active Codex session. They included OS/session/process inventory, token privilege and integrity queries, registry value/ACL/access probes, tool discovery, filesystem mode/type/count/hash checks, independent Windows executable hashing, mounted-volume inspection, and process absence checks. That preliminary session retained no versioned probe transcript or sanitized output bundle. The later versioned probe and retained-run harness have passed synthetic build/tests only and have not yet produced live host evidence.
+The preliminary observations were collected on 24 October 2026 through bounded WSL and Windows PowerShell/`cmd.exe` inventory commands during the active Codex session. They included OS/session/process inventory, token privilege and integrity queries, registry value/ACL/access probes, tool discovery, filesystem mode/type/count/hash checks, independent Windows executable hashing, mounted-volume inspection, and process absence checks. That preliminary session retained no versioned probe transcript or sanitized output bundle.
 
-The exact host, token, privilege, registry, and tooling statements below are therefore unverified operational observations that define what the reproducible qualification probe must test; they are not yet durable gate evidence. The versioned [qualification contract](../architecture/ORIGINAL_HOST_QUALIFICATION_V1.md), read-only x86 probe, strict verifier, and bounded retained-run harness freeze that next step. Before any original launch, rerun the observations through the reviewed harness and retain its canonical sanitized outputs, tool revision, completeness flags, and hashes. Any discrepancy invalidates the provisional launcher assumptions.
+The exact host, token, privilege, registry, and tooling statements below remain unverified operational observations because the first two versioned live attempts did not reach a complete report. The versioned [qualification contract](../architecture/ORIGINAL_HOST_QUALIFICATION_V1.md), read-only x86 probe, strict verifier, and bounded retained-run harness freeze the route to durable evidence. Before any original launch, a reviewed diagnostic revision must identify and resolve or explicitly classify the current incomplete stage, then two complete stable attempts must reproduce the observations. Any discrepancy invalidates the provisional launcher assumptions.
+
+## Retained live qualification attempts
+
+The exact reviewed source commit `41599a20f0acc97419ee8a059dae4b9ecf3d11c0` was merged through PR #12 at merge commit `e36004ab84f10cb95f5cb54cf0b5d43b805fb54b`. Two fresh retained attempts used that source, the bound in-box x86 compiler, the exact public expectations, the private clean/installed/ISO locator, a mode-private metadata-enabled destination, and an empty child environment. Both harness invocations returned `PASS`, meaning their canonical minimal reports, process exit status, privacy constraints, and retained bindings verified; it does not mean the host qualified.
+
+Both canonical reports are byte-identical at 603 bytes with SHA-256 `5cf9307ee6bf39b154dff28f674add22893f71fe0d68d741079876486c8d45f9`. Both report exit `3`, `completeness: incomplete`, `safety_verdict: inconclusive`, `qualification_eligible: false`, `cm0102_launched: false`, and the sanitized detail `unhandled-exception-80131501`. Their retained-manifest SHA-256 values are `77bbfcb52a89aabdd65518b46f737df9d4a8e439584f5d64d967d78e5e41d60d` and `7a353164169a910611af782b50c2d2fe96613fec522b2d7459ca2304aa379821`. The manifests differ only in fresh-build-dependent probe executable and command hashes; compiler, compiler resource, expectations, locator, source identities, exit, stream identities, and verification fields agree.
+
+The game was never launched. The repository remained clean after removing verifier bytecode cache, the pinned clean-manifest identity remained `920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6`, and no CM01/02 process was present after either attempt. Because a minimal report cannot prove the later installed-tree, VirtualStore, registry-last-write, or token observations, these attempts are durable diagnostic evidence only and do not satisfy host qualification.
 
 ## Observed host
 

@@ -27,7 +27,7 @@ import verify_output
 
 SCHEMA_VERSION = 1
 HARNESS_ID = "cm0102-original-host-retained-run"
-HARNESS_VERSION = "1.0.0"
+HARNESS_VERSION = "1.1.0"
 PROBE_TIMEOUT_SECONDS = 30 * 60
 BUILD_TIMEOUT_SECONDS = 5 * 60
 STREAM_CAP_BYTES = 4 * 1024 * 1024
@@ -1029,7 +1029,7 @@ def self_test() -> None:
         unsafe_report = json.loads(json.dumps(full_report))
         unsafe_report["summary"]["safety_verdict"] = "unsafe"
         minimal_report = {
-            "checks": [{"detail_code": "unhandled-self-test"}],
+            "checks": [{"detail_code": "unhandled-v1-host-observation-exception-80131501"}],
             "summary": {"completeness": "incomplete", "safety_verdict": "inconclusive"},
         }
         usage_report = json.loads(json.dumps(minimal_report))
@@ -1105,7 +1105,7 @@ def self_test() -> None:
         strict_unsafe["summary"]["failed_count"] += 1
         strict_unsafe["summary"]["safety_verdict"] = "unsafe"
         strict_cases.append((strict_unsafe, 2))
-        minimal_detail = "unhandled-self-test"
+        minimal_detail = "unhandled-v1-host-observation-exception-80131501"
         strict_minimal = {
             "capabilities": {},
             "checks": [{"detail_code": minimal_detail, "id": "probe", "outcome": "error", "required": True}],
@@ -1132,6 +1132,11 @@ def self_test() -> None:
             "tokens": {},
         }
         strict_cases.append((strict_minimal, 3))
+        strict_legacy_minimal = json.loads(json.dumps(strict_minimal))
+        legacy_detail = "unhandled-exception-80131501"
+        strict_legacy_minimal["checks"][0]["detail_code"] = legacy_detail
+        strict_legacy_minimal["errors"][0]["detail_code"] = legacy_detail
+        strict_cases.append((strict_legacy_minimal, 3))
         report_binding_fixture = {
             "source_revision": strict_full["probe"]["source_revision"],
             "executable": strict_full["probe"]["executable"],

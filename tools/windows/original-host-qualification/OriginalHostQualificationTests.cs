@@ -5,7 +5,9 @@ using System.IO;
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Cm0102.OriginalHostQualification
 {
@@ -18,6 +20,7 @@ namespace Cm0102.OriginalHostQualification
             Run("canonical-json", TestCanonicalJson);
             Run("canonical-json-rejects-float", TestCanonicalJsonRejectsFloat);
             Run("minimal-document", TestMinimalDocument);
+            Run("stage-diagnostic", TestStageDiagnostic);
             Run("redactor", TestRedactor);
             Run("strict-expectations", TestStrictExpectations);
             Run("strict-private-config", TestStrictPrivateConfig);
@@ -31,6 +34,7 @@ namespace Cm0102.OriginalHostQualification
             Run("unreadable-and-share-protected", TestUnreadableAndShareProtected);
             Run("mid-read-mutation-and-share-denial", TestMidReadMutationAndShareDenial);
             Run("qualification-policies", TestQualificationPolicies);
+            Run("restoration-cleanup", TestRestorationCleanup);
             Run("actual-token-restoration", TestActualTokenRestoration);
             Run("clean-iso-identity-mismatch", TestCleanIsoIdentityMismatch);
             Run("installed-virtual-store-mutation", TestInstalledVirtualStoreMutation);
@@ -66,7 +70,8 @@ namespace Cm0102.OriginalHostQualification
 
         private static void TestMinimalDocument()
         {
-            SortedDictionary<string, object> document = Program.MinimalDocument("synthetic-error");
+            SortedDictionary<string, object> document = Program.MinimalDocument(
+                "unhandled-v1-host-observation-exception-80131501");
             string[] requiredTopLevel = { "capabilities", "checks", "errors", "guards", "host", "inputs", "probe",
                 "registry", "run", "schema_version", "session", "summary", "tokens" };
             Assert(document.Count == requiredTopLevel.Length);
@@ -82,6 +87,44 @@ namespace Cm0102.OriginalHostQualification
             Assert(Convert.ToInt32(summary["passed_count"]) == 0);
             Assert(Convert.ToInt32(summary["failed_count"]) == 0);
             Assert(Convert.ToInt32(summary["error_count"]) == 1);
+        }
+
+        private static void TestStageDiagnostic()
+        {
+            string detail = Program.UnhandledDetail(DiagnosticStages.HostObservation,
+                new SystemException(@"C:\private\user\secret"));
+            Assert(detail == "unhandled-v1-host-observation-exception-80131501");
+            ProbeStageException wrapped = new ProbeStageException(DiagnosticStages.SessionDiscovery,
+                new UnauthorizedAccessException(@"\\private\share\secret"));
+            Assert(wrapped.Stage == DiagnosticStages.SessionDiscovery);
+            Assert(Program.UnhandledDetail(wrapped.Stage, wrapped.InnerException) ==
+                "unhandled-v1-session-discovery-unauthorized");
+            Assert(Program.UnhandledDetail("C:\\private\\injected", new SystemException()) ==
+                "unhandled-v1-stage-tracker-exception-80131501");
+            Assert(!detail.Contains("SystemException"));
+            Assert(!detail.Contains("private"));
+
+            string stage = DiagnosticStages.CleanManifest;
+            Assert(Program.UnhandledDetail(stage, new FileNotFoundException(@"C:\private\file")) ==
+                "unhandled-v1-clean-manifest-file-not-found");
+            Assert(Program.UnhandledDetail(stage, new DirectoryNotFoundException(@"C:\private\directory")) ==
+                "unhandled-v1-clean-manifest-directory-not-found");
+            string ioDetail = Program.UnhandledDetail(stage, new IOException(@"C:\private\io"));
+            string cryptoDetail = Program.UnhandledDetail(stage, new CryptographicException(@"C:\private\crypto"));
+            Assert(Regex.IsMatch(ioDetail, @"\Aunhandled-v1-clean-manifest-io-[0-9a-f]{8}\z"));
+            Assert(Regex.IsMatch(cryptoDetail, @"\Aunhandled-v1-clean-manifest-crypto-[0-9a-f]{8}\z"));
+            Assert(!ioDetail.Contains("private"));
+            Assert(!cryptoDetail.Contains("private"));
+
+            Assert(DiagnosticStages.AfterRestoration(true, true) == DiagnosticStages.RegistryExplorerAccess);
+            Assert(DiagnosticStages.AfterRestoration(true, false) == DiagnosticStages.ImpersonationRestore);
+            Assert(DiagnosticStages.AfterRestoration(false, true) == DiagnosticStages.ImpersonationRestore);
+            Assert(DiagnosticStages.AfterRestoration(false, false) == DiagnosticStages.ImpersonationRestore);
+
+            string first = CanonicalJson.Serialize(Program.MinimalDocument(detail));
+            string second = CanonicalJson.Serialize(Program.MinimalDocument(detail));
+            Assert(first == second);
+            Assert(!first.Contains("private"));
         }
 
         private static void TestRedactor()
@@ -426,6 +469,33 @@ namespace Cm0102.OriginalHostQualification
                 Assert(observed);
                 AssertTokenRestored(initial, initialWasThreadToken);
             }
+        }
+
+        private static void TestRestorationCleanup()
+        {
+            bool disposeAttempted = false;
+            bool undoFailureObserved = false;
+            try
+            {
+                Probe.RestoreImpersonation(null,
+                    delegate { throw new SyntheticTokenException(); },
+                    delegate { disposeAttempted = true; });
+            }
+            catch (SyntheticTokenException) { undoFailureObserved = true; }
+            Assert(undoFailureObserved);
+            Assert(disposeAttempted);
+
+            bool undoAttempted = false;
+            bool disposeFailureObserved = false;
+            try
+            {
+                Probe.RestoreImpersonation(null,
+                    delegate { undoAttempted = true; },
+                    delegate { throw new SyntheticTokenException(); });
+            }
+            catch (SyntheticTokenException) { disposeFailureObserved = true; }
+            Assert(undoAttempted);
+            Assert(disposeFailureObserved);
         }
 
         private static void AssertTokenRestored(TokenObservation initial, bool initialWasThreadToken)
