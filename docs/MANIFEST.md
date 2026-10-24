@@ -14,6 +14,7 @@ Standalone CM0102 Simulation Lab roadmap, revision 3. All implementation phases 
 - `docs/architecture/RECONSTRUCTION_METHOD.md`
 - `docs/architecture/RUNTIME_CONTRACTS.md`
 - `docs/architecture/SIMULATOR.md`
+- `docs/architecture/SYNTHETIC_LAUNCHER_QUALIFICATION_V1.md`
 - `docs/architecture/TECH_STACK.md`
 - `docs/operations/VPS.md`
 - `docs/research/COVERAGE_REGISTER.md`
