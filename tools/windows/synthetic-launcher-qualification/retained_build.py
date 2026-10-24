@@ -516,6 +516,98 @@ def coded_index_size(rows: list[int], tables: tuple[int, ...], tag_bits: int) ->
     return 2 if max(rows[table] for table in tables) < limit else 4
 
 
+def metadata_schemas(
+    rows: list[int], string_size: int, guid_size: int, blob_size: int
+) -> list[tuple[object, ...]]:
+    table = lambda target, list_index=False: ("table", target, list_index)
+    coded = lambda targets, bits: ("coded", targets, bits)
+    resolution_scope = coded((0, 26, 35, 1), 2)
+    typedef_or_ref = coded((2, 1, 27, None), 2)
+    member_ref_parent = coded((2, 1, 26, 6, 27, None, None, None), 3)
+    has_constant = coded((4, 8, 23, None), 2)
+    has_custom_attribute = coded(
+        (6, 4, 1, 2, 8, 9, 10, 0, 14, 23, 20, 17, 26, 27, 32, 35,
+         38, 39, 40, 42, 44, 43) + (None,) * 10,
+        5,
+    )
+    custom_attribute_type = coded((None, None, 6, 10, None, None, None, None), 3)
+    has_field_marshal = coded((4, 8), 1)
+    has_decl_security = coded((2, 6, 32, None), 2)
+    has_semantics = coded((20, 23), 1)
+    method_def_or_ref = coded((6, 10), 1)
+    member_forwarded = coded((4, 6), 1)
+    implementation = coded((38, 35, 39, None), 2)
+    type_or_method_def = coded((2, 6), 1)
+    return [
+        ("u2", "string", "guid", "guid", "guid"),
+        (resolution_scope, "string", "string"),
+        ("u4", "string", "string", typedef_or_ref, table(4, True), table(6, True)),
+        (table(4),),
+        ("u2", "string", "blob"),
+        (table(6),),
+        ("u4", "u2", "u2", "string", "blob", table(8, True)),
+        (table(8),),
+        ("u2", "u2", "string"),
+        (table(2), typedef_or_ref),
+        (member_ref_parent, "string", "blob"),
+        ("u2", has_constant, "blob"),
+        (has_custom_attribute, custom_attribute_type, "blob"),
+        (has_field_marshal, "blob"),
+        ("u2", has_decl_security, "blob"),
+        ("u2", "u4", table(2)),
+        ("u4", table(4)),
+        ("blob",),
+        (table(2), table(20, True)),
+        (table(20),),
+        ("u2", "string", typedef_or_ref),
+        (table(2), table(23, True)),
+        (table(23),),
+        ("u2", "string", "blob"),
+        ("u2", table(6), has_semantics),
+        (table(2), method_def_or_ref, method_def_or_ref),
+        ("string",),
+        ("blob",),
+        ("u2", member_forwarded, "string", table(26)),
+        ("u4", table(4)),
+        ("u4", "u4"),
+        ("u4",),
+        ("u4", "u2", "u2", "u2", "u2", "u4", "blob", "string", "string"),
+        ("u4",),
+        ("u4", "u4", "u4"),
+        ("u2", "u2", "u2", "u2", "u4", "blob", "string", "string", "blob"),
+        ("u4", table(35)),
+        ("u4", "u4", "u4", table(35)),
+        ("u4", "string", "blob"),
+        ("u4", "u4", "string", "string", implementation),
+        ("u4", "u4", "string", implementation),
+        (table(2), table(2)),
+        ("u2", "u2", type_or_method_def, "string"),
+        (method_def_or_ref, "blob"),
+        (table(42), typedef_or_ref),
+    ]
+
+
+def metadata_field_size(
+    field: object, rows: list[int], string_size: int, guid_size: int, blob_size: int
+) -> int:
+    if field == "u2":
+        return 2
+    if field == "u4":
+        return 4
+    if field == "string":
+        return string_size
+    if field == "guid":
+        return guid_size
+    if field == "blob":
+        return blob_size
+    if isinstance(field, tuple) and field[0] == "table":
+        return metadata_index_size(rows, field[1])
+    if isinstance(field, tuple) and field[0] == "coded":
+        targets = tuple(target for target in field[1] if target is not None)
+        return coded_index_size(rows, targets, field[2])
+    raise HarnessError("unsupported metadata field schema")
+
+
 def compressed_unsigned(raw: bytes, offset: int, limit: int) -> tuple[int, int]:
     if offset >= limit:
         raise HarnessError("metadata blob index is outside stream")
@@ -545,6 +637,7 @@ def validate_cli_metadata(
     metadata_rva: int,
     metadata_size: int,
     entrypoint: int,
+    cli_offset: int,
 ) -> dict[str, object]:
     metadata = map_rva(raw, sections, metadata_rva, metadata_size)
     end = metadata + metadata_size
@@ -636,51 +729,166 @@ def validate_cli_metadata(
     string_size = 4 if heap_sizes & 0x01 else 2
     guid_size = 4 if heap_sizes & 0x02 else 2
     blob_size = 4 if heap_sizes & 0x04 else 2
-    table_sizes = {
-        0: 2 + string_size + guid_size * 3,
-        1: coded_index_size(rows, (0, 26, 35, 1), 2) + string_size * 2,
-        2: 4 + string_size * 2 + coded_index_size(rows, (2, 1, 27), 2)
-        + metadata_index_size(rows, 4) + metadata_index_size(rows, 6),
-        3: metadata_index_size(rows, 4),
-        4: 2 + string_size + blob_size,
-        5: metadata_index_size(rows, 6),
-    }
-    method_size = 8 + string_size + blob_size + metadata_index_size(rows, 8)
-    method_table = table_cursor + sum(rows[table] * table_sizes[table] for table in range(6))
-    method_end = method_table + rows[6] * method_size
-    if method_end > table_end:
-        raise HarnessError("CLI MethodDef table is truncated")
-    method = method_table + (method_rid - 1) * method_size
-    method_rva = struct.unpack_from("<I", raw, method)[0]
-    index_cursor = method + 8
-
-    def read_index(size: int) -> int:
-        nonlocal index_cursor
-        value = struct.unpack_from("<H" if size == 2 else "<I", raw, index_cursor)[0]
-        index_cursor += size
-        return value
-
-    name_index = read_index(string_size)
-    signature_index = read_index(blob_size)
-    parameter_index = read_index(metadata_index_size(rows, 8))
-    map_rva(raw, sections, method_rva, 1)
+    schemas = metadata_schemas(rows, string_size, guid_size, blob_size)
+    table_sizes = [
+        sum(metadata_field_size(field, rows, string_size, guid_size, blob_size) for field in schema)
+        for schema in schemas
+    ]
+    table_offsets: list[int] = []
+    physical_cursor = table_cursor
+    for table, row_size in enumerate(table_sizes):
+        table_offsets.append(physical_cursor)
+        byte_count = rows[table] * row_size
+        if byte_count > table_end - physical_cursor:
+            raise HarnessError("CLI metadata table is truncated")
+        physical_cursor += byte_count
+    if physical_cursor > table_end or table_end - physical_cursor > 3 or any(raw[physical_cursor:table_end]):
+        raise HarnessError("CLI metadata tables stream has invalid trailing bytes")
     strings_start, strings_end = streams["#Strings"]
+    blob_start, blob_end = streams["#Blob"]
+    guid_range = streams.get("#GUID")
+    if guid_range is not None and (guid_range[1] - guid_range[0]) % 16:
+        raise HarnessError("CLI GUID heap size is invalid")
+    list_values: dict[tuple[int, int], int] = {}
+    entrypoint_row: dict[str, int] | None = None
+
+    def read_metadata_index(offset: int, size: int) -> tuple[int, int]:
+        return struct.unpack_from("<H" if size == 2 else "<I", raw, offset)[0], offset + size
+
+    def validate_heap_index(kind: str, value: int) -> None:
+        if value == 0:
+            return
+        if kind == "string":
+            start = strings_start + value
+            if start >= strings_end or raw.find(b"\0", start, strings_end) < 0:
+                raise HarnessError("CLI string heap index is invalid")
+        elif kind == "guid":
+            if guid_range is None or value > (guid_range[1] - guid_range[0]) // 16:
+                raise HarnessError("CLI GUID heap index is invalid")
+        else:
+            start = blob_start + value
+            length, prefix = compressed_unsigned(raw, start, blob_end)
+            if start + prefix + length > blob_end:
+                raise HarnessError("CLI blob heap index is invalid")
+
+    for table, schema in enumerate(schemas):
+        row_cursor = table_offsets[table]
+        for rid in range(1, rows[table] + 1):
+            values: list[int] = []
+            for column, field in enumerate(schema):
+                size = metadata_field_size(field, rows, string_size, guid_size, blob_size)
+                value, row_cursor = read_metadata_index(row_cursor, size)
+                values.append(value)
+                if field in ("string", "guid", "blob"):
+                    validate_heap_index(field, value)
+                elif isinstance(field, tuple) and field[0] == "table":
+                    target, list_index = field[1], field[2]
+                    upper = rows[target] + (1 if list_index else 0)
+                    if value > upper or (list_index and value == 0):
+                        raise HarnessError("CLI metadata table index is invalid")
+                    if list_index:
+                        key = (table, column)
+                        if value < list_values.get(key, 1):
+                            raise HarnessError("CLI metadata list index is not monotonic")
+                        list_values[key] = value
+                elif isinstance(field, tuple) and field[0] == "coded":
+                    tag_bits = field[2]
+                    tag = value & ((1 << tag_bits) - 1)
+                    target = field[1][tag]
+                    target_rid = value >> tag_bits
+                    if value != 0 and (target is None or target_rid == 0 or target_rid > rows[target]):
+                        raise HarnessError("CLI metadata coded index is invalid")
+            if table == 6 and rid == method_rid:
+                entrypoint_row = {
+                    "rva": values[0],
+                    "impl_flags": values[1],
+                    "attributes": values[2],
+                    "name": values[3],
+                    "signature": values[4],
+                    "parameter_list": values[5],
+                }
+    if entrypoint_row is None:
+        raise HarnessError("CLI entrypoint MethodDef row is missing")
+    if entrypoint_row["impl_flags"] != 0 or entrypoint_row["attributes"] != 0x0091:
+        raise HarnessError("CLI entrypoint MethodDef attributes are not exact private static IL")
+    name_index = entrypoint_row["name"]
     name_start = strings_start + name_index
     if name_index == 0 or name_start >= strings_end:
         raise HarnessError("CLI entrypoint name index is invalid")
     name_end = raw.find(b"\0", name_start, strings_end)
     if name_end < 0 or raw[name_start:name_end] != b"Main":
         raise HarnessError("CLI entrypoint name is not exact Main")
-    blob_start, blob_end = streams["#Blob"]
+    signature_index = entrypoint_row["signature"]
     signature_start = blob_start + signature_index
     signature_length, prefix_length = compressed_unsigned(raw, signature_start, blob_end)
-    if signature_index == 0 or signature_length == 0 or signature_start + prefix_length + signature_length > blob_end:
-        raise HarnessError("CLI entrypoint signature blob is invalid")
-    if parameter_index == 0 or parameter_index > rows[8] + 1:
+    signature = raw[signature_start + prefix_length:signature_start + prefix_length + signature_length]
+    if signature_index == 0 or signature != b"\x00\x00\x08":
+        raise HarnessError("CLI entrypoint signature is not exact static int Main()")
+    if entrypoint_row["parameter_list"] == 0 or entrypoint_row["parameter_list"] > rows[8] + 1:
         raise HarnessError("CLI entrypoint parameter list is invalid")
+
+    method_rva = entrypoint_row["rva"]
+    method_offset = map_rva(raw, sections, method_rva, 1)
+    if method_offset < cli_offset + 72 and cli_offset < method_offset + 1:
+        raise HarnessError("CLI entrypoint body overlaps CLI header")
+    if method_offset < end and metadata < method_offset + 1:
+        raise HarnessError("CLI entrypoint body overlaps metadata")
+    first = raw[method_offset]
+    if first & 0x03 == 0x02:
+        header_size = 1
+        code_size = first >> 2
+        more_sections = False
+    elif first & 0x03 == 0x03:
+        method_word = struct.unpack_from("<H", raw, method_offset)[0]
+        header_size = ((method_word >> 12) & 0x0F) * 4
+        if header_size < 12 or method_word & 0x0FE4:
+            raise HarnessError("CLI entrypoint fat IL header is invalid")
+        map_rva(raw, sections, method_rva, header_size)
+        code_size = struct.unpack_from("<I", raw, method_offset + 4)[0]
+        local_signature = struct.unpack_from("<I", raw, method_offset + 8)[0]
+        if local_signature and (
+            local_signature >> 24 != 0x11
+            or local_signature & 0x00FFFFFF == 0
+            or local_signature & 0x00FFFFFF > rows[17]
+        ):
+            raise HarnessError("CLI entrypoint local signature token is invalid")
+        more_sections = bool(method_word & 0x08)
+    else:
+        raise HarnessError("CLI entrypoint IL header format is invalid")
+    if code_size == 0:
+        raise HarnessError("CLI entrypoint IL body is empty")
+    body_size = header_size + code_size
+    map_rva(raw, sections, method_rva, body_size)
+    body_end = method_offset + body_size
+    if (method_offset < cli_offset + 72 and cli_offset < body_end) or (method_offset < end and metadata < body_end):
+        raise HarnessError("CLI entrypoint IL body overlaps retained metadata")
+    if more_sections:
+        section_rva = method_rva + ((body_size + 3) & ~3)
+        while True:
+            section_offset = map_rva(raw, sections, section_rva, 4)
+            kind = raw[section_offset]
+            if kind & 0x3E:
+                raise HarnessError("CLI entrypoint IL section kind is invalid")
+            fat = bool(kind & 0x40)
+            if fat:
+                section_size = int.from_bytes(raw[section_offset + 1:section_offset + 4], "little")
+                clause_size = 24
+            else:
+                section_size = raw[section_offset + 1]
+                clause_size = 12
+                if raw[section_offset + 2:section_offset + 4] != b"\0\0":
+                    raise HarnessError("CLI entrypoint small IL section header is invalid")
+            if kind & 0x01 == 0 or section_size < 4 or (section_size - 4) % clause_size:
+                raise HarnessError("CLI entrypoint exception section is invalid")
+            map_rva(raw, sections, section_rva, section_size)
+            if kind & 0x80 == 0:
+                break
+            section_rva += (section_size + 3) & ~3
     return {
         "entrypoint_method_rid": method_rid,
+        "entrypoint_signature": "private static int Main()",
         "metadata_streams": sorted(streams),
+        "metadata_table_count": sum(1 for count in rows[:45] if count),
         "metadata_version_sha256": hashlib.sha256(version).hexdigest(),
         "methoddef_rows": rows[6],
     }
@@ -706,11 +914,11 @@ def validate_pe32_cli(raw: bytes, expected_subsystem: int) -> dict[str, object]:
     if subsystem != expected_subsystem:
         raise HarnessError("output subsystem mismatch")
     directory_count = struct.unpack_from("<I", raw, optional + 92)[0]
-    if directory_count < 15:
-        raise HarnessError("output has no CLI directory")
+    if directory_count != 16:
+        raise HarnessError("output PE data-directory count is not exact")
     cli_rva, cli_size = struct.unpack_from("<II", raw, optional + 96 + 14 * 8)
-    if cli_size < 72:
-        raise HarnessError("CLI header is too small")
+    if cli_size != 72:
+        raise HarnessError("CLI header size is not exact")
     section_table = optional + optional_size
     if section_table + section_count * 40 > len(raw):
         raise HarnessError("PE section table is truncated")
@@ -735,7 +943,7 @@ def validate_pe32_cli(raw: bytes, expected_subsystem: int) -> dict[str, object]:
         raise HarnessError("CLI flags are not IL-only x86-required")
     if entrypoint == 0:
         raise HarnessError("CLI entrypoint is empty")
-    metadata = validate_cli_metadata(raw, sections, metadata_rva, metadata_size, entrypoint)
+    metadata = validate_cli_metadata(raw, sections, metadata_rva, metadata_size, entrypoint, cli)
     return {
         "cli_flags": flags,
         "machine": machine,
@@ -1087,7 +1295,7 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     raw[section:section + 5] = b".text"
     struct.pack_into("<IIII", raw, section + 8, 0x600, 0x2000, 0x600, 0x200)
     struct.pack_into("<I", raw, 0x300, 72)
-    struct.pack_into("<II", raw, 0x308, 0x2180, 0xA0)
+    struct.pack_into("<II", raw, 0x308, 0x2180, 0xE0)
     struct.pack_into("<II", raw, 0x310, flags, 0x06000001)
     metadata = 0x380
     version = b"v4.0.30319\0"
@@ -1098,8 +1306,8 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     struct.pack_into("<HH", raw, cursor, 0, 3)
     cursor += 4
     table_offset = 0x50
-    strings_offset = 0x88
-    blob_offset = 0x98
+    strings_offset = 0xC0
+    blob_offset = 0xD0
     for name, offset, size in (
         (b"#~\0", table_offset, 56),
         (b"#Strings\0", strings_offset, 15),
@@ -1113,10 +1321,10 @@ def synthetic_pe(subsystem: int = 2, flags: int = 3) -> bytes:
     struct.pack_into("<II", raw, tables + 24, 1, 1)
     rows = tables + 32
     struct.pack_into("<HHHHH", raw, rows, 0, 1, 0, 0, 0)
-    struct.pack_into("<IHHHHH", raw, rows + 10, 0x2300, 0, 0, 10, 1, 1)
+    struct.pack_into("<IHHHHH", raw, rows + 10, 0x2300, 0, 0x0091, 10, 1, 1)
     raw[metadata + strings_offset:metadata + strings_offset + 15] = b"\0<Module>\0Main\0"
     raw[metadata + blob_offset:metadata + blob_offset + 5] = b"\0\x03\x00\x00\x08"
-    raw[0x500] = 0x2A
+    raw[0x500:0x502] = b"\x06\x2A"
     return bytes(raw)
 
 
@@ -1129,6 +1337,8 @@ def self_test() -> None:
         and observed["optional_magic"] == 0x010B
         and observed["subsystem"] == 2
         and observed["entrypoint_method_rid"] == 1
+        and observed["entrypoint_signature"] == "private static int Main()"
+        and observed["metadata_table_count"] == 2
         and observed["methoddef_rows"] == 1
         and observed["metadata_streams"] == ["#Blob", "#Strings", "#~"]
     ):
@@ -1138,6 +1348,8 @@ def self_test() -> None:
         ("machine", 0x84, struct.pack("<H", 0x8664)),
         ("optional magic", 0x84 + 20, struct.pack("<H", 0x020B)),
         ("subsystem", 0x84 + 20 + 68, struct.pack("<H", 3)),
+        ("data-directory count", 0x84 + 20 + 92, struct.pack("<I", 0xFFFFFFFF)),
+        ("CLI directory size", 0x84 + 20 + 96 + 14 * 8 + 4, struct.pack("<I", 0xFFFFFFFF)),
         ("CLI flags", 0x310, struct.pack("<I", 1)),
         ("CLI unsupported strong-name flag", 0x310, struct.pack("<I", 0x7)),
         ("CLI native entrypoint flag", 0x310, struct.pack("<I", 0x13)),
@@ -1147,11 +1359,24 @@ def self_test() -> None:
         ("metadata stream/header overlap", 0x3A0, struct.pack("<I", 0x30)),
         ("metadata missing MethodDef rows", 0x3EC, struct.pack("<I", 0)),
         ("metadata MethodDef token", 0x314, struct.pack("<I", 0x02000001)),
-        ("metadata method name", 0x380 + 0x88 + 10, b"X"),
+        ("metadata method name", 0x380 + 0xC0 + 10, b"X"),
+        ("metadata native MethodImpl", 0x3D0 + 32 + 10 + 4, struct.pack("<H", 1)),
+        ("metadata abstract Main", 0x3D0 + 32 + 10 + 6, struct.pack("<H", 0x0491)),
+        ("metadata invalid Main signature", 0x380 + 0xD0 + 2, b"\xFF\xFF\xFF"),
+        ("metadata Main body overlap", 0x3D0 + 32 + 10, struct.pack("<I", 0x2180)),
+        ("metadata invalid IL header", 0x500, b"\x00"),
     ):
         changed = bytearray(base)
         changed[offset:offset + len(packed)] = packed
         mutations.append((label, bytes(changed)))
+    truncated_later_table = bytearray(base)
+    tables = 0x380 + 0x50
+    old_rows = bytes(truncated_later_table[tables + 32:tables + 56])
+    struct.pack_into("<Q", truncated_later_table, tables + 8, (1 << 0) | (1 << 6) | (1 << 8))
+    struct.pack_into("<III", truncated_later_table, tables + 24, 1, 1, 1)
+    truncated_later_table[tables + 36:tables + 60] = old_rows
+    struct.pack_into("<I", truncated_later_table, 0x3A0 + 4, 60)
+    mutations.append(("truncated post-MethodDef table", bytes(truncated_later_table)))
     for label, changed in mutations:
         try:
             validate_pe32_cli(changed, 2)
