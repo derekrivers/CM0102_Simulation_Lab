@@ -10,6 +10,7 @@ Updated: 24 October 2026 (Europe/London)
 - The bounded local request/process contract was independently reviewed, corrected for canonical-request and process-tree hazards, and merged in PR #7 at commit `6ecdfe63c6b9ebdb362b4511fbbf3cf1f1ab871d`.
 - The bounded clean Bosman same-save adapter was independently reviewed, corrected to execute the verified runner file descriptor, accepted against the private 760-file clean set, and merged in PR #8 at commit `f53e2ddc351fb5265b87f4e498beddd280db0e3c`.
 - PR #9 recorded the qualified B1 evidence and merge on `main` at commit `7c23c12a4e43e48462548732f5ef6a2548b5be72`.
+- The strict observation-comparison contract was independently reviewed, corrected for live-image identity, replay endpoint, bounded-input and atomic-publication hazards, re-reviewed with no findings, and merged in PR #10 at commit `bb57cd4cc7e1c9f1124dfd25e931cd906c2882a0`.
 - A user-authorized Windows installation was copied to private storage and verified file-for-file against source hashes. Its `cm0102.exe` exactly matches official 3.9.68 as required by the pinned Bosman source.
 - The pinned Bosman source now has a qualified native Linux Release build on the PC/WSL worker. All 45 registered upstream tests pass. The official ISO and patch produced a separate clean 760-file runtime set, two clean upstream smoke runs passed, and the bounded Bosman adapter produced one successful controlled same-save protocol replay against that set.
 - P00/B0 input inventory is active. No phase is complete.
@@ -45,7 +46,7 @@ Updated: 24 October 2026 (Europe/London)
 - A preliminary read-only Windows reference-host probe observed the active console, available built-in token/Job/input/capture APIs, clean source identities, optical-media check, a high-integrity WSL-interoperability launch path, and a registry route into the user's modified installation without launching the game. No immutable probe artifact was retained, so these are provisional operational observations rather than qualified gate evidence. Original execution is gated on a reproducible retained probe plus a medium-Explorer-token launcher, exact registry-denial preflight, verified clean attempt copy, kill-on-close Job, synthetic fixture tests, and independent review.
 - Independent review initially found a canonical-lock bypass plus physical-row and equivalent-address defects. Strict direct lock paths, numeric address canonicalization, physical-row retention, and regression tests resolved all three before PR #2 merged.
 - Matching clean data identity is qualified, two upstream Bosman smoke observations pass, and one controlled Bosman-specific protocol replay passes. Original process observations and original/Bosman parity remain outstanding. The installed folder remains modified and is kept separate from the new clean set.
-- The first B2 comparator increment is in implementation: its producer-neutral observation bundle and separate report can exercise synthetic exact A/A and deliberate raw/semantic divergences without changing the replay manifest. This qualifies comparator mechanics only; no real original/Bosman observation bundle or parity verdict exists yet.
+- The first B2 comparator increment is implemented: its producer-neutral observation bundle and separate report exercise synthetic exact A/A and deliberate raw/semantic divergences without changing the replay manifest. This qualifies comparator mechanics only; no real original/Bosman observation bundle or parity verdict exists yet.
 - The current host is below the roadmap's provisional 4 vCPU / 8 GiB / 80 GiB-free pilot envelope. This is a measurement constraint, not a purchase request; no 24-hour worker pilot is scheduled.
 - Off-host backup destination remains unset, so unattended durability cannot be certified.
 
@@ -54,7 +55,7 @@ Updated: 24 October 2026 (Europe/London)
 1. Maintain the deterministic B0 map import, provenance report, reconciliation, and negative tests as the upstream inventory evolves through reviewed pin changes.
 2. Expand the coverage register from direct observation when matching data and a qualified execution path become available.
 3. Add failed-attempt retention and stronger nested-output/resource controls before expanding the adapter beyond its single bounded profile.
-4. Independently review and qualify the observation-comparison contract and its falsification controls, then emit matching bundles from real backends.
+4. Emit matching observation bundles from real backends through the reviewed comparison contract.
 5. Implement the first original-executable observation route with a medium-integrity Windows launch token, per-attempt working copy, bounded process lifetime, and no dependency on the user's modified installation before any original/Bosman parity claim.
 
 ## Model routing record
