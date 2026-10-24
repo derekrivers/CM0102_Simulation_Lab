@@ -108,11 +108,36 @@ python3 tools/windows/original-host-qualification/verify_output.py verify output
   --forbid-file private-locator.json
 ```
 
+After two distinct retained attempts each verify as complete and eligible,
+compare their complete retained directories with the source-scoped stability
+comparator:
+
+```sh
+python3 tools/windows/original-host-qualification/compare_retained_hosts_v1.py compare \
+  --first-dir first-retained-attempt \
+  --second-dir second-retained-attempt \
+  --expectations config/original-host-qualification-v1.json \
+  --private-locator private-locator.json \
+  --output new-stability-result.json
+```
+
+The command independently rehashes and binds the reports, manifests, source
+snapshots, compiler files, configuration snapshots and raw probe images. A
+strict PE32/CLI parser proves the images differ only in the structurally
+located COFF timestamp and Module MVID before accepting the two run-time fields
+and two raw-image hashes as the only report differences. Every other byte-sized
+identity, source/locator/expectations binding, host observation, safety check
+and verdict remains exact. It publishes a canonical no-replace artifact with
+both raw identities, the normalized image hash, the stable-projection hash and
+the observed difference paths. This is host-repeat stability only; it is not an
+original/Bosman comparison.
+
 Run the no-launch negative controls with:
 
 ```sh
 python3 tools/windows/original-host-qualification/verify_output.py self-test
 python3 tools/windows/original-host-qualification/retained_run_v1.py self-test
+python3 tools/windows/original-host-qualification/compare_retained_hosts_v1.py self-test
 python3 tools/windows/original-host-qualification/verify_output.py static-source \
   tools/windows/original-host-qualification/CanonicalJson.cs \
   tools/windows/original-host-qualification/OriginalHostQualification.cs
