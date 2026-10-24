@@ -45,6 +45,7 @@ jobs:
           --source-commit "$GITHUB_SHA"
     - name: Verify authority-free runtime binding policy
       run: |
+        echo "1e05b0d929f7ef569d0fd4e487626c7b59471f0ea30524778be0422f57600330  tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py" | sha256sum --check --strict -
         python3 tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py self-test
         python3 tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py verify \
           --repo "$GITHUB_WORKSPACE" \

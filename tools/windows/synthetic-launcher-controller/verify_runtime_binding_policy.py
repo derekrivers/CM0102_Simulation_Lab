@@ -30,9 +30,8 @@ FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
     TEST_PATH: (24400, "c726f5240a6ca0d4a9f7cce267ed25af64f1e2cc04784e67b8cf4b563710e8e5"),
     README_PATH: (3571, "416b96ccb4b6599936a4542a608c5346989b1b06ab8f6ae9b1c38bfaada0aa9f"),
     PROFILE_PATH: (5510, "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1"),
-    WORKFLOW_PATH: (7032, "bc405ad3eac006af3a6ade97848d222e8e9ce8b716ff2646736aba8fa24a8fb8"),
 }
-BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (VERIFIER_PATH,)
+BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (WORKFLOW_PATH, VERIFIER_PATH)
 EXPECTED_CONTROLLER_FILES = (
     "ControllerEngine.cs", "ControllerEngineTests.cs", "ControllerPolicy.cs",
     "ControllerPolicyTests.cs", "ENGINE.md", "README.md", "RUNTIME_BINDING.md",
@@ -85,6 +84,66 @@ def read_bound(path: pathlib.Path) -> bytes:
         value.st_uid, value.st_gid, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
     if fields(before) != fields(opened) or fields(before) != fields(after) or len(raw) != before.st_size:
         raise VerificationError("input changed during read")
+    return bytes(raw)
+
+
+def open_directory_at(root_descriptor: int, relative: str) -> int:
+    parts = pathlib.PurePosixPath(relative).parts
+    if not parts or pathlib.PurePosixPath(relative).is_absolute() or any(
+            part in ("", ".", "..") for part in parts):
+        raise VerificationError("invalid descriptor-relative directory")
+    current = os.dup(root_descriptor)
+    try:
+        for part in parts:
+            following = os.open(part, os.O_PATH | os.O_DIRECTORY | os.O_NOFOLLOW |
+                os.O_CLOEXEC, dir_fd=current)
+            opened = os.fstat(following)
+            if not stat.S_ISDIR(opened.st_mode):
+                os.close(following)
+                raise VerificationError("descriptor-relative component is not a directory")
+            os.close(current)
+            current = following
+        return current
+    except Exception:
+        os.close(current)
+        raise
+
+
+def read_bound_at(root_descriptor: int, relative: str) -> bytes:
+    pure = pathlib.PurePosixPath(relative)
+    if pure.is_absolute() or not pure.parts or any(part in ("", ".", "..") for part in pure.parts):
+        raise VerificationError("invalid descriptor-relative file")
+    parent_relative = "/".join(pure.parts[:-1])
+    parent = os.dup(root_descriptor) if not parent_relative else \
+        open_directory_at(root_descriptor, parent_relative)
+    try:
+        name = pure.parts[-1]
+        before = os.stat(name, dir_fd=parent, follow_symlinks=False)
+        if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > MAX_BYTES:
+            raise VerificationError("invalid descriptor-relative bound file " + relative)
+        descriptor = os.open(name, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+            dir_fd=parent)
+        try:
+            opened = os.fstat(descriptor)
+            if not stat.S_ISREG(opened.st_mode):
+                raise VerificationError("descriptor-relative input changed type")
+            raw = bytearray()
+            while True:
+                chunk = os.read(descriptor, min(65536, MAX_BYTES + 1 - len(raw)))
+                if not chunk:
+                    break
+                raw.extend(chunk)
+                if len(raw) > MAX_BYTES:
+                    raise VerificationError("descriptor-relative input exceeds byte limit")
+            after = os.stat(name, dir_fd=parent, follow_symlinks=False)
+        finally:
+            os.close(descriptor)
+    finally:
+        os.close(parent)
+    fields = lambda value: (value.st_dev, value.st_ino, value.st_mode, value.st_nlink,
+        value.st_uid, value.st_gid, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+    if fields(before) != fields(opened) or fields(before) != fields(after) or len(raw) != before.st_size:
+        raise VerificationError("descriptor-relative input changed during read")
     return bytes(raw)
 
 
@@ -190,7 +249,8 @@ def require_count(text: str, value: str, expected: int, label: str) -> None:
         raise VerificationError(label + " count " + value + " " + str(actual))
 
 
-def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, workflow: str) -> None:
+def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, workflow: str,
+        verifier_sha256: str) -> None:
     compact, strings = verify_authority_surface(source, "runtime binding policy", False)
     test_compact, _ = verify_authority_surface(tests, "runtime binding tests", True)
     if "Main(" in compact or len(re.findall(r"(?:private|internal|public)staticintMain\(\)", test_compact)) != 1:
@@ -215,19 +275,38 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
         require_count(compact, value, 1, "policy type")
     if compact.count("internalreadonly") != 71:
         raise VerificationError("immutable fact field count")
-    for literal in (
+    expected_strings = (
         "cm0102-synthetic-launcher-controller-runtime-v1",
         "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1",
         "f469671fd3d8f4986ced0448a70a023d225ed529802cee63cabb43f6fbca2ad6",
+        "SyntheticLauncherController.public.v1.json",
+        "SyntheticLauncherController.private.v1.json", "SyntheticLauncherReport.v1.json",
         "SyntheticLauncherSupervisor.exe", "SyntheticLauncherController.exe",
         "SyntheticLauncherLockedPreflight.exe", "SyntheticLauncherFixture.exe",
         "SyntheticLauncherTimeoutFixture.exe", "SyntheticLauncherTimeoutChild.exe",
-        "SyntheticLauncherController.public.v1.json",
-        "SyntheticLauncherController.private.v1.json", "SyntheticLauncherReport.v1.json",
+        "ui-success-v1", "tree-timeout-v1", "locked-refusal-v1", "scenario", "key",
         "ui-success-v1", "tree-timeout-v1", "locked-refusal-v1",
-    ):
-        if literal not in strings:
-            raise VerificationError("missing fixed literal " + literal)
+        "ui-success-v1", "tree-timeout-v1", "locked-refusal-v1",
+    )
+    if tuple(strings) != expected_strings:
+        raise VerificationError("fixed production literal sequence")
+    expected_bodies = {
+        "privatestaticboolExactContract(RuntimeContractFactsfacts)":
+            "returnfacts!=null&&String.Equals(facts.ProfileId,FixedRuntimeBindingContract.ProfileId,StringComparison.Ordinal)&&ExactIdentity(facts.RuntimeProfile,FixedRuntimeBindingContract.RuntimeProfileByteCount,FixedRuntimeBindingContract.RuntimeProfileSha256)&&facts.BuildBinding==RuntimeBuildBinding.BuildUnpinned&&facts.PublicBuildManifestBindingUnbound&&facts.PublicBuildManifestBindingIdentity==null&&facts.LiveExecutionNotRun&&facts.ProcessCreationUnreachable&&facts.QualificationIneligible&&facts.OriginalExecutionNotRun&&facts.OriginalBehaviorUnqualified&&facts.NoImageExecutionObserved&&facts.NoObjectObservationAttempted&&facts.NoLiveJobObservationAttempted;",
+        "privatestaticboolExactUnboundImage(RuntimeImageDeclarationFactsfacts,RuntimeImageRolerole)":
+            "returnfacts!=null&&facts.Role==role&&String.Equals(facts.FixedName,FixedRuntimeBindingContract.NameFor(role),StringComparison.Ordinal)&&facts.DeclaredBindingState==RuntimeImageBindingState.Unbound&&facts.DeclaredIdentity==null;",
+        "privatestaticboolExactUiFixture(RuntimeImageDeclarationFactsfacts)":
+            "returnfacts!=null&&facts.Role==RuntimeImageRole.UiFixture&&String.Equals(facts.FixedName,FixedRuntimeBindingContract.NameFor(RuntimeImageRole.UiFixture),StringComparison.Ordinal)&&facts.DeclaredBindingState==RuntimeImageBindingState.BoundNotRun&&ExactIdentity(facts.DeclaredIdentity,FixedRuntimeBindingContract.UiFixtureByteCount,FixedRuntimeBindingContract.UiFixtureSha256);",
+        "privatestaticboolExactObjectBindingRequirements(RuntimeObjectBindingRequirementFactsfacts)":
+            "returnfacts!=null&&String.Equals(facts.PublicConfigurationName,FixedRuntimeBindingContract.PublicConfigurationName,StringComparison.Ordinal)&&String.Equals(facts.PrivateConfigurationName,FixedRuntimeBindingContract.PrivateConfigurationName,StringComparison.Ordinal)&&String.Equals(facts.ReportName,FixedRuntimeBindingContract.ReportName,StringComparison.Ordinal)&&facts.RequireHeldExactParent&&facts.RequireCanonicalFinalPaths&&facts.RequireObjectIds&&facts.RequireSameVolume&&facts.RequireRegularFiles&&facts.RequireAlternateMountRejection&&facts.RequirePairwiseDistinctObjects&&facts.RequireSingleLinkFiles&&facts.RequireNoReparsePoints&&facts.RequireNoAlternateDataStreams&&facts.RequireStableBeforeAfter&&facts.RequireRuntimeCopiesNotHardlinks&&facts.RequirePrivateConfigurationWithoutExecutablePath&&facts.RequireRebindBefore&&facts.RequireRebindAfter;",
+        "privatestaticboolExactRoute(RuntimeRouteDeclarationFactsfacts,stringscenario,RuntimeImageRoleworker,RuntimeImageRoletarget,RuntimeImageRoledescendant,boolprocessCreation,DeclaredFixtureStatusfixtureStatus)":
+            "returnfacts!=null&&String.Equals(facts.Scenario,scenario,StringComparison.Ordinal)&&facts.Worker==worker&&facts.PrimaryTarget==target&&facts.Descendant==descendant&&facts.WorkerProcessCreationCapabilityDeclared==processCreation&&facts.ExpectedFixtureStatus==fixtureStatus;",
+        "privatestaticboolExactOuterJob(RuntimeOuterJobDeclarationFactsfacts,stringscenario,intactiveLimit,longjobMemory,boolnested)":
+            "returnfacts!=null&&String.Equals(facts.Scenario,scenario,StringComparison.Ordinal)&&facts.ActiveProcessLimit==activeLimit&&facts.ProcessMemoryLimitBytes==FixedRuntimeBindingContract.ProcessMemoryLimitBytes&&facts.JobMemoryLimitBytes==jobMemory&&facts.RequireKillOnClose&&facts.RequireBreakawayForbidden&&facts.RequireNestedInnerJob==nested&&facts.RequireNonInheritableHandle&&facts.DeclareSupervisorNotMember&&facts.RequireUnnamedJob&&facts.RequireWorkerCreatedSuspended&&facts.RequireWorkerAssignedBeforeResume&&facts.RequireWorkerMembershipQuery&&facts.RequiredWorkerResumeCallCount==1;",
+    }
+    for marker, expected_body in expected_bodies.items():
+        if extract_block(compact, marker, marker) != expected_body:
+            raise VerificationError("exact policy predicate " + marker)
     if "PublicBuildManifestBindingUnbound&&facts.PublicBuildManifestBindingIdentity==null" not in compact or \
             "BuildBinding==RuntimeBuildBinding.BuildUnpinned" not in compact:
         raise VerificationError("build-unpinned manifest boundary")
@@ -255,6 +334,9 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
         "ExactOuterJob(facts.TimeoutOuterJob", "ExactOuterJob(facts.LockedOuterJob",
         "newBuildUnpinnedRefusal(",
     ), "validation")
+    expected_validate = 'stringscenario=null;intgeneration=-1;boolstateReady=state!=null&&state.TryGetRefusalBinding(outscenario,outgeneration);boolexact=stateReady&&facts!=null&&ExactContract(facts.Contract)&&ExactUnboundImage(facts.Supervisor,RuntimeImageRole.Supervisor)&&ExactUnboundImage(facts.Controller,RuntimeImageRole.Controller)&&ExactUnboundImage(facts.LockedPreflight,RuntimeImageRole.LockedPreflight)&&ExactUiFixture(facts.UiFixture)&&ExactUnboundImage(facts.TimeoutRoot,RuntimeImageRole.TimeoutRoot)&&ExactUnboundImage(facts.TimeoutChild,RuntimeImageRole.TimeoutChild)&&ExactObjectBindingRequirements(facts.ObjectBindingRequirements)&&ExactRoute(facts.UiRoute,"",RuntimeImageRole.Controller,RuntimeImageRole.UiFixture,RuntimeImageRole.Absent,true,DeclaredFixtureStatus.Succeeded)&&ExactRoute(facts.TimeoutRoute,"",RuntimeImageRole.Controller,RuntimeImageRole.TimeoutRoot,RuntimeImageRole.TimeoutChild,true,DeclaredFixtureStatus.ExpectedTimeoutContained)&&ExactRoute(facts.LockedRoute,"",RuntimeImageRole.LockedPreflight,RuntimeImageRole.Absent,RuntimeImageRole.Absent,false,DeclaredFixtureStatus.NotRun)&&ExactOuterJob(facts.UiOuterJob,"",2,536870912,true)&&ExactOuterJob(facts.TimeoutOuterJob,"",3,805306368,true)&&ExactOuterJob(facts.LockedOuterJob,"",1,268435456,false);returnexact?newBuildUnpinnedRefusal(state,scenario,generation,FixedRuntimeBindingContract.ProfileId,FixedRuntimeBindingContract.RuntimeProfileByteCount,FixedRuntimeBindingContract.RuntimeProfileSha256,RefusalKey):null;'
+    if validate != expected_validate:
+        raise VerificationError("exact validation route")
     refusal = extract_block(compact, "internalsealedclassBuildUnpinnedRefusal", "refusal")
     for value in ("owner", "scenario", "generation", "profileId", "profileByteCount",
             "profileSha256", "consumed"):
@@ -274,6 +356,9 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     assert_body = extract_block(test_compact, "privatestaticvoidAssert(boolvalue)", "assertion")
     if assert_body != 'assertions++;if(!value)thrownewInvalidOperationException(""+assertions.ToString());':
         raise VerificationError("test assertion body")
+    if test_compact.count("Console.") != 1 or \
+            test_compact.count('Console.WriteLine(""+assertions.ToString())') != 1:
+        raise VerificationError("test console surface")
     main_body = extract_block(test_compact, "privatestaticintMain()", "test main")
     require_order(main_body, ("AcceptanceCases();", "ContractMutationCases();",
         "ImageMutationCases();", "RouteMutationCases();", "OuterJobMutationCases();",
@@ -304,6 +389,45 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
         "ui_fixture_image": "bound-not-run"}
     if profile.get("status") != expected_status:
         raise VerificationError("runtime profile image status")
+    expected_names = {"controller": "SyntheticLauncherController.exe",
+        "locked_preflight": "SyntheticLauncherLockedPreflight.exe",
+        "private_configuration": "SyntheticLauncherController.private.v1.json",
+        "public_runtime_configuration": "SyntheticLauncherController.public.v1.json",
+        "report": "SyntheticLauncherReport.v1.json",
+        "supervisor": "SyntheticLauncherSupervisor.exe",
+        "timeout_child": "SyntheticLauncherTimeoutChild.exe",
+        "timeout_root": "SyntheticLauncherTimeoutFixture.exe",
+        "ui_fixture": "SyntheticLauncherFixture.exe"}
+    expected_routes = {
+        "locked-refusal-v1": {"descendant": "absent",
+            "expected_fixture_execution_status": "not-run", "primary_target": "absent",
+            "worker": "locked_preflight", "worker_process_creation_capability": False},
+        "tree-timeout-v1": {"descendant": "timeout_child",
+            "expected_fixture_execution_status": "expected-timeout-contained",
+            "primary_target": "timeout_root", "worker": "controller",
+            "worker_process_creation_capability": True},
+        "ui-success-v1": {"descendant": "absent",
+            "expected_fixture_execution_status": "succeeded", "primary_target": "ui_fixture",
+            "worker": "controller", "worker_process_creation_capability": True},
+    }
+    expected_outer_job = {"active_process_limit_by_scenario": {
+            "locked-refusal-v1": 1, "tree-timeout-v1": 3, "ui-success-v1": 2},
+        "assign_worker_before_resume": True, "breakaway_forbidden": True,
+        "job_memory_limit_bytes_by_scenario": {"locked-refusal-v1": 268435456,
+            "tree-timeout-v1": 805306368, "ui-success-v1": 536870912},
+        "kill_on_close": True, "nested_inner_job_required_for": [
+            "tree-timeout-v1", "ui-success-v1"], "non_inheritable_handle": True,
+        "process_memory_limit_bytes": 268435456, "supervisor_is_member": False,
+        "unnamed": True, "worker_created_suspended": True,
+        "worker_membership_queried": True, "worker_resume_call_count": 1}
+    if profile.get("fixed_names") != expected_names or \
+            profile.get("scenario_images") != expected_routes or \
+            profile.get("outer_job") != expected_outer_job:
+        raise VerificationError("runtime profile fixed binding declarations")
+    if profile.get("accepted_inputs", {}).get("ui_fixture") != {
+            "byte_count": 14336,
+            "sha256": "f469671fd3d8f4986ced0448a70a023d225ed529802cee63cabb43f6fbca2ad6"}:
+        raise VerificationError("runtime profile UI fixture identity")
     normalized_readme = re.sub(r"\s+", " ", readme).lower()
     for phrase in ("build-unpinned refusal", "caller supplies no expected values",
             "public build-manifest binding is unbound", "makes no claim that compiled files are absent",
@@ -312,6 +436,20 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
             "must not execute"):
         if phrase.lower() not in normalized_readme:
             raise VerificationError("README boundary " + phrase)
+    if re.search(r"(?m)^\s*(?:if|continue-on-error):", workflow) or any(value in workflow for value in (
+            "|| true", "exit 0", "Set-Alias", "function python", "function sha256sum",
+            "python3()", "sha256sum()", "$env:PATH", "PATH=")):
+        raise VerificationError("workflow disabling or command shadowing")
+    verification_step = (
+        "    - name: Verify authority-free runtime binding policy\n"
+        "      run: |\n"
+        f'        echo "{verifier_sha256}  {VERIFIER_PATH}" | sha256sum --check --strict -\n'
+        f"        python3 {VERIFIER_PATH} self-test\n"
+        f"        python3 {VERIFIER_PATH} verify \\\n"
+        '          --repo "$GITHUB_WORKSPACE" \\\n'
+        '          --source-commit "$GITHUB_SHA"\n')
+    if workflow.count(verification_step) != 1:
+        raise VerificationError("exact workflow verification step")
     for value in ("verify_runtime_binding_policy.py self-test",
             "RuntimeBindingPolicyTests.exe",
             "/main:Cm0102.SyntheticLauncherController.RuntimeBindingPolicyTests",
@@ -348,21 +486,22 @@ def validate_commit(repo: pathlib.Path, commit: str) -> None:
         raise VerificationError("source commit is not exact HEAD")
 
 
-def verify_inventory(repo: pathlib.Path, commit: str) -> None:
+def verify_inventory(repo: pathlib.Path, commit: str, root_descriptor: int) -> None:
     prefix = CONTROLLER_DIRECTORY + "/"
     committed = run_git(repo, ["ls-tree", "-r", "--name-only", commit, "--",
         CONTROLLER_DIRECTORY]).decode("ascii", "strict").splitlines()
     expected = [prefix + name for name in EXPECTED_CONTROLLER_FILES]
     if committed != sorted(expected):
         raise VerificationError("controller commit inventory")
-    directory = repo / CONTROLLER_DIRECTORY
-    require_path_components(directory)
-    observed = []
-    with os.scandir(directory) as entries:
-        for entry in entries:
-            if entry.is_symlink() or not entry.is_file(follow_symlinks=False):
+    controller_descriptor = open_directory_at(root_descriptor, CONTROLLER_DIRECTORY)
+    try:
+        observed = os.listdir(controller_descriptor)
+        for name in observed:
+            value = os.stat(name, dir_fd=controller_descriptor, follow_symlinks=False)
+            if not stat.S_ISREG(value.st_mode) or value.st_nlink != 1:
                 raise VerificationError("controller filesystem inventory type")
-            observed.append(entry.name)
+    finally:
+        os.close(controller_descriptor)
     if sorted(observed) != sorted(EXPECTED_CONTROLLER_FILES):
         raise VerificationError("controller filesystem inventory")
 
@@ -373,32 +512,44 @@ def verify(repo_argument: pathlib.Path, commit: str) -> dict[str, tuple[int, str
         raise VerificationError("repository path")
     repo = repo_argument
     require_path_components(repo)
-    if pathlib.Path(run_git(repo, ["rev-parse", "--show-toplevel"]).decode().strip()) != repo:
-        raise VerificationError("repository is not canonical top level")
-    if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
-        raise VerificationError("verifier is not executing from canonical path")
-    validate_commit(repo, commit)
-    verify_inventory(repo, commit)
-    captured: dict[str, bytes] = {}
-    identities: dict[str, tuple[int, str]] = {}
-    for relative in BOUND_PATHS:
-        raw = read_bound(repo / relative)
-        if relative in FROZEN_IDENTITIES and identity(raw) != FROZEN_IDENTITIES[relative]:
-            raise VerificationError(relative + " frozen identity")
-        if raw != run_git(repo, ["show", commit + ":" + relative]):
-            raise VerificationError(relative + " differs from source commit")
-        captured[relative] = raw
-        identities[relative] = identity(raw)
-    verify_policy(decode_source(captured[SOURCE_PATH], "runtime binding policy"),
-        decode_source(captured[TEST_PATH], "runtime binding tests"),
-        captured[README_PATH].decode("ascii", "strict"), captured[PROFILE_PATH],
-        captured[WORKFLOW_PATH].decode("ascii", "strict"))
-    for relative, original in captured.items():
-        if read_bound(repo / relative) != original:
-            raise VerificationError(relative + " changed across aggregate verification")
-    verify_inventory(repo, commit)
-    validate_commit(repo, commit)
-    return identities
+    root_descriptor = os.open(repo, os.O_PATH | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        root_identity = os.fstat(root_descriptor)
+        lexical_root = os.stat(repo, follow_symlinks=False)
+        root_fields = lambda value: (value.st_dev, value.st_ino, value.st_mode,
+            value.st_uid, value.st_gid)
+        if root_fields(root_identity) != root_fields(lexical_root):
+            raise VerificationError("repository descriptor identity")
+        if pathlib.Path(run_git(repo, ["rev-parse", "--show-toplevel"]).decode().strip()) != repo:
+            raise VerificationError("repository is not canonical top level")
+        if pathlib.Path(__file__).absolute() != repo / VERIFIER_PATH:
+            raise VerificationError("verifier is not executing from canonical path")
+        validate_commit(repo, commit)
+        verify_inventory(repo, commit, root_descriptor)
+        captured: dict[str, bytes] = {}
+        identities: dict[str, tuple[int, str]] = {}
+        for relative in BOUND_PATHS:
+            raw = read_bound_at(root_descriptor, relative)
+            if relative in FROZEN_IDENTITIES and identity(raw) != FROZEN_IDENTITIES[relative]:
+                raise VerificationError(relative + " frozen identity")
+            if raw != run_git(repo, ["show", commit + ":" + relative]):
+                raise VerificationError(relative + " differs from source commit")
+            captured[relative] = raw
+            identities[relative] = identity(raw)
+        verify_policy(decode_source(captured[SOURCE_PATH], "runtime binding policy"),
+            decode_source(captured[TEST_PATH], "runtime binding tests"),
+            captured[README_PATH].decode("ascii", "strict"), captured[PROFILE_PATH],
+            captured[WORKFLOW_PATH].decode("ascii", "strict"), identity(captured[VERIFIER_PATH])[1])
+        for relative, original in captured.items():
+            if read_bound_at(root_descriptor, relative) != original:
+                raise VerificationError(relative + " changed across aggregate verification")
+        verify_inventory(repo, commit, root_descriptor)
+        validate_commit(repo, commit)
+        if root_fields(root_identity) != root_fields(os.stat(repo, follow_symlinks=False)):
+            raise VerificationError("repository root replaced during verification")
+        return identities
+    finally:
+        os.close(root_descriptor)
 
 
 def self_test() -> None:
@@ -410,10 +561,10 @@ def self_test() -> None:
     readme = read_bound(repo / README_PATH).decode("ascii", "strict")
     profile = read_bound(repo / PROFILE_PATH)
     workflow_raw = read_bound(repo / WORKFLOW_PATH)
+    verifier_raw = read_bound(repo / VERIFIER_PATH)
+    verifier_sha256 = identity(verifier_raw)[1]
     workflow = workflow_raw.decode("ascii", "strict")
-    verify_policy(source, tests, readme, profile, workflow)
-    if identity(workflow_raw) != FROZEN_IDENTITIES[WORKFLOW_PATH]:
-        raise AssertionError("workflow frozen identity")
+    verify_policy(source, tests, readme, profile, workflow, verifier_sha256)
     for mutation in (
         "System.IO.File.ReadAllText(\"x\")", "System.Diagnostics.Process.Start(\"x\")",
         "[DllImport(\"x\")] extern static void X();", "unsafe { }", "dynamic value",
@@ -434,7 +585,7 @@ def self_test() -> None:
         'if (!value) throw new InvalidOperationException("assertion-failed-" + assertions.ToString());',
         "if (!value) assertions++;")
     try:
-        verify_policy(source, disabled_assert, readme, profile, workflow)
+        verify_policy(source, disabled_assert, readme, profile, workflow, verifier_sha256)
     except VerificationError:
         pass
     else:
@@ -448,14 +599,50 @@ def self_test() -> None:
     ):
         changed = source.replace(old, new, 1)
         try:
-            verify_policy(changed, tests, readme, profile, workflow)
+            verify_policy(changed, tests, readme, profile, workflow, verifier_sha256)
         except VerificationError:
             pass
         else:
             raise AssertionError("accepted policy weakening")
-    for suffix in (b"\nif: false\n", b"\ncontinue-on-error: true\n", b"\nexit 0\n"):
-        if identity(workflow_raw + suffix) == FROZEN_IDENTITIES[WORKFLOW_PATH]:
-            raise AssertionError("accepted workflow mutation")
+    synchronized = (
+        (source.replace("ExactOuterJob(facts.UiOuterJob, \"ui-success-v1\", 2, 536870912, true)",
+            "ExactOuterJob(facts.UiOuterJob, \"ui-success-v1\", 2, 536870913, true)"),
+         tests.replace("index == 0 ? 536870912", "index == 0 ? 536870913")),
+        (source.replace("facts.RequireNoReparsePoints &&",
+            "!facts.RequireNoReparsePoints &&"),
+         tests.replace("bool noReparse = true;", "bool noReparse = false;")),
+    )
+    for changed_source, changed_tests in synchronized:
+        try:
+            verify_policy(changed_source, changed_tests, readme, profile, workflow,
+                verifier_sha256)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted synchronized semantic weakening")
+    console_mutation = tests.replace('Console.WriteLine("PASS " + assertions.ToString());',
+        'Console.Title = Console.Title; Console.WriteLine("PASS " + assertions.ToString());')
+    try:
+        verify_policy(source, console_mutation, readme, profile, workflow, verifier_sha256)
+    except VerificationError:
+        pass
+    else:
+        raise AssertionError("accepted ambient console authority")
+    workflow_mutations = (
+        workflow.replace("    - name: Verify authority-free runtime binding policy\n",
+            "    - name: Verify authority-free runtime binding policy\n      if: ${{ false }}\n", 1),
+        workflow.replace("    - name: Verify authority-free runtime binding policy\n",
+            "    - name: Verify authority-free runtime binding policy\n      continue-on-error: true\n", 1),
+        workflow.replace("        python3 " + VERIFIER_PATH + " self-test\n",
+            "        python3() { return 0; }\n        python3 " + VERIFIER_PATH + " self-test\n", 1),
+    )
+    for changed_workflow in workflow_mutations:
+        try:
+            verify_policy(source, tests, readme, profile, changed_workflow, verifier_sha256)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted disabled workflow gate")
     with tempfile.TemporaryDirectory() as directory:
         replacement_repo = pathlib.Path(directory)
         git_environment = {"PATH": "/usr/bin:/bin", "GIT_CONFIG_NOSYSTEM": "1",
