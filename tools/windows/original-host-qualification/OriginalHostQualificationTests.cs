@@ -18,6 +18,7 @@ namespace Cm0102.OriginalHostQualification
             Run("canonical-json", TestCanonicalJson);
             Run("canonical-json-rejects-float", TestCanonicalJsonRejectsFloat);
             Run("minimal-document", TestMinimalDocument);
+            Run("stage-diagnostic", TestStageDiagnostic);
             Run("redactor", TestRedactor);
             Run("strict-expectations", TestStrictExpectations);
             Run("strict-private-config", TestStrictPrivateConfig);
@@ -82,6 +83,22 @@ namespace Cm0102.OriginalHostQualification
             Assert(Convert.ToInt32(summary["passed_count"]) == 0);
             Assert(Convert.ToInt32(summary["failed_count"]) == 0);
             Assert(Convert.ToInt32(summary["error_count"]) == 1);
+        }
+
+        private static void TestStageDiagnostic()
+        {
+            string detail = Program.UnhandledDetail(DiagnosticStages.HostObservation,
+                new SystemException(@"C:\private\user\secret"));
+            Assert(detail == "unhandled-v1-host-observation-exception-80131501");
+            ProbeStageException wrapped = new ProbeStageException(DiagnosticStages.SessionDiscovery,
+                new UnauthorizedAccessException(@"\\private\share\secret"));
+            Assert(wrapped.Stage == DiagnosticStages.SessionDiscovery);
+            Assert(Program.UnhandledDetail(wrapped.Stage, wrapped.InnerException) ==
+                "unhandled-v1-session-discovery-unauthorized");
+            Assert(Program.UnhandledDetail("C:\\private\\injected", new SystemException()) ==
+                "unhandled-v1-stage-tracker-exception-80131501");
+            Assert(!detail.Contains("SystemException"));
+            Assert(!detail.Contains("private"));
         }
 
         private static void TestRedactor()

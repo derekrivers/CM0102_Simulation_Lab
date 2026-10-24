@@ -29,17 +29,24 @@ namespace Cm0102.OriginalHostQualification
         private static int Main(string[] args)
         {
             Console.OutputEncoding = new UTF8Encoding(false);
+            string stage = DiagnosticStages.Arguments;
             try
             {
                 Arguments parsed = Arguments.Parse(args);
+                stage = DiagnosticStages.ExpectationsLoad;
                 Expectations expectations = Expectations.Load(parsed.ExpectationsPath);
+                stage = DiagnosticStages.LocatorLoad;
                 PrivateLocator locator = PrivateLocator.Load(parsed.PrivateConfigPath);
+                stage = DiagnosticStages.ProbeConstruction;
                 Probe probe = new Probe(parsed.SourceRevision, parsed.ExpectationsPath, parsed.PrivateConfigPath,
                     expectations, locator);
                 ProbeResult result = probe.Run();
+                stage = DiagnosticStages.CanonicalSerialization;
                 string json = CanonicalJson.Serialize(result.Document);
+                stage = DiagnosticStages.RedactionScan;
                 if (!result.Redactor.IsSafe(result.Document) || !result.Redactor.IsSerializedSafe(json))
                     return EmitMinimal("redaction-failure", ExitInconclusive);
+                stage = DiagnosticStages.StdoutEmission;
                 Console.Out.Write(json);
                 Console.Out.Write('\n');
                 return result.ExitCode;
@@ -48,9 +55,13 @@ namespace Cm0102.OriginalHostQualification
             {
                 return EmitMinimal("usage-or-config", ExitUsage);
             }
+            catch (ProbeStageException exception)
+            {
+                return EmitMinimal(UnhandledDetail(exception.Stage, exception.InnerException ?? exception), ExitInconclusive);
+            }
             catch (Exception exception)
             {
-                return EmitMinimal("unhandled-" + StableExceptionCode(exception), ExitInconclusive);
+                return EmitMinimal(UnhandledDetail(stage, exception), ExitInconclusive);
             }
         }
 
@@ -102,11 +113,75 @@ namespace Cm0102.OriginalHostQualification
             if (exception is CryptographicException) return "crypto-" + exception.HResult.ToString("x8", CultureInfo.InvariantCulture);
             return "exception-" + exception.HResult.ToString("x8", CultureInfo.InvariantCulture);
         }
+
+        internal static string UnhandledDetail(string stage, Exception exception)
+        {
+            return "unhandled-v1-" + DiagnosticStages.Require(stage) + "-" + StableExceptionCode(exception);
+        }
+    }
+
+    internal static class DiagnosticStages
+    {
+        internal const string Csv = "arguments,canonical-serialization,capabilities,clean-manifest,clean-tree-after,clean-tree-before,current-token,expectations-load,explorer-token,game-process-after,game-process-before,host-observation,impersonation-restore,installed-tree-after,installed-tree-before,iso-file,locator-load,optical-media,preflight-inputs,probe-construction,probe-image-after,probe-start,redaction-scan,registry-current-access,registry-explorer-access,registry-last-write-after,registry-last-write-before,registry-metadata,report-assembly,session-desktop,session-discovery,session-display,stage-tracker,stdout-emission,virtual-store-after,virtual-store-before";
+        private static readonly HashSet<string> Allowed = new HashSet<string>(Csv.Split(','), StringComparer.Ordinal);
+
+        public const string Arguments = "arguments";
+        public const string CanonicalSerialization = "canonical-serialization";
+        public const string Capabilities = "capabilities";
+        public const string CleanManifest = "clean-manifest";
+        public const string CleanTreeAfter = "clean-tree-after";
+        public const string CleanTreeBefore = "clean-tree-before";
+        public const string CurrentToken = "current-token";
+        public const string ExpectationsLoad = "expectations-load";
+        public const string ExplorerToken = "explorer-token";
+        public const string GameProcessAfter = "game-process-after";
+        public const string GameProcessBefore = "game-process-before";
+        public const string HostObservation = "host-observation";
+        public const string ImpersonationRestore = "impersonation-restore";
+        public const string InstalledTreeAfter = "installed-tree-after";
+        public const string InstalledTreeBefore = "installed-tree-before";
+        public const string IsoFile = "iso-file";
+        public const string LocatorLoad = "locator-load";
+        public const string OpticalMedia = "optical-media";
+        public const string PreflightInputs = "preflight-inputs";
+        public const string ProbeConstruction = "probe-construction";
+        public const string ProbeImageAfter = "probe-image-after";
+        public const string ProbeStart = "probe-start";
+        public const string RedactionScan = "redaction-scan";
+        public const string RegistryCurrentAccess = "registry-current-access";
+        public const string RegistryExplorerAccess = "registry-explorer-access";
+        public const string RegistryLastWriteAfter = "registry-last-write-after";
+        public const string RegistryLastWriteBefore = "registry-last-write-before";
+        public const string RegistryMetadata = "registry-metadata";
+        public const string ReportAssembly = "report-assembly";
+        public const string SessionDesktop = "session-desktop";
+        public const string SessionDiscovery = "session-discovery";
+        public const string SessionDisplay = "session-display";
+        public const string StageTracker = "stage-tracker";
+        public const string StdoutEmission = "stdout-emission";
+        public const string VirtualStoreAfter = "virtual-store-after";
+        public const string VirtualStoreBefore = "virtual-store-before";
+
+        public static string Require(string stage)
+        {
+            return stage != null && Allowed.Contains(stage) ? stage : StageTracker;
+        }
     }
 
     internal sealed class UsageException : Exception
     {
         public UsageException() : base("invalid-usage") { }
+    }
+
+    internal sealed class ProbeStageException : Exception
+    {
+        public readonly string Stage;
+
+        public ProbeStageException(string stage, Exception innerException)
+            : base("probe-stage-failure", innerException)
+        {
+            Stage = DiagnosticStages.Require(stage);
+        }
     }
 
     internal sealed class Arguments
@@ -514,6 +589,7 @@ namespace Cm0102.OriginalHostQualification
         private readonly List<CheckRecord> checks = new List<CheckRecord>();
         private readonly List<object> errors = new List<object>();
         private readonly Redactor redactor = new Redactor();
+        private string diagnosticStage = DiagnosticStages.ProbeStart;
 
         public Probe(string sourceRevision, string expectationsPath, string privateConfigPath,
             Expectations expectations, PrivateLocator locator)
@@ -533,6 +609,15 @@ namespace Cm0102.OriginalHostQualification
 
         public ProbeResult Run()
         {
+            try { return RunCore(); }
+            catch (UsageException) { throw; }
+            catch (ProbeStageException) { throw; }
+            catch (Exception exception) { throw new ProbeStageException(diagnosticStage, exception); }
+        }
+
+        private ProbeResult RunCore()
+        {
+            diagnosticStage = DiagnosticStages.ProbeStart;
             Stopwatch elapsed = Stopwatch.StartNew();
             DateTime observedAt = DateTime.UtcNow;
             string executablePath = Assembly.GetExecutingAssembly().Location;
@@ -542,16 +627,20 @@ namespace Cm0102.OriginalHostQualification
             FileIdentity expectationsIdentity = expectations.SourceIdentity;
             FileIdentity privateIdentity = locator.SourceIdentity;
 
+            diagnosticStage = DiagnosticStages.PreflightInputs;
             bool privateInputsDistinct = PathSafety.AreDistinctExistingObjects(locator.AllPaths());
             AddCheck("private-inputs-distinct", true, privateInputsDistinct,
                 privateInputsDistinct ? "distinct" : "alias-detected");
 
+            diagnosticStage = DiagnosticStages.GameProcessBefore;
             int gameCountBefore = CountGameProcesses();
             AddCheck("no-game-process-before", true, gameCountBefore == 0, gameCountBefore == 0 ? "absent" : "present");
             AddCheck("probe-process-x86", true, !Environment.Is64BitProcess,
                 Environment.Is64BitProcess ? "x64" : "x86");
 
+            diagnosticStage = DiagnosticStages.HostObservation;
             SortedDictionary<string, object> host = ObserveHost();
+            diagnosticStage = DiagnosticStages.SessionDiscovery;
             SessionObservation session = ObserveSession();
             TokenObservation explorerToken = session.ExplorerToken;
             TokenObservation currentToken = null;
@@ -562,6 +651,7 @@ namespace Cm0102.OriginalHostQualification
                     QualificationPolicy.SessionSafe(session.ActiveConsoleSessionId, session.ExplorerSessionId, session.InputDesktopName),
                     session.InputDesktopName == "Default" ? "default" : "not-default");
 
+                diagnosticStage = DiagnosticStages.CurrentToken;
                 bool currentTokenWasThreadToken;
                 currentToken = TokenObservation.EffectiveCurrent(out currentTokenWasThreadToken);
                 bool currentHigh = QualificationPolicy.DirectTokenHazard(currentToken);
@@ -583,7 +673,9 @@ namespace Cm0102.OriginalHostQualification
             AddCheck("registry-read-only", true, registry.LastWriteBefore == registry.LastWriteAfter,
                 registry.LastWriteBefore == registry.LastWriteAfter ? "unchanged" : "changed");
 
+            diagnosticStage = DiagnosticStages.InstalledTreeBefore;
             TreeManifest installedBefore = TreeManifest.Capture(locator.InstalledTree, false);
+            diagnosticStage = DiagnosticStages.VirtualStoreBefore;
             TreeManifest virtualBefore = TreeManifest.CaptureOptional(locator.VirtualStoreTree);
 
             CleanObservation clean = ObserveClean();
@@ -597,11 +689,14 @@ namespace Cm0102.OriginalHostQualification
             AddCheck("iso-identity", true, iso.IsoMatches, iso.IsoMatches ? "exact" : "mismatch");
             AddCheck("optical-media", true, iso.OpticalMatches, iso.OpticalMatches ? "exact" : "mismatch");
 
+            diagnosticStage = DiagnosticStages.Capabilities;
             SortedDictionary<string, object> capabilities = ObserveCapabilities();
             bool requiredTools = RequiredCapabilitiesPresent(capabilities);
             AddCheck("required-host-tools", true, requiredTools, requiredTools ? "available" : "missing");
 
+            diagnosticStage = DiagnosticStages.InstalledTreeAfter;
             TreeManifest installedAfter = TreeManifest.Capture(locator.InstalledTree, false);
+            diagnosticStage = DiagnosticStages.VirtualStoreAfter;
             TreeManifest virtualAfter = TreeManifest.CaptureOptional(locator.VirtualStoreTree);
             bool installedStable = installedBefore.SameIdentity(installedAfter);
             bool virtualStable = virtualBefore.SameIdentity(virtualAfter);
@@ -612,12 +707,15 @@ namespace Cm0102.OriginalHostQualification
             AddCheck("virtual-store-plain", true, virtualPlain, virtualPlain ? "plain-or-absent" : "unsafe-entry");
             AddCheck("virtual-store-stable", true, virtualStable, virtualStable ? "unchanged" : "changed");
 
+            diagnosticStage = DiagnosticStages.GameProcessAfter;
             int gameCountAfter = CountGameProcesses();
             AddCheck("no-game-process-after", true, gameCountAfter == 0, gameCountAfter == 0 ? "absent" : "present");
 
+            diagnosticStage = DiagnosticStages.ProbeImageAfter;
             FileIdentity executableAfter = FileIdentity.Read(executablePath);
             AddCheck("probe-image-stable", true, executable.Same(executableAfter), executable.Same(executableAfter) ? "unchanged" : "changed");
 
+            diagnosticStage = DiagnosticStages.ReportAssembly;
             checks.Sort(delegate(CheckRecord left, CheckRecord right) { return StringComparer.Ordinal.Compare(left.Id, right.Id); });
             List<object> checkJson = new List<object>();
             int passed = 0;
@@ -664,7 +762,7 @@ namespace Cm0102.OriginalHostQualification
                     "private_locator_sha256", privateIdentity.Sha256,
                     "process_architecture", Environment.Is64BitProcess ? "x64" : "x86",
                     "source_revision", sourceRevision,
-                    "version", "1.0.0"),
+                    "version", "1.1.0"),
                 "registry", registry.ToJson(expectations.RegistryKeyId, expectations.RegistryExactAccessMask),
                 "run", JsonObjects.Object(
                     "elapsed_ms", elapsed.ElapsedMilliseconds,
@@ -744,8 +842,10 @@ namespace Cm0102.OriginalHostQualification
                 foreach (Process process in explorers)
                     if ((uint)process.SessionId == active) matching.Add(process);
                 if (matching.Count != 1) throw new InvalidOperationException("active-explorer-count");
+                diagnosticStage = DiagnosticStages.SessionDesktop;
                 string inputDesktop = NativeMethods.GetInputDesktopName();
                 string windowStation = NativeMethods.GetWindowStationName();
+                diagnosticStage = DiagnosticStages.SessionDisplay;
                 Screen primary = Screen.PrimaryScreen;
                 int currentSession;
                 using (Process current = Process.GetCurrentProcess()) currentSession = current.SessionId;
@@ -761,6 +861,7 @@ namespace Cm0102.OriginalHostQualification
                     ScreenHeight = primary.Bounds.Height,
                     BitsPerPixel = primary.BitsPerPixel
                 };
+                diagnosticStage = DiagnosticStages.ExplorerToken;
                 result.ExplorerToken = TokenObservation.FromProcess(matching[0]);
                 return result;
             }
@@ -773,19 +874,24 @@ namespace Cm0102.OriginalHostQualification
         private RegistryObservation ObserveRegistry(TokenObservation currentToken, bool currentTokenWasThreadToken,
             TokenObservation explorerToken)
         {
+            diagnosticStage = DiagnosticStages.RegistryLastWriteBefore;
             long before = NativeMethods.RegistryLastWrite(expectations.RegistrySubkey);
+            diagnosticStage = DiagnosticStages.RegistryCurrentAccess;
             int currentResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask);
             int explorerResult;
+            diagnosticStage = DiagnosticStages.RegistryExplorerAccess;
             using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(explorerToken.ImpersonationTokenHandle))
             {
                 try { explorerResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask); }
                 finally { context.Undo(); }
             }
+            diagnosticStage = DiagnosticStages.ImpersonationRestore;
             bool restoredTokenIsThreadToken;
             TokenObservation restoredToken = TokenObservation.EffectiveCurrent(out restoredTokenIsThreadToken);
             if (restoredTokenIsThreadToken != currentTokenWasThreadToken || !restoredToken.SecurityEquivalent(currentToken))
                 throw new InvalidOperationException("impersonation-not-restored");
 
+            diagnosticStage = DiagnosticStages.RegistryMetadata;
             string location;
             string owner;
             string group;
@@ -824,6 +930,7 @@ namespace Cm0102.OriginalHostQualification
                 if (sid != 0) return sid;
                 return Convert.ToInt64(l["access_mask"]).CompareTo(Convert.ToInt64(r["access_mask"]));
             });
+            diagnosticStage = DiagnosticStages.RegistryLastWriteAfter;
             long after = NativeMethods.RegistryLastWrite(expectations.RegistrySubkey);
             string normalizedLocation = NormalizePath(location);
             string normalizedInstalled = NormalizePath(locator.InstalledTree);
@@ -851,10 +958,13 @@ namespace Cm0102.OriginalHostQualification
 
         private CleanObservation ObserveClean()
         {
+            diagnosticStage = DiagnosticStages.CleanManifest;
             FileSnapshot manifestSnapshot = FileSnapshot.Read(locator.CleanManifest, 1024 * 1024);
             Dictionary<string, ManifestRow> expectedRows = ManifestRow.Parse(manifestSnapshot.Bytes);
             HashSet<string> expectedDirectories = ManifestRow.ExpectedDirectories(expectedRows.Keys);
+            diagnosticStage = DiagnosticStages.CleanTreeBefore;
             CleanCaptureObservation before = ObserveCleanCapture(expectedRows, expectedDirectories);
+            diagnosticStage = DiagnosticStages.CleanTreeAfter;
             CleanCaptureObservation after = ObserveCleanCapture(expectedRows, expectedDirectories);
             bool manifestMatches = QualificationPolicy.IdentityMatches(manifestSnapshot.Identity,
                 expectations.CleanManifestBytes, expectations.CleanManifestSha256);
@@ -915,8 +1025,10 @@ namespace Cm0102.OriginalHostQualification
 
         private IsoObservation ObserveIso()
         {
+            diagnosticStage = DiagnosticStages.IsoFile;
             FileIdentity iso = FileIdentity.Read(locator.IsoFile);
             bool isoMatches = QualificationPolicy.IdentityMatches(iso, expectations.IsoBytes, expectations.IsoSha256);
+            diagnosticStage = DiagnosticStages.OpticalMedia;
             uint driveType = NativeMethods.GetDriveTypeW(locator.OpticalRoot);
             string label = NativeMethods.GetVolumeLabel(locator.OpticalRoot);
             string opticalExecutablePath = Path.Combine(locator.OpticalRoot, "cm0102.exe");

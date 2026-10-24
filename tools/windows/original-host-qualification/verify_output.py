@@ -80,6 +80,11 @@ REQUIRED_TOOL_IDS = {
     "python313",
     "windbg",
 }
+DIAGNOSTIC_STAGE_CSV = "arguments,canonical-serialization,capabilities,clean-manifest,clean-tree-after,clean-tree-before,current-token,expectations-load,explorer-token,game-process-after,game-process-before,host-observation,impersonation-restore,installed-tree-after,installed-tree-before,iso-file,locator-load,optical-media,preflight-inputs,probe-construction,probe-image-after,probe-start,redaction-scan,registry-current-access,registry-explorer-access,registry-last-write-after,registry-last-write-before,registry-metadata,report-assembly,session-desktop,session-discovery,session-display,stage-tracker,stdout-emission,virtual-store-after,virtual-store-before"
+DIAGNOSTIC_STAGE_IDS = frozenset(DIAGNOSTIC_STAGE_CSV.split(","))
+STABLE_EXCEPTION_CODE = re.compile(
+    r"(?:unauthorized|file-not-found|directory-not-found|(?:io|crypto|exception)-[0-9a-f]{8})\Z"
+)
 BANNED_NORMALIZED_PATTERNS = (
     (r"\.start\(", "instance/static Start"),
     (r"\bcreateprocess(?:a|w)?\(", "CreateProcess"),
@@ -325,6 +330,26 @@ def text(value: object, name: str) -> str:
     return value
 
 
+def validate_minimal_detail(value: object) -> str:
+    detail = text(value, "minimal error detail")
+    if detail in {"redaction-failure", "usage-or-config"}:
+        return detail
+    if detail.startswith("unhandled-v1-"):
+        remainder = detail[len("unhandled-v1-") :]
+        for stage in DIAGNOSTIC_STAGE_IDS:
+            prefix = stage + "-"
+            if remainder.startswith(prefix) and STABLE_EXCEPTION_CODE.fullmatch(
+                remainder[len(prefix) :]
+            ):
+                return detail
+        raise ValueError("minimal staged detail")
+    if detail.startswith("unhandled-") and STABLE_EXCEPTION_CODE.fullmatch(
+        detail[len("unhandled-") :]
+    ):
+        return detail
+    raise ValueError("minimal detail")
+
+
 def sha256(value: object, name: str) -> str:
     result = text(value, name)
     if not re.fullmatch(r"[0-9a-f]{64}", result):
@@ -430,7 +455,7 @@ def validate_full_schema(
     sha256(probe["private_locator_sha256"], "probe.private_locator_sha256")
     if not re.fullmatch(r"[0-9a-f]{40}", text(probe["source_revision"], "probe.source_revision")):
         raise ValueError("probe.source_revision")
-    if probe["id"] != "cm0102-original-host-qualification" or probe["version"] != "1.0.0":
+    if probe["id"] != "cm0102-original-host-qualification" or probe["version"] != "1.1.0":
         raise ValueError("probe identity")
     if probe["process_architecture"] not in {"x86", "x64"}:
         raise ValueError("probe.process_architecture")
@@ -969,7 +994,7 @@ def verify_bytes(raw: bytes, private_raw: bytes, expectations_raw: bytes) -> Non
         error = strict_object(errors[0], {"category", "check_id", "detail_code"}, "minimal error")
         if error["category"] != "probe" or error["check_id"] != "probe":
             raise ValueError("minimal error identity")
-        detail = text(error["detail_code"], "minimal error detail")
+        detail = validate_minimal_detail(error["detail_code"])
         if detail != checks[0]["detail_code"]:
             raise ValueError("minimal detail contradiction")
         exact_minimal = {
@@ -1013,6 +1038,12 @@ def verify(
 def static_source(paths: list[pathlib.Path]) -> None:
     for path in paths:
         source = read_bounded_plain(path, 4 * 1024 * 1024).decode("utf-8", "strict")
+        if path.name == "OriginalHostQualification.cs":
+            stage_constants = re.findall(
+                r'internal const string Csv = "([a-z0-9,-]+)";', source
+            )
+            if stage_constants != [DIAGNOSTIC_STAGE_CSV]:
+                raise ValueError(f"{path.name}: diagnostic-stage parity")
         without_comments = re.sub(r"/\*.*?\*/|//[^\r\n]*", "", source, flags=re.DOTALL)
         normalized = re.sub(r"\s+", "", without_comments).casefold()
         for pattern, label in BANNED_NORMALIZED_PATTERNS:
@@ -1223,7 +1254,7 @@ def synthetic_full_document(
             "private_locator_sha256": hashlib.sha256(private_raw).hexdigest(),
             "process_architecture": "x86",
             "source_revision": "6" * 40,
-            "version": "1.0.0",
+            "version": "1.1.0",
         },
         "registry": {
             "acl": {"aces": [], "group_sid": "S-1-5-18", "owner_sid": "S-1-5-18"},
@@ -1387,8 +1418,9 @@ def self_test() -> None:
         expect_rejected(
             lambda: verify(full_output, private, expectations), "hidden directory mismatch"
         )
+        staged_detail = "unhandled-v1-host-observation-exception-80131501"
         check = {
-            "detail_code": "self-test",
+            "detail_code": staged_detail,
             "id": "probe",
             "outcome": "error",
             "required": True,
@@ -1397,7 +1429,7 @@ def self_test() -> None:
             "capabilities": {},
             "checks": [check],
             "errors": [
-                {"category": "probe", "check_id": "probe", "detail_code": "self-test"}
+                {"category": "probe", "check_id": "probe", "detail_code": staged_detail}
             ],
             "guards": {"cm0102_launched": False},
             "host": {},
@@ -1423,6 +1455,26 @@ def self_test() -> None:
         output = root / "output.json"
         output.write_bytes(canonical(document))
         verify(output, private, expectations)
+        for stage in DIAGNOSTIC_STAGE_IDS:
+            validate_minimal_detail(f"unhandled-v1-{stage}-exception-80131501")
+        validate_minimal_detail("unhandled-exception-80131501")
+        for malformed in (
+            "unhandled-v1-unknown-stage-exception-80131501",
+            "unhandled-v1-host-observation-SystemException",
+            r"unhandled-v1-C:\\private-exception-80131501",
+            "unhandled-v1-HOST-OBSERVATION-exception-80131501",
+            "unhandled-v1-host-observation-exception-8013150",
+        ):
+            expect_rejected(
+                lambda malformed=malformed: validate_minimal_detail(malformed),
+                "minimal diagnostic detail",
+            )
+        document["checks"][0]["detail_code"] = "unhandled-v1-unknown-stage-exception-80131501"
+        document["errors"][0]["detail_code"] = "unhandled-v1-unknown-stage-exception-80131501"
+        output.write_bytes(canonical(document))
+        expect_rejected(lambda: verify(output, private, expectations), "unknown diagnostic stage")
+        document["checks"][0]["detail_code"] = staged_detail
+        document["errors"][0]["detail_code"] = staged_detail
         output.write_bytes(b'{"schema_version":1,"schema_version":1}\n')
         expect_rejected(lambda: verify(output, private, expectations), "duplicate-key self-test")
         document["guards"]["cm0102_launched"] = True

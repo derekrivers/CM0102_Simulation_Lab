@@ -81,6 +81,14 @@ success; unsafe or incomplete evidence remains retained but is never eligible.
 The manifest contains hashes and sanitized argument roles, never locator paths
 or a game command.
 
+Probe/harness version 1.1 adds privacy-preserving failure stages. An unhandled
+exception can emit only `unhandled-v1-<allowlisted-stage>-<stable-code>` in the
+existing minimal inconclusive schema. The producer and verifier use an exact
+shared stage allowlist; messages, type names, paths, registry text and stacks
+remain forbidden. The verifier continues to accept the earlier bounded
+`unhandled-<stable-code>` form so retained version-1.0 minimal evidence remains
+verifiable.
+
 The attempt assumes the invoking account and operating system are not actively
 hostile during the run. Concurrent same-account interference invalidates the
 evidence; the harness does not claim to defeat swap-and-restore attacks by an
