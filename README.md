@@ -13,7 +13,7 @@ A research and reconstruction programme for the **entire Championship Manager 01
 
 The laboratory is the first enabling product. It runs repeatable experiments against the original game and a pinned Bosman build, records evidence, and verifies the replacement. The reconstructed game and simulator use **Rust**. The browser interface uses **React and TypeScript** with the Rust core compiled to WebAssembly. Python supports existing reverse-engineering tooling.
 
-Status: P00/B0 inventory and B1 build qualification are active, 24 October 2026. The pinned public function/global map has a deterministic Rust importer and reconciled provenance report. The supplied executable is the exact official 3.9.68 PE32 expected by the pinned Bosman source, and all imported addresses have been validated against its sections. The pinned Bosman source builds successfully and all 45 registered upstream tests pass. The supplied installed data is modified and cannot be registered as the clean baseline. No qualified Bosman runtime job, VPS service, or reconstructed engine exists yet.
+Status: P00/B0 inventory and B1 execution work are active, 24 October 2026. The pinned public function/global map has a deterministic Rust importer and reconciled provenance report. The supplied executable is the exact official 3.9.68 PE32 expected by the pinned Bosman source, and all imported addresses have been validated against its sections. The pinned Bosman source builds successfully and all 45 registered upstream tests pass. A bounded local process contract now validates execution requests and protocol evidence; the Bosman-specific adapter is still outstanding. The supplied installed data is modified and cannot be registered as the clean baseline. No qualified Bosman runtime job, VPS service, or reconstructed engine exists yet.
 
 Start with [ROADMAP.md](ROADMAP.md), [non-negotiables](docs/NON_NEGOTIABLES.md), [stack decisions](docs/architecture/TECH_STACK.md), and the [simulator design](docs/architecture/SIMULATOR.md). The detailed [implementation roadmap](docs/roadmap/implementation-roadmap.md) links all phase gates. [Sources and limitations](docs/research/SOURCES.md) distinguish inspected code from proposed behaviour.
 
@@ -28,6 +28,8 @@ cargo run -p lab-cli -- import-map \
 ```
 
 The generated evidence artifact is intentionally untracked. It retains every imported row as an upstream hypothesis. Omit `--executable` only for map-only work; the artifact then explicitly reports address validation as pending.
+
+The versioned local execution request and child protocol are documented in [local execution request v1](docs/architecture/EXECUTION_REQUEST_V1.md).
 
 Whole-game scope includes management, world simulation, competition rules, match engines, databases, save/load, news, navigation, presentation, settings and supported modes. Match fidelity is one workstream.
 

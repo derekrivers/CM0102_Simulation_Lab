@@ -4,7 +4,7 @@ Date: 24 October 2026 (Europe/London)
 
 ## Scope and identity
 
-This checkpoint qualifies a native Linux build of the pinned Bosman source. It does not qualify runtime behaviour or close B1: the available installed data is not the clean 760-file baseline, so the executable was not started against it.
+This checkpoint qualifies a native Linux build of the pinned Bosman source. It does not qualify runtime behaviour or close B1: the available installed data is not the clean 760-file baseline. A later exploratory run against those modified files reached first news, but is deliberately excluded from this build qualification and from baseline evidence.
 
 | Property | Value |
 |---|---|
@@ -58,4 +58,4 @@ The other 44 tests used their pinned CMake definitions without changes. A future
 
 ## Gate status
 
-The pinned source, exact executable input, generated translation, native binary identity, resource envelope, and applicable upstream unit tests are now qualified. B1 remains open until clean data is reconstructed and validated, a Rust process adapter runs one isolated job, the expected endpoint is observed, and logs plus a replay manifest are retained. No runtime or original/Bosman parity claim is made here.
+The pinned source, exact executable input, generated translation, native binary identity, resource envelope, and applicable upstream unit tests are now qualified. B1 remains open until clean data is reconstructed and validated, the Bosman-specific process adapter runs one isolated job, the expected endpoint is observed, and logs plus a replay manifest are retained. No runtime or original/Bosman parity claim is made here.

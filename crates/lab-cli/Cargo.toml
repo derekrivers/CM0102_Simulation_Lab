@@ -6,5 +6,11 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+libc = "0.2"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
+
+[[bin]]
+name = "lab-protocol-fixture"
+path = "src/bin/lab-protocol-fixture.rs"
