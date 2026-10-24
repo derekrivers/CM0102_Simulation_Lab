@@ -1061,7 +1061,7 @@ def static_source(paths: list[pathlib.Path]) -> None:
             )
             if stage_names - {"StageTracker"} - stage_references:
                 raise ValueError(f"{path.name}: unused diagnostic stage")
-            if stage_references - stage_names - {"Require"}:
+            if stage_references - stage_names - {"AfterRestoration", "Require"}:
                 raise ValueError(f"{path.name}: unknown diagnostic transition")
         without_comments = re.sub(r"/\*.*?\*/|//[^\r\n]*", "", source, flags=re.DOTALL)
         normalized = re.sub(r"\s+", "", without_comments).casefold()

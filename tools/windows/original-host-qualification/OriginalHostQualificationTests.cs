@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Cm0102.OriginalHostQualification
 {
@@ -107,10 +108,16 @@ namespace Cm0102.OriginalHostQualification
                 "unhandled-v1-clean-manifest-file-not-found");
             Assert(Program.UnhandledDetail(stage, new DirectoryNotFoundException(@"C:\private\directory")) ==
                 "unhandled-v1-clean-manifest-directory-not-found");
-            Assert(Program.UnhandledDetail(stage, new IOException(@"C:\private\io"))
-                .StartsWith("unhandled-v1-clean-manifest-io-", StringComparison.Ordinal));
-            Assert(Program.UnhandledDetail(stage, new CryptographicException(@"C:\private\crypto"))
-                .StartsWith("unhandled-v1-clean-manifest-crypto-", StringComparison.Ordinal));
+            string ioDetail = Program.UnhandledDetail(stage, new IOException(@"C:\private\io"));
+            string cryptoDetail = Program.UnhandledDetail(stage, new CryptographicException(@"C:\private\crypto"));
+            Assert(Regex.IsMatch(ioDetail, @"\Aunhandled-v1-clean-manifest-io-[0-9a-f]{8}\z"));
+            Assert(Regex.IsMatch(cryptoDetail, @"\Aunhandled-v1-clean-manifest-crypto-[0-9a-f]{8}\z"));
+            Assert(!ioDetail.Contains("private"));
+            Assert(!cryptoDetail.Contains("private"));
+
+            Assert(DiagnosticStages.AfterRestoration(true, true) == DiagnosticStages.RegistryExplorerAccess);
+            Assert(DiagnosticStages.AfterRestoration(true, false) == DiagnosticStages.ImpersonationRestore);
+            Assert(DiagnosticStages.AfterRestoration(false, true) == DiagnosticStages.ImpersonationRestore);
 
             string first = CanonicalJson.Serialize(Program.MinimalDocument(detail));
             string second = CanonicalJson.Serialize(Program.MinimalDocument(detail));

@@ -168,6 +168,11 @@ namespace Cm0102.OriginalHostQualification
         {
             return stage != null && Allowed.Contains(stage) ? stage : StageTracker;
         }
+
+        public static string AfterRestoration(bool operationFailed, bool restorationCompleted)
+        {
+            return operationFailed && restorationCompleted ? RegistryExplorerAccess : ImpersonationRestore;
+        }
     }
 
     internal sealed class UsageException : Exception
@@ -882,13 +887,35 @@ namespace Cm0102.OriginalHostQualification
             int currentResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask);
             int explorerResult;
             diagnosticStage = DiagnosticStages.RegistryExplorerAccess;
-            using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(explorerToken.ImpersonationTokenHandle))
+            WindowsImpersonationContext context = WindowsIdentity.Impersonate(explorerToken.ImpersonationTokenHandle);
+            bool explorerAccessFailed = false;
+            try
             {
-                try { explorerResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask); }
+                try
+                {
+                    explorerResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey,
+                        expectations.RegistryExactAccessMask);
+                }
+                catch
+                {
+                    explorerAccessFailed = true;
+                    throw;
+                }
+            }
+            finally
+            {
+                diagnosticStage = DiagnosticStages.ImpersonationRestore;
+                bool restorationCompleted = false;
+                try
+                {
+                    context.Undo();
+                    context.Dispose();
+                    restorationCompleted = true;
+                }
                 finally
                 {
-                    diagnosticStage = DiagnosticStages.ImpersonationRestore;
-                    context.Undo();
+                    diagnosticStage = DiagnosticStages.AfterRestoration(explorerAccessFailed,
+                        restorationCompleted);
                 }
             }
             bool restoredTokenIsThreadToken;
