@@ -80,7 +80,7 @@ REQUIRED_TOOL_IDS = {
     "python313",
     "windbg",
 }
-DIAGNOSTIC_STAGE_CSV = "arguments,canonical-serialization,capabilities,clean-manifest,clean-tree-after,clean-tree-before,current-token,expectations-load,explorer-token,game-process-after,game-process-before,host-observation,impersonation-restore,installed-tree-after,installed-tree-before,iso-file,locator-load,optical-media,preflight-inputs,probe-construction,probe-image-after,probe-start,redaction-scan,registry-current-access,registry-explorer-access,registry-last-write-after,registry-last-write-before,registry-metadata,report-assembly,session-desktop,session-discovery,session-display,stage-tracker,stdout-emission,virtual-store-after,virtual-store-before"
+DIAGNOSTIC_STAGE_CSV = "arguments,canonical-serialization,capabilities,clean-manifest,clean-tree-after,clean-tree-before,console-initialization,current-token,expectations-load,explorer-token,game-process-after,game-process-before,host-observation,impersonation-restore,installed-tree-after,installed-tree-before,iso-file,locator-load,optical-media,preflight-inputs,probe-construction,probe-image-after,probe-start,redaction-scan,registry-current-access,registry-explorer-access,registry-last-write-after,registry-last-write-before,registry-metadata,report-assembly,session-desktop,session-discovery,session-display,stage-tracker,stdout-emission,virtual-store-after,virtual-store-before"
 DIAGNOSTIC_STAGE_IDS = frozenset(DIAGNOSTIC_STAGE_CSV.split(","))
 STABLE_EXCEPTION_CODE = re.compile(
     r"(?:unauthorized|file-not-found|directory-not-found|(?:io|crypto|exception)-[0-9a-f]{8})\Z"

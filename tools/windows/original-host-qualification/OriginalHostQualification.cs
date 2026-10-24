@@ -28,10 +28,11 @@ namespace Cm0102.OriginalHostQualification
         [STAThread]
         private static int Main(string[] args)
         {
-            Console.OutputEncoding = new UTF8Encoding(false);
-            string stage = DiagnosticStages.Arguments;
+            string stage = DiagnosticStages.ConsoleInitialization;
             try
             {
+                Console.OutputEncoding = new UTF8Encoding(false);
+                stage = DiagnosticStages.Arguments;
                 Arguments parsed = Arguments.Parse(args);
                 stage = DiagnosticStages.ExpectationsLoad;
                 Expectations expectations = Expectations.Load(parsed.ExpectationsPath);
@@ -122,7 +123,7 @@ namespace Cm0102.OriginalHostQualification
 
     internal static class DiagnosticStages
     {
-        internal const string Csv = "arguments,canonical-serialization,capabilities,clean-manifest,clean-tree-after,clean-tree-before,current-token,expectations-load,explorer-token,game-process-after,game-process-before,host-observation,impersonation-restore,installed-tree-after,installed-tree-before,iso-file,locator-load,optical-media,preflight-inputs,probe-construction,probe-image-after,probe-start,redaction-scan,registry-current-access,registry-explorer-access,registry-last-write-after,registry-last-write-before,registry-metadata,report-assembly,session-desktop,session-discovery,session-display,stage-tracker,stdout-emission,virtual-store-after,virtual-store-before";
+        internal const string Csv = "arguments,canonical-serialization,capabilities,clean-manifest,clean-tree-after,clean-tree-before,console-initialization,current-token,expectations-load,explorer-token,game-process-after,game-process-before,host-observation,impersonation-restore,installed-tree-after,installed-tree-before,iso-file,locator-load,optical-media,preflight-inputs,probe-construction,probe-image-after,probe-start,redaction-scan,registry-current-access,registry-explorer-access,registry-last-write-after,registry-last-write-before,registry-metadata,report-assembly,session-desktop,session-discovery,session-display,stage-tracker,stdout-emission,virtual-store-after,virtual-store-before";
         private static readonly HashSet<string> Allowed = new HashSet<string>(Csv.Split(','), StringComparer.Ordinal);
 
         public const string Arguments = "arguments";
@@ -131,6 +132,7 @@ namespace Cm0102.OriginalHostQualification
         public const string CleanManifest = "clean-manifest";
         public const string CleanTreeAfter = "clean-tree-after";
         public const string CleanTreeBefore = "clean-tree-before";
+        public const string ConsoleInitialization = "console-initialization";
         public const string CurrentToken = "current-token";
         public const string ExpectationsLoad = "expectations-load";
         public const string ExplorerToken = "explorer-token";
@@ -883,9 +885,12 @@ namespace Cm0102.OriginalHostQualification
             using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(explorerToken.ImpersonationTokenHandle))
             {
                 try { explorerResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask); }
-                finally { context.Undo(); }
+                finally
+                {
+                    diagnosticStage = DiagnosticStages.ImpersonationRestore;
+                    context.Undo();
+                }
             }
-            diagnosticStage = DiagnosticStages.ImpersonationRestore;
             bool restoredTokenIsThreadToken;
             TokenObservation restoredToken = TokenObservation.EffectiveCurrent(out restoredTokenIsThreadToken);
             if (restoredTokenIsThreadToken != currentTokenWasThreadToken || !restoredToken.SecurityEquivalent(currentToken))
