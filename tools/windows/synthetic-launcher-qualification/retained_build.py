@@ -155,50 +155,73 @@ def decode_mountinfo_path(value: bytes) -> pathlib.Path:
     return pathlib.Path(os.fsdecode(decoded))
 
 
-def select_mount_binding(raw: bytes, path: pathlib.Path) -> dict[str, object]:
-    candidates: list[tuple[int, dict[str, object]]] = []
+def mountinfo_bindings(raw: bytes) -> dict[int, dict[str, object]]:
+    bindings: dict[int, dict[str, object]] = {}
     for line in raw.splitlines():
         fields = line.split()
         try:
             separator = fields.index(b"-")
             mount_point = decode_mountinfo_path(fields[4])
-            relative = path.relative_to(mount_point)
-            del relative
+            mount_id = int(fields[0])
             binding = {
                 "device": fields[2].decode("ascii", "strict"),
                 "filesystem": fields[separator + 1].decode("ascii", "strict"),
-                "mount_id": int(fields[0]),
+                "mount_id": mount_id,
                 "mount_point": os.fspath(mount_point),
-                "root": os.fsdecode(fields[3]),
+                "root": os.fspath(decode_mountinfo_path(fields[3])),
             }
-            candidates.append((len(mount_point.parts), binding))
+            if mount_id in bindings:
+                raise HarnessError("mount table contains duplicate mount ID")
+            bindings[mount_id] = binding
         except (ValueError, IndexError, UnicodeDecodeError):
             continue
-    if not candidates:
-        raise HarnessError("retained path has no mount binding")
-    return max(candidates, key=lambda item: item[0])[1]
+    return bindings
 
 
-def wsl_native_mount_binding(path: pathlib.Path) -> dict[str, object]:
-    descriptor = os.open("/proc/self/mountinfo", os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+def read_dynamic_proc(path: str, maximum: int) -> bytes:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
     try:
         chunks: list[bytes] = []
         observed = 0
         while True:
-            chunk = os.read(descriptor, min(65536, 1024 * 1024 + 1 - observed))
+            chunk = os.read(descriptor, min(65536, maximum + 1 - observed))
             if not chunk:
                 break
             observed += len(chunk)
-            if observed > 1024 * 1024:
-                raise HarnessError("mount table exceeds byte limit")
+            if observed > maximum:
+                raise HarnessError("proc metadata exceeds byte limit")
             chunks.append(chunk)
     finally:
         os.close(descriptor)
-    raw = b"".join(chunks)
-    binding = select_mount_binding(raw, path)
+    return b"".join(chunks)
+
+
+def wsl_native_mount_binding(path: pathlib.Path) -> dict[str, object]:
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0)
+    descriptor = os.open(path, flags)
+    try:
+        metadata = os.fstat(descriptor)
+        fdinfo = read_dynamic_proc("/proc/self/fdinfo/" + str(descriptor), 4096)
+        match = re.search(rb"^mnt_id:\s*([0-9]+)$", fdinfo, re.MULTILINE)
+        if match is None:
+            raise HarnessError("retained descriptor has no mount ID")
+        mount_id = int(match.group(1))
+        raw = read_dynamic_proc("/proc/self/mountinfo", 1024 * 1024)
+        binding = mountinfo_bindings(raw).get(mount_id)
+        if binding is None:
+            raise HarnessError("retained descriptor mount ID is unresolved")
+        binding = {**binding, "st_dev": metadata.st_dev}
+    finally:
+        os.close(descriptor)
     if binding["filesystem"] != "ext4" or binding["mount_point"] != "/" or binding["root"] != "/":
         raise HarnessError("retained path is not on the WSL-native root filesystem")
     return binding
+
+
+def verify_tree_mount_binding(root: pathlib.Path, expected: dict[str, object]) -> None:
+    for path in (root, *sorted(root.rglob("*"))):
+        if wsl_native_mount_binding(path) != expected:
+            raise HarnessError("retained tree crosses a mount boundary")
 
 
 def private_parent(path: pathlib.Path) -> pathlib.Path:
@@ -1228,6 +1251,7 @@ def run_mode(arguments: argparse.Namespace) -> dict[str, object]:
     os.mkdir(destination / "inputs", 0o700)
     os.mkdir(destination / "build", 0o700)
     os.mkdir(destination / "build" / "1033", 0o700)
+    verify_tree_mount_binding(destination, destination_mount)
     try:
         for role, raw in snapshots.items():
             write_exclusive(destination / "inputs" / SNAPSHOT_NAMES[role], raw)
@@ -1348,6 +1372,7 @@ def verify_retained(repo_argument: pathlib.Path, commit: str, compiler_argument:
     root_mount = wsl_native_mount_binding(root)
     if wsl_native_mount_binding(root.parent) != root_mount:
         raise HarnessError("retained root mount binding mismatch")
+    verify_tree_mount_binding(root, root_mount)
     manifest, manifest_identity = read_manifest(root)
     verify_inventory(root)
     verify_private_modes(root)
@@ -1406,6 +1431,7 @@ def verify_retained(repo_argument: pathlib.Path, commit: str, compiler_argument:
         raise HarnessError("compiler changed during verification")
     compare_reference_identities(references, reference_identities)
     revalidate_sources(repo, commit, source)
+    verify_tree_mount_binding(root, root_mount)
     return {
         "manifest": manifest_identity,
         "source_commit": commit,
@@ -1469,12 +1495,14 @@ def self_test() -> None:
     metadata_schema_self_test()
     mount_sample = (
         b"24 1 8:32 / / rw - ext4 /dev/sdd rw\n"
-        b"25 24 0:99 / /mnt/cmeta rw - 9p C: rw,aname=drvfs\n"
+        b"25 24 0:99 / / rw - 9p C: rw,aname=drvfs\n"
+        b"26 24 0:100 / /mnt/cmeta rw - 9p C: rw,aname=drvfs\n"
     )
-    if select_mount_binding(mount_sample, pathlib.Path("/private/evidence"))["filesystem"] != "ext4":
-        raise AssertionError("native mount selection")
-    if select_mount_binding(mount_sample, pathlib.Path("/mnt/cmeta/Temp"))["filesystem"] != "9p":
-        raise AssertionError("DrvFS mount selection")
+    mount_bindings = mountinfo_bindings(mount_sample)
+    if mount_bindings[24]["filesystem"] != "ext4" or mount_bindings[25]["filesystem"] != "9p":
+        raise AssertionError("stacked mount ID binding")
+    if mount_bindings[26]["mount_point"] != "/mnt/cmeta":
+        raise AssertionError("nested mount ID binding")
     base = synthetic_pe()
     observed = validate_pe32_cli(base, 2)
     if not (
