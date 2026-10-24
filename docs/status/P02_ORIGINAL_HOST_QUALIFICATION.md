@@ -2,7 +2,7 @@
 
 Date: 24 October 2026
 
-Status: seven immutable live probe attempts are retained. The sixth and seventh are complete 22/22 eligible reports and the exact retained-attempt comparator classifies them as `pe-build-identity-normalized-stable`. Three independent reviews of the exact comparator revision found no remaining issues; merge remains before this becomes the accepted synthetic-launcher prerequisite. Launcher implementation and all original execution and behaviour remain pending.
+Status: seven immutable live probe attempts are retained. The sixth and seventh are complete 22/22 eligible reports and the exact retained-attempt comparator classifies them as `pe-build-identity-normalized-stable`. Three independent reviews of the exact comparator revision found no remaining issues, and PR #15 merged it at `b9123ffc7f8261f0b87c354eeb3a77d728540825`. This accepts only the prerequisite for separately reviewed synthetic-launcher implementation and fixture testing. Launcher implementation and all original execution and behaviour remain pending.
 
 ## Evidence boundary
 

@@ -1,6 +1,6 @@
 # Original Windows host qualification v1
 
-Status: contract and implementation present; two complete retained attempts and an exact stability artifact are recorded. The exact comparator revision was independently reviewed with no findings; merge of that revision remains before the synthetic-launcher prerequisite is accepted.
+Status: contract and implementation present; two complete retained attempts and an exact stability artifact are recorded. The exact comparator revision was independently reviewed with no findings and merged through PR #15, accepting the prerequisite only for separately reviewed synthetic-launcher implementation and fixture testing.
 
 This probe converts the preliminary Windows observations into reproducible, fail-closed evidence before any original executable launch. It is host research tooling, not game logic, a launcher, original behaviour evidence, or a comparison result.
 
