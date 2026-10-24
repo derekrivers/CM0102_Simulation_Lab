@@ -27,7 +27,7 @@ MAX_BYTES = 256 * 1024
 GIT = pathlib.Path("/usr/bin/git")
 WORKFLOW_SHA_PLACEHOLDER = "RUNTIME_BINDING_VERIFIER_SHA256"
 NORMALIZED_WORKFLOW_IDENTITY = (
-    8426, "632dab3a69cf9a303f8f3f1d28f8c82251ec1bdaed7dec398d26a173bafa8bc7")
+    8569, "064001f956f304364d42bf7902cdff43d7e92b125399e3217986e2cff88f910c")
 
 # Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
 FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
