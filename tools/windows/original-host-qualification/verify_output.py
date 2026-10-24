@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import pathlib
 import re
@@ -49,6 +50,7 @@ REQUIRED_CHECK_IDS = {
     "no-game-process-after",
     "no-game-process-before",
     "optical-media",
+    "private-inputs-distinct",
     "probe-image-stable",
     "probe-process-x86",
     "registry-current-exact-access",
@@ -76,20 +78,52 @@ REQUIRED_TOOL_IDS = {
     "python313",
     "windbg",
 }
-BANNED_PRODUCTION_TOKENS = (
-    "CreateProcess",
-    "ShellExecute",
-    "Process.Start",
-    "RegSetValue",
-    "RegistryKey.SetValue",
-    "File.WriteAll",
-    "File.AppendAll",
-    "Directory.CreateDirectory",
-    "Directory.Delete",
-    "File.Delete",
-    "File.Move",
-    "File.Copy",
+BANNED_NORMALIZED_PATTERNS = (
+    (r"\.start\(", "instance/static Start"),
+    (r"\bcreateprocess(?:a|w)?\(", "CreateProcess"),
+    (r"\bshellexecute(?:exa|exw|a|w)?\(", "ShellExecute"),
+    (r"\bwinexec\(", "WinExec"),
+    (r"\breg(?:create|set|delete|rename|replace|restore|load|unload|save)\w*\(", "registry mutation"),
+    (r"\.(?:createsubkey|deletesubkeytree|deletesubkey|deletevalue|setvalue)\(", "managed registry mutation"),
+    (r"\bfile\.(?:write\w*|append\w*|create|delete|move|copy|replace|setattributes|setcreationtime\w*|setlastaccesstime\w*|setlastwritetime\w*|encrypt|decrypt)\(", "file mutation"),
+    (r"\bdirectory\.(?:create\w*|delete|move|setcreationtime\w*|setlastaccesstime\w*|setlastwritetime\w*)\(", "directory mutation"),
+    (r"\bfilemode\.(?:append|create|createnew|openorcreate|truncate)\b", "writable FileMode"),
+    (r"\bfileaccess\.(?:write|readwrite)\b", "writable FileAccess"),
 )
+ALLOWED_PINVOKES = {
+    ("advapi32.dll", "AllocateAndInitializeSid"),
+    ("advapi32.dll", "CheckTokenMembership"),
+    ("advapi32.dll", "ConvertSidToStringSidW"),
+    ("advapi32.dll", "DuplicateTokenEx"),
+    ("advapi32.dll", "FreeSid"),
+    ("advapi32.dll", "GetTokenInformation"),
+    ("advapi32.dll", "LookupPrivilegeNameW"),
+    ("advapi32.dll", "OpenProcessToken"),
+    ("advapi32.dll", "OpenThreadToken"),
+    ("advapi32.dll", "RegCloseKey"),
+    ("advapi32.dll", "RegOpenKeyExA"),
+    ("advapi32.dll", "RegQueryInfoKeyA"),
+    ("kernel32.dll", "CloseHandle"),
+    ("kernel32.dll", "CreateFileW"),
+    ("kernel32.dll", "FreeLibrary"),
+    ("kernel32.dll", "GetCurrentProcess"),
+    ("kernel32.dll", "GetCurrentThread"),
+    ("kernel32.dll", "GetDriveTypeW"),
+    ("kernel32.dll", "GetFileAttributesW"),
+    ("kernel32.dll", "GetFileInformationByHandle"),
+    ("kernel32.dll", "GetFinalPathNameByHandleW"),
+    ("kernel32.dll", "GetProcAddress"),
+    ("kernel32.dll", "GetVolumeInformationW"),
+    ("kernel32.dll", "LoadLibraryW"),
+    ("kernel32.dll", "LocalFree"),
+    ("kernel32.dll", "OpenProcess"),
+    ("kernel32.dll", "WTSGetActiveConsoleSessionId"),
+    ("ntdll.dll", "RtlGetVersion"),
+    ("user32.dll", "CloseDesktop"),
+    ("user32.dll", "GetProcessWindowStation"),
+    ("user32.dll", "GetUserObjectInformationW"),
+    ("user32.dll", "OpenInputDesktop"),
+}
 
 
 def canonical(value: object) -> bytes:
@@ -117,6 +151,97 @@ def decode_json(raw: bytes | str) -> object:
         object_pairs_hook=strict_pairs,
         parse_constant=reject_constant,
     )
+
+
+def bytes_identity(raw: bytes) -> dict[str, object]:
+    return {"byte_count": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+EXPECTATION_KEYS = {
+    "clean_file_count",
+    "clean_manifest_bytes",
+    "clean_manifest_sha256",
+    "clean_total_bytes",
+    "iso_bytes",
+    "iso_sha256",
+    "optical_executable_bytes",
+    "optical_executable_sha256",
+    "optical_volume_label",
+    "original_executable_bytes",
+    "original_executable_sha256",
+    "profile_id",
+    "registry_exact_access_mask",
+    "registry_key_id",
+    "registry_subkey",
+    "registry_value_name",
+    "required_api_ids",
+    "required_tool_ids",
+    "schema_version",
+}
+
+
+def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
+    raw = path.read_bytes()
+    if len(raw) > 1024 * 1024 or raw.startswith(b"\xef\xbb\xbf"):
+        raise ValueError("expectations framing")
+    value = strict_object(decode_json(raw), EXPECTATION_KEYS, "expectations")
+    if value["schema_version"] != 1:
+        raise ValueError("expectations schema")
+    for key in (
+        "clean_file_count",
+        "clean_manifest_bytes",
+        "clean_total_bytes",
+        "iso_bytes",
+        "optical_executable_bytes",
+        "original_executable_bytes",
+    ):
+        if integer(value[key], f"expectations.{key}") <= 0:
+            raise ValueError(f"expectations.{key}")
+    numeric_limits = {
+        "clean_file_count": 1_000_000,
+        "clean_manifest_bytes": 1024 * 1024,
+        "clean_total_bytes": 1 << 50,
+        "iso_bytes": 1 << 40,
+        "optical_executable_bytes": 1 << 34,
+        "original_executable_bytes": 1 << 34,
+    }
+    for key, limit in numeric_limits.items():
+        if value[key] > limit:
+            raise ValueError(f"expectations.{key}")
+    for key in (
+        "clean_manifest_sha256",
+        "iso_sha256",
+        "optical_executable_sha256",
+        "original_executable_sha256",
+    ):
+        sha256(value[key], f"expectations.{key}")
+    for key in (
+        "optical_volume_label",
+        "profile_id",
+        "registry_key_id",
+        "registry_subkey",
+        "registry_value_name",
+    ):
+        text(value[key], f"expectations.{key}")
+    if value["registry_exact_access_mask"] != 0x000F003F:
+        raise ValueError("expectations.registry_exact_access_mask")
+    for key, supported in (
+        ("required_api_ids", REQUIRED_API_IDS),
+        ("required_tool_ids", REQUIRED_TOOL_IDS),
+    ):
+        items = value[key]
+        if (
+            not isinstance(items, list)
+            or not items
+            or len(items) > 64
+            or any(not isinstance(item, str) or not item for item in items)
+            or any(not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", item) for item in items)
+            or items != sorted(items)
+            or len(items) != len(set(items))
+            or not set(items).issubset(supported)
+        ):
+            raise ValueError(f"expectations.{key}")
+    return value, raw
 
 
 def strict_object(value: object, keys: set[str], name: str) -> dict[str, object]:
@@ -152,14 +277,17 @@ def sha256(value: object, name: str) -> str:
     return result
 
 
-def identity(value: object, name: str) -> None:
+def identity(value: object, name: str) -> dict[str, object]:
     item = strict_object(value, {"byte_count", "sha256"}, name)
     if integer(item["byte_count"], f"{name}.byte_count") < 0:
         raise ValueError(f"{name}: negative size")
     sha256(item["sha256"], f"{name}.sha256")
+    if item["byte_count"] == 0 and item["sha256"] != hashlib.sha256(b"").hexdigest():
+        raise ValueError(f"{name}: empty identity contradiction")
+    return item
 
 
-def tree(value: object, name: str) -> None:
+def tree(value: object, name: str) -> dict[str, object]:
     item = strict_object(
         value,
         {
@@ -168,6 +296,7 @@ def tree(value: object, name: str) -> None:
             "file_count",
             "present",
             "reparse_count",
+            "root_object_id_sha256",
             "total_bytes",
             "tree_sha256",
             "unstable_count",
@@ -186,33 +315,73 @@ def tree(value: object, name: str) -> None:
         if integer(item[key], f"{name}.{key}") < 0:
             raise ValueError(f"{name}.{key}: negative")
     sha256(item["tree_sha256"], f"{name}.tree_sha256")
+    sha256(item["root_object_id_sha256"], f"{name}.root_object_id_sha256")
+    if item["present"] and item["directory_count"] < 1:
+        raise ValueError(f"{name}: present tree without root")
+    if not item["present"] and any(
+        item[key] != 0
+        for key in (
+            "case_collision_count",
+            "directory_count",
+            "file_count",
+            "reparse_count",
+            "total_bytes",
+            "unstable_count",
+        )
+    ):
+        raise ValueError(f"{name}: absent tree has observations")
+    if not item["present"] and (
+        item["tree_sha256"] != hashlib.sha256(b"").hexdigest()
+        or item["root_object_id_sha256"]
+        != hashlib.sha256("absent".encode("utf-16le")).hexdigest()
+    ):
+        raise ValueError(f"{name}: absent identity contradiction")
+    if item["case_collision_count"] > item["file_count"] + item["directory_count"]:
+        raise ValueError(f"{name}: collision count contradiction")
+    return item
 
 
-def validate_full_schema(value: dict[str, object]) -> None:
+def validate_full_schema(
+    value: dict[str, object], expectations: dict[str, object], expectations_raw: bytes
+) -> dict[str, tuple[bool, str]]:
     probe = strict_object(
         value["probe"],
         {
             "executable",
+            "executable_after",
+            "executable_unchanged",
             "expectations_sha256",
             "id",
             "private_locator_sha256",
+            "process_architecture",
             "source_revision",
             "version",
         },
         "probe",
     )
-    identity(probe["executable"], "probe.executable")
-    sha256(probe["expectations_sha256"], "probe.expectations_sha256")
+    executable = identity(probe["executable"], "probe.executable")
+    executable_after = identity(probe["executable_after"], "probe.executable_after")
+    boolean(probe["executable_unchanged"], "probe.executable_unchanged")
+    if probe["executable_unchanged"] != (executable == executable_after):
+        raise ValueError("probe executable consistency")
+    if probe["expectations_sha256"] != hashlib.sha256(expectations_raw).hexdigest():
+        raise ValueError("probe expectations identity")
     sha256(probe["private_locator_sha256"], "probe.private_locator_sha256")
     if not re.fullmatch(r"[0-9a-f]{40}", text(probe["source_revision"], "probe.source_revision")):
         raise ValueError("probe.source_revision")
-    text(probe["id"], "probe.id")
-    text(probe["version"], "probe.version")
+    if probe["id"] != "cm0102-original-host-qualification" or probe["version"] != "1.0.0":
+        raise ValueError("probe identity")
+    if probe["process_architecture"] not in {"x86", "x64"}:
+        raise ValueError("probe.process_architecture")
 
     run = strict_object(value["run"], {"elapsed_ms", "observed_at_utc"}, "run")
     if integer(run["elapsed_ms"], "run.elapsed_ms") < 0:
         raise ValueError("run.elapsed_ms")
-    text(run["observed_at_utc"], "run.observed_at_utc")
+    if not re.fullmatch(
+        r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{7}Z",
+        text(run["observed_at_utc"], "run.observed_at_utc"),
+    ):
+        raise ValueError("run.observed_at_utc")
 
     host = strict_object(
         value["host"],
@@ -232,7 +401,8 @@ def validate_full_schema(value: dict[str, object]) -> None:
     )
     sha256(host["machine_fingerprint_sha256"], "host.machine_fingerprint_sha256")
     for key in ("os_build", "os_major", "os_minor"):
-        integer(host[key], f"host.{key}")
+        if integer(host[key], f"host.{key}") < 0:
+            raise ValueError(f"host.{key}")
     for key in ("architecture", "display_version", "edition", "locale", "product_name", "time_zone"):
         text(host[key], f"host.{key}")
 
@@ -257,8 +427,15 @@ def validate_full_schema(value: dict[str, object]) -> None:
         else:
             if integer(session[key], f"session.{key}") < 0:
                 raise ValueError(f"session.{key}: negative")
+    if session["explorer_process_count"] != 1:
+        raise ValueError("session.explorer_process_count")
+    if session["screen_width"] <= 0 or session["screen_height"] <= 0 or session["bits_per_pixel"] <= 0:
+        raise ValueError("session display bounds")
 
-    tokens = strict_object(value["tokens"], {"explorer", "probe"}, "tokens")
+    tokens = strict_object(
+        value["tokens"], {"explorer", "impersonation_restored", "probe"}, "tokens"
+    )
+    boolean(tokens["impersonation_restored"], "tokens.impersonation_restored")
     for side in ("explorer", "probe"):
         token = strict_object(
             tokens[side],
@@ -268,6 +445,10 @@ def validate_full_schema(value: dict[str, object]) -> None:
         sha256(token["account_sid_sha256"], f"tokens.{side}.account_sid_sha256")
         text(token["elevation_type"], f"tokens.{side}.elevation_type")
         text(token["integrity"], f"tokens.{side}.integrity")
+        if token["elevation_type"] not in {"default", "full", "limited", "unknown"}:
+            raise ValueError(f"tokens.{side}.elevation_type")
+        if token["integrity"] not in {"untrusted", "low", "medium", "high", "system"}:
+            raise ValueError(f"tokens.{side}.integrity")
         boolean(token["is_administrator"], f"tokens.{side}.is_administrator")
         integer(token["session_id"], f"tokens.{side}.session_id")
         privileges = token["privileges"]
@@ -276,17 +457,21 @@ def validate_full_schema(value: dict[str, object]) -> None:
         names = []
         for privilege in privileges:
             entry = strict_object(privilege, {"attributes", "name"}, "privilege")
-            integer(entry["attributes"], "privilege.attributes")
+            if integer(entry["attributes"], "privilege.attributes") < 0:
+                raise ValueError("privilege.attributes")
             names.append(text(entry["name"], "privilege.name"))
         if names != sorted(names) or len(names) != len(set(names)):
             raise ValueError(f"tokens.{side}.privileges ordering")
+    if tokens["probe"]["session_id"] != session["current_process_session_id"]:
+        raise ValueError("probe token session contradiction")
 
     registry = strict_object(
         value["registry"],
         {"acl", "exact_access", "key_id", "last_write_unchanged", "location", "view"},
         "registry",
     )
-    text(registry["key_id"], "registry.key_id")
+    if registry["key_id"] != expectations["registry_key_id"]:
+        raise ValueError("registry.key_id")
     boolean(registry["last_write_unchanged"], "registry.last_write_unchanged")
     if registry["view"] != "32-bit":
         raise ValueError("registry.view")
@@ -295,7 +480,7 @@ def validate_full_schema(value: dict[str, object]) -> None:
         {"desired_access", "explorer_token_win32_result", "probe_token_win32_result"},
         "registry.exact_access",
     )
-    if integer(exact["desired_access"], "registry.desired_access") != 0x000F003F:
+    if integer(exact["desired_access"], "registry.desired_access") != expectations["registry_exact_access_mask"]:
         raise ValueError("registry.desired_access")
     if integer(exact["explorer_token_win32_result"], "registry.explorer_result") < 0:
         raise ValueError("registry.explorer_result: negative")
@@ -311,11 +496,19 @@ def validate_full_schema(value: dict[str, object]) -> None:
     if integer(location["utf16le_bytes"], "registry.location.bytes") < 0:
         raise ValueError("registry.location.bytes: negative")
     text(location["value_kind"], "registry.location.kind")
+    if location["utf16le_bytes"] <= 0 or location["utf16le_bytes"] % 2 != 0:
+        raise ValueError("registry.location.bytes")
+    if location["value_kind"] not in {"String", "ExpandString"}:
+        raise ValueError("registry.location.kind")
     acl = strict_object(registry["acl"], {"aces", "group_sid", "owner_sid"}, "registry.acl")
     text(acl["group_sid"], "registry.acl.group_sid")
     text(acl["owner_sid"], "registry.acl.owner_sid")
+    for sid_name in ("group_sid", "owner_sid"):
+        if not re.fullmatch(r"S-[0-9]+(?:-[0-9]+)+", acl[sid_name]):
+            raise ValueError(f"registry.acl.{sid_name}")
     if not isinstance(acl["aces"], list):
         raise ValueError("registry.acl.aces")
+    ace_order = []
     for ace in acl["aces"]:
         entry = strict_object(
             ace,
@@ -328,51 +521,130 @@ def validate_full_schema(value: dict[str, object]) -> None:
         boolean(entry["inherited"], "registry.ace.inherited")
         text(entry["access_type"], "registry.ace.access_type")
         text(entry["identity_sid"], "registry.ace.identity_sid")
+        if not re.fullmatch(r"S-[0-9]+(?:-[0-9]+)+", entry["identity_sid"]):
+            raise ValueError("registry.ace.identity_sid")
+        if entry["access_type"] not in {"allow", "deny"}:
+            raise ValueError("registry.ace.access_type")
+        ace_order.append((entry["identity_sid"], entry["access_mask"]))
+    if ace_order != sorted(ace_order):
+        raise ValueError("registry.ace ordering")
 
     inputs = strict_object(value["inputs"], {"clean", "iso"}, "inputs")
-    clean = strict_object(
-        inputs["clean"],
-        {"extra_count", "manifest", "mismatch_count", "missing_count", "tree", "tree_expected_match", "writable_open_count"},
-        "inputs.clean",
-    )
-    for key in ("extra_count", "mismatch_count", "missing_count", "writable_open_count"):
-        if integer(clean[key], f"inputs.clean.{key}") < 0:
-            raise ValueError(f"inputs.clean.{key}: negative")
-    boolean(clean["tree_expected_match"], "inputs.clean.tree_expected_match")
+    clean = strict_object(inputs["clean"], {"after", "before", "manifest", "unchanged"}, "inputs.clean")
+    boolean(clean["unchanged"], "inputs.clean.unchanged")
     manifest = strict_object(clean["manifest"], {"expected_match", "identity"}, "inputs.clean.manifest")
     boolean(manifest["expected_match"], "inputs.clean.manifest.expected_match")
-    identity(manifest["identity"], "inputs.clean.manifest.identity")
-    tree(clean["tree"], "inputs.clean.tree")
+    manifest_identity = identity(manifest["identity"], "inputs.clean.manifest.identity")
+    manifest_match = manifest_identity == {
+        "byte_count": expectations["clean_manifest_bytes"],
+        "sha256": expectations["clean_manifest_sha256"],
+    }
+    if manifest["expected_match"] != manifest_match:
+        raise ValueError("clean manifest expected_match contradiction")
+
+    clean_captures: dict[str, dict[str, object]] = {}
+    for side in ("before", "after"):
+        capture = strict_object(
+            clean[side],
+            {"executable", "extra_count", "mismatch_count", "missing_count", "tree", "tree_expected_match", "writable_open_count"},
+            f"inputs.clean.{side}",
+        )
+        for key in ("extra_count", "mismatch_count", "missing_count", "writable_open_count"):
+            if integer(capture[key], f"inputs.clean.{side}.{key}") < 0:
+                raise ValueError(f"inputs.clean.{side}.{key}")
+        boolean(capture["tree_expected_match"], f"inputs.clean.{side}.tree_expected_match")
+        executable_wrapper = strict_object(
+            capture["executable"], {"expected_match", "identity"}, f"inputs.clean.{side}.executable"
+        )
+        boolean(executable_wrapper["expected_match"], f"inputs.clean.{side}.executable.expected_match")
+        clean_executable = identity(
+            executable_wrapper["identity"], f"inputs.clean.{side}.executable.identity"
+        )
+        expected_executable = {
+            "byte_count": expectations["original_executable_bytes"],
+            "sha256": expectations["original_executable_sha256"],
+        }
+        if executable_wrapper["expected_match"] != (clean_executable == expected_executable):
+            raise ValueError(f"clean {side} executable contradiction")
+        tree_value = tree(capture["tree"], f"inputs.clean.{side}.tree")
+        tree_match = (
+            tree_value["present"] is True
+            and tree_value["file_count"] == expectations["clean_file_count"]
+            and tree_value["total_bytes"] == expectations["clean_total_bytes"]
+            and capture["missing_count"] == 0
+            and capture["extra_count"] == 0
+            and capture["mismatch_count"] == 0
+            and tree_value["case_collision_count"] == 0
+            and tree_value["reparse_count"] == 0
+            and tree_value["unstable_count"] == 0
+            and executable_wrapper["expected_match"] is True
+        )
+        if capture["tree_expected_match"] != tree_match:
+            raise ValueError(f"clean {side} tree contradiction")
+        clean_captures[side] = capture
+    clean_same = (
+        clean_captures["before"]["tree"] == clean_captures["after"]["tree"]
+        and clean_captures["before"]["executable"] == clean_captures["after"]["executable"]
+    )
+    if clean["unchanged"] != clean_same:
+        raise ValueError("clean unchanged contradiction")
     iso = strict_object(inputs["iso"], {"file", "optical_media"}, "inputs.iso")
     iso_file = strict_object(iso["file"], {"expected_match", "identity"}, "inputs.iso.file")
     boolean(iso_file["expected_match"], "inputs.iso.file.expected_match")
-    identity(iso_file["identity"], "inputs.iso.file.identity")
+    iso_identity = identity(iso_file["identity"], "inputs.iso.file.identity")
+    iso_match = iso_identity == {
+        "byte_count": expectations["iso_bytes"],
+        "sha256": expectations["iso_sha256"],
+    }
+    if iso_file["expected_match"] != iso_match:
+        raise ValueError("iso identity contradiction")
     optical = strict_object(
         iso["optical_media"],
         {"drive_type", "executable", "expected_match", "volume_label_matches", "volume_label_sha256"},
         "inputs.iso.optical_media",
     )
     integer(optical["drive_type"], "inputs.iso.optical_media.drive_type")
-    identity(optical["executable"], "inputs.iso.optical_media.executable")
+    optical_executable = identity(optical["executable"], "inputs.iso.optical_media.executable")
     boolean(optical["expected_match"], "inputs.iso.optical_media.expected_match")
     boolean(optical["volume_label_matches"], "inputs.iso.optical_media.volume_label_matches")
     sha256(optical["volume_label_sha256"], "inputs.iso.optical_media.volume_label_sha256")
+    label_hash = hashlib.sha256(str(expectations["optical_volume_label"]).encode("utf-16le")).hexdigest()
+    label_matches = optical["volume_label_sha256"] == label_hash
+    if optical["volume_label_matches"] != label_matches:
+        raise ValueError("optical label contradiction")
+    optical_match = (
+        optical["drive_type"] == 5
+        and label_matches
+        and optical_executable
+        == {
+            "byte_count": expectations["optical_executable_bytes"],
+            "sha256": expectations["optical_executable_sha256"],
+        }
+    )
+    if optical["expected_match"] != optical_match:
+        raise ValueError("optical expected_match contradiction")
 
     guards = strict_object(
         value["guards"],
-        {"cm0102_launched", "game_process_count_after", "game_process_count_before", "installed_tree", "virtual_store_tree"},
+        {"cm0102_launched", "game_process_count_after", "game_process_count_before", "installed_tree", "private_inputs_distinct", "virtual_store_tree"},
         "guards",
     )
     boolean(guards["cm0102_launched"], "guards.cm0102_launched")
+    boolean(guards["private_inputs_distinct"], "guards.private_inputs_distinct")
     if integer(guards["game_process_count_after"], "guards.game_process_count_after") < 0:
         raise ValueError("guards.game_process_count_after: negative")
     if integer(guards["game_process_count_before"], "guards.game_process_count_before") < 0:
         raise ValueError("guards.game_process_count_before: negative")
+    guard_trees = {}
     for name in ("installed_tree", "virtual_store_tree"):
         wrapper = strict_object(guards[name], {"after", "before", "unchanged"}, f"guards.{name}")
-        tree(wrapper["before"], f"guards.{name}.before")
-        tree(wrapper["after"], f"guards.{name}.after")
+        before = tree(wrapper["before"], f"guards.{name}.before")
+        after = tree(wrapper["after"], f"guards.{name}.after")
         boolean(wrapper["unchanged"], f"guards.{name}.unchanged")
+        same = before == after and before["unstable_count"] == 0 and after["unstable_count"] == 0
+        if wrapper["unchanged"] != same:
+            raise ValueError(f"guards.{name}.unchanged contradiction")
+        guard_trees[name] = wrapper
 
     capabilities = strict_object(value["capabilities"], {"apis", "tools"}, "capabilities")
     for kind in ("apis", "tools"):
@@ -381,10 +653,11 @@ def validate_full_schema(value: dict[str, object]) -> None:
             raise ValueError(f"capabilities.{kind}")
         ids = []
         for item in items:
-            expected = {"id", "present"} if kind == "apis" else {"file", "id", "present"}
+            expected = {"id", "present", "required"} if kind == "apis" else {"file", "id", "present", "required"}
             entry = strict_object(item, expected, f"capabilities.{kind}.item")
             ids.append(text(entry["id"], f"capabilities.{kind}.id"))
             boolean(entry["present"], f"capabilities.{kind}.present")
+            boolean(entry["required"], f"capabilities.{kind}.required")
             if kind == "tools" and entry["file"] is not None:
                 identity(entry["file"], "capabilities.tools.file")
         if ids != sorted(ids) or len(ids) != len(set(ids)):
@@ -392,8 +665,9 @@ def validate_full_schema(value: dict[str, object]) -> None:
         expected_ids = REQUIRED_API_IDS if kind == "apis" else REQUIRED_TOOL_IDS
         if set(ids) != expected_ids:
             raise ValueError(f"capabilities.{kind} set")
-        if kind == "apis" and any(item["present"] is not True for item in items):
-            raise ValueError("capabilities.apis unavailable")
+        configured = set(expectations["required_api_ids" if kind == "apis" else "required_tool_ids"])
+        if {item["id"] for item in items if item["required"]} != configured:
+            raise ValueError(f"capabilities.{kind} required flags")
         if kind == "tools":
             for item in items:
                 if item["present"] != (item["file"] is not None):
@@ -406,6 +680,95 @@ def validate_full_schema(value: dict[str, object]) -> None:
         entry = strict_object(error, {"category", "check_id", "detail_code"}, "error")
         for key in entry:
             text(entry[key], f"error.{key}")
+
+    installed_before = guard_trees["installed_tree"]["before"]
+    installed_after = guard_trees["installed_tree"]["after"]
+    virtual_before = guard_trees["virtual_store_tree"]["before"]
+    virtual_after = guard_trees["virtual_store_tree"]["after"]
+    installed_plain = all(
+        item["present"] is True
+        and item["reparse_count"] == 0
+        and item["case_collision_count"] == 0
+        and item["unstable_count"] == 0
+        for item in (installed_before, installed_after)
+    )
+    virtual_plain = all(
+        item["reparse_count"] == 0
+        and item["case_collision_count"] == 0
+        and item["unstable_count"] == 0
+        for item in (virtual_before, virtual_after)
+    )
+    all_required_capabilities = all(
+        entry["present"] is True
+        for kind in ("apis", "tools")
+        for entry in capabilities[kind]
+        if entry["required"]
+    )
+    predicates = {
+        "active-input-desktop": (
+            session["active_console_session_id"] == session["explorer_session_id"]
+            and session["input_desktop"] == "Default",
+            "default" if session["input_desktop"] == "Default" else "not-default",
+        ),
+        "clean-manifest-identity": (manifest_match, "exact" if manifest_match else "mismatch"),
+        "clean-tree-exact": (
+            clean_captures["before"]["tree_expected_match"] is True
+            and clean_captures["after"]["tree_expected_match"] is True
+            and clean["unchanged"] is True,
+            "two-captures-exact"
+            if clean_captures["before"]["tree_expected_match"] is True
+            and clean_captures["after"]["tree_expected_match"] is True
+            and clean["unchanged"] is True
+            else "mismatch-or-mutation",
+        ),
+        "clean-tree-read-only": (
+            clean_captures["before"]["writable_open_count"] == 0
+            and clean_captures["after"]["writable_open_count"] == 0,
+            "non-writable"
+            if clean_captures["before"]["writable_open_count"] == 0
+            and clean_captures["after"]["writable_open_count"] == 0
+            else "writable",
+        ),
+        "explorer-token-medium": (
+            tokens["explorer"]["integrity"] == "medium"
+            and tokens["explorer"]["is_administrator"] is False
+            and tokens["explorer"]["session_id"] == session["active_console_session_id"]
+            and tokens["explorer"]["account_sid_sha256"] == tokens["probe"]["account_sid_sha256"],
+            "confirmed"
+            if tokens["explorer"]["integrity"] == "medium"
+            and tokens["explorer"]["is_administrator"] is False
+            and tokens["explorer"]["session_id"] == session["active_console_session_id"]
+            and tokens["explorer"]["account_sid_sha256"] == tokens["probe"]["account_sid_sha256"]
+            else "unexpected-token",
+        ),
+        "installed-tree-plain": (installed_plain, "plain" if installed_plain else "unsafe-entry"),
+        "installed-tree-stable": (guards["installed_tree"]["unchanged"], "unchanged" if guards["installed_tree"]["unchanged"] else "changed"),
+        "iso-identity": (iso_match, "exact" if iso_match else "mismatch"),
+        "no-game-process-after": (guards["game_process_count_after"] == 0, "absent" if guards["game_process_count_after"] == 0 else "present"),
+        "no-game-process-before": (guards["game_process_count_before"] == 0, "absent" if guards["game_process_count_before"] == 0 else "present"),
+        "optical-media": (optical_match, "exact" if optical_match else "mismatch"),
+        "private-inputs-distinct": (guards["private_inputs_distinct"], "distinct" if guards["private_inputs_distinct"] else "alias-detected"),
+        "probe-image-stable": (probe["executable_unchanged"], "unchanged" if probe["executable_unchanged"] else "changed"),
+        "probe-process-x86": (probe["process_architecture"] == "x86", probe["process_architecture"]),
+        "registry-current-exact-access": (exact["probe_token_win32_result"] == 0, f"win32-{exact['probe_token_win32_result']}"),
+        "registry-explorer-exact-denial": (exact["explorer_token_win32_result"] == 5, f"win32-{exact['explorer_token_win32_result']}"),
+        "registry-location-binding": (location["equals_configured_install_root"], "matches" if location["equals_configured_install_root"] else "mismatch"),
+        "registry-read-only": (registry["last_write_unchanged"], "unchanged" if registry["last_write_unchanged"] else "changed"),
+        "required-host-tools": (all_required_capabilities, "available" if all_required_capabilities else "missing"),
+        "virtual-store-plain": (virtual_plain, "plain-or-absent" if virtual_plain else "unsafe-entry"),
+        "virtual-store-stable": (guards["virtual_store_tree"]["unchanged"], "unchanged" if guards["virtual_store_tree"]["unchanged"] else "changed"),
+        "wsl-token-high-hazard": (
+            tokens["probe"]["integrity"] == "high" and tokens["probe"]["is_administrator"] is True,
+            "confirmed" if tokens["probe"]["integrity"] == "high" and tokens["probe"]["is_administrator"] is True else "unexpected-token",
+        ),
+    }
+    if set(predicates) != REQUIRED_CHECK_IDS:
+        raise AssertionError("semantic predicate coverage")
+    if guards["cm0102_launched"] is not False:
+        raise ValueError("game launch guard")
+    if tokens["impersonation_restored"] is not True:
+        raise ValueError("impersonation restoration")
+    return predicates
 
 
 def iter_strings(value: object):
@@ -420,10 +783,33 @@ def iter_strings(value: object):
             yield from iter_strings(item)
 
 
+PRIVATE_LOCATOR_KEYS = {
+    "clean_manifest",
+    "clean_tree",
+    "installed_tree",
+    "iso_file",
+    "optical_root",
+    "schema_version",
+    "virtual_store_tree",
+}
+
+
+def load_private_locator(config_path: pathlib.Path) -> tuple[dict[str, object], bytes]:
+    raw = config_path.read_bytes()
+    if len(raw) > 1024 * 1024 or raw.startswith(b"\xef\xbb\xbf"):
+        raise ValueError("private locator framing")
+    value = strict_object(decode_json(raw), PRIVATE_LOCATOR_KEYS, "private locator")
+    if value["schema_version"] != 1:
+        raise ValueError("private locator schema")
+    for key in PRIVATE_LOCATOR_KEYS - {"schema_version"}:
+        item = value[key]
+        if not isinstance(item, str) or not re.match(r"^(?:[A-Za-z]:[\\/]|\\\\)", item):
+            raise ValueError(f"private locator {key}")
+    return value, raw
+
+
 def private_strings(config_path: pathlib.Path) -> list[str]:
-    value = decode_json(config_path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise ValueError("private config must be an object")
+    value, _raw = load_private_locator(config_path)
     result: list[str] = []
     for item in value.values():
         if isinstance(item, str) and len(item) >= 3:
@@ -431,12 +817,26 @@ def private_strings(config_path: pathlib.Path) -> list[str]:
     return result
 
 
-def verify(path: pathlib.Path, forbid_file: pathlib.Path | None) -> None:
+def reject_path_like_strings(value: object) -> None:
+    path_pattern = re.compile(
+        r"(?:[A-Za-z]:[\\/]|\\\\|(?:^|[\s\"'])(?:/mnt/|/home/|/root/|/tmp/|/var/tmp/))",
+        re.IGNORECASE,
+    )
+    for string_value in iter_strings(value):
+        if path_pattern.search(string_value):
+            raise ValueError("path-like string present")
+
+
+def verify(
+    path: pathlib.Path, forbid_file: pathlib.Path, expectations_path: pathlib.Path
+) -> None:
     raw = path.read_bytes()
     if len(raw) > 4 * 1024 * 1024 or not raw.endswith(b"\n") or raw.startswith(b"\xef\xbb\xbf"):
         raise ValueError("output framing")
     value = decode_json(raw)
     strict_object(value, TOP_LEVEL, "top-level")
+    private_locator, private_raw = load_private_locator(forbid_file)
+    expectations, expectations_raw = load_expectations(expectations_path)
     if value["schema_version"] != 1:
         raise ValueError("schema version")
     summary = strict_object(value["summary"], SUMMARY, "summary")
@@ -470,15 +870,20 @@ def verify(path: pathlib.Path, forbid_file: pathlib.Path | None) -> None:
     errors = value["errors"]
     if not isinstance(errors, list) or len(errors) != summary["error_count"]:
         raise ValueError("error count")
-    if not isinstance(value["guards"], dict) or value["guards"].get("cm0102_launched") is not False:
-        raise ValueError("game launch guard")
     completeness = summary["completeness"]
     if completeness == "complete":
         if set(ids) != REQUIRED_CHECK_IDS:
             raise ValueError("required check set")
-        validate_full_schema(value)
-        expected_verdict = "eligible-for-synthetic-launcher-test" if counts["fail"] == 0 and counts["error"] == 0 else "unsafe"
-        if summary["safety_verdict"] != expected_verdict or counts["error"] != 0:
+        predicates = validate_full_schema(value, expectations, expectations_raw)
+        check_by_id = {item["id"]: item for item in checks}
+        for check_id, (passed, detail) in predicates.items():
+            check = check_by_id[check_id]
+            if check["outcome"] != ("pass" if passed else "fail") or check["detail_code"] != detail:
+                raise ValueError(f"semantic check contradiction: {check_id}")
+        if value["probe"]["private_locator_sha256"] != hashlib.sha256(private_raw).hexdigest():
+            raise ValueError("probe private locator identity")
+        expected_verdict = "eligible-for-synthetic-launcher-test" if all(result[0] for result in predicates.values()) else "unsafe"
+        if summary["safety_verdict"] != expected_verdict or counts["error"] != 0 or value["errors"] != []:
             raise ValueError("complete verdict consistency")
     elif completeness == "incomplete":
         if ids != ["probe"] or counts != {"pass": 0, "fail": 0, "error": 1}:
@@ -490,27 +895,288 @@ def verify(path: pathlib.Path, forbid_file: pathlib.Path | None) -> None:
         error = strict_object(errors[0], {"category", "check_id", "detail_code"}, "minimal error")
         if error["category"] != "probe" or error["check_id"] != "probe":
             raise ValueError("minimal error identity")
-        text(error["detail_code"], "minimal error detail")
+        detail = text(error["detail_code"], "minimal error detail")
+        if detail != checks[0]["detail_code"]:
+            raise ValueError("minimal detail contradiction")
+        exact_minimal = {
+            "capabilities": {},
+            "guards": {"cm0102_launched": False},
+            "host": {},
+            "inputs": {},
+            "probe": {},
+            "registry": {},
+            "run": {},
+            "session": {},
+            "tokens": {},
+        }
+        for key, expected in exact_minimal.items():
+            if value[key] != expected:
+                raise ValueError(f"minimal {key} shape")
     else:
         raise ValueError("completeness")
     if raw != canonical(value):
         raise ValueError("non-canonical JSON")
-    if forbid_file:
-        forbidden = private_strings(forbid_file)
-        for string_value in iter_strings(value):
-            lowered = string_value.casefold()
-            if any(item.casefold() in lowered for item in forbidden):
-                raise ValueError("private string present")
+    reject_path_like_strings(value)
+    forbidden = []
+    for item in private_locator.values():
+        if isinstance(item, str) and len(item) >= 3:
+            forbidden.extend((item, item.replace("\\", "/"), item.replace("/", "\\")))
+    for string_value in iter_strings(value):
+        lowered = string_value.casefold()
+        if any(item.casefold() in lowered for item in forbidden):
+            raise ValueError("private string present")
 
 
 def static_source(paths: list[pathlib.Path]) -> None:
     for path in paths:
-        text = path.read_text(encoding="utf-8")
-        for token in BANNED_PRODUCTION_TOKENS:
-            if token in text:
-                raise ValueError(f"{path.name}: banned token {token}")
-        if re.search(r"DllImport\(\s*\"(?:shell32|winexec)", text, re.IGNORECASE):
+        source = path.read_text(encoding="utf-8")
+        without_comments = re.sub(r"/\*.*?\*/|//[^\r\n]*", "", source, flags=re.DOTALL)
+        normalized = re.sub(r"\s+", "", without_comments).casefold()
+        for pattern, label in BANNED_NORMALIZED_PATTERNS:
+            if re.search(pattern, normalized):
+                raise ValueError(f"{path.name}: banned {label}")
+        if re.search(r"dllimport\(\"(?:shell32|winexec)", normalized):
             raise ValueError(f"{path.name}: banned launch library")
+        for constructor in re.findall(r"newfilestream\(([^;]*)\)", normalized):
+            if "fileaccess.read," not in constructor:
+                raise ValueError(f"{path.name}: non-read-only FileStream")
+        declarations = re.findall(
+            r"\[\s*(?:System\.Runtime\.InteropServices\.)?dllimport\s*\(\s*\"([^\"]+)\"[^)]*\)\s*\]"
+            r"\s*[^;{}]*?\bextern\s+[^\s]+\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(",
+            source,
+            re.IGNORECASE,
+        )
+        attribute_count = len(
+            re.findall(
+                r"\[\s*(?:System\.Runtime\.InteropServices\.)?DllImport\b",
+                source,
+                re.IGNORECASE,
+            )
+        )
+        extern_count = len(re.findall(r"\bextern\b", source, re.IGNORECASE))
+        if "libraryimport" in normalized or "dllimportattribute" in normalized:
+            raise ValueError(f"{path.name}: unapproved interop attribute")
+        if len(declarations) != attribute_count or len(declarations) != extern_count:
+            raise ValueError(f"{path.name}: unparsed DllImport declaration")
+        for library, method in declarations:
+            pair = (library.casefold(), method)
+            if pair not in ALLOWED_PINVOKES:
+                raise ValueError(f"{path.name}: unapproved P/Invoke")
+
+
+def expect_rejected(action, name: str) -> None:
+    try:
+        action()
+    except (ValueError, OSError):
+        return
+    raise AssertionError(name)
+
+
+def synthetic_full_document(
+    expectations: dict[str, object], expectations_raw: bytes, private_raw: bytes
+) -> dict[str, object]:
+    present_tree = {
+        "case_collision_count": 0,
+        "directory_count": 1,
+        "file_count": expectations["clean_file_count"],
+        "present": True,
+        "reparse_count": 0,
+        "root_object_id_sha256": "d" * 64,
+        "total_bytes": expectations["clean_total_bytes"],
+        "tree_sha256": "a" * 64,
+        "unstable_count": 0,
+    }
+    absent_tree = {
+        "case_collision_count": 0,
+        "directory_count": 0,
+        "file_count": 0,
+        "present": False,
+        "reparse_count": 0,
+        "root_object_id_sha256": hashlib.sha256("absent".encode("utf-16le")).hexdigest(),
+        "total_bytes": 0,
+        "tree_sha256": hashlib.sha256(b"").hexdigest(),
+        "unstable_count": 0,
+    }
+    expected_executable = {
+        "byte_count": expectations["original_executable_bytes"],
+        "sha256": expectations["original_executable_sha256"],
+    }
+    clean_capture = {
+        "executable": {"expected_match": True, "identity": expected_executable},
+        "extra_count": 0,
+        "mismatch_count": 0,
+        "missing_count": 0,
+        "tree": present_tree,
+        "tree_expected_match": True,
+        "writable_open_count": 0,
+    }
+    details = {
+        "active-input-desktop": "default",
+        "clean-manifest-identity": "exact",
+        "clean-tree-exact": "two-captures-exact",
+        "clean-tree-read-only": "non-writable",
+        "explorer-token-medium": "confirmed",
+        "installed-tree-plain": "plain",
+        "installed-tree-stable": "unchanged",
+        "iso-identity": "exact",
+        "no-game-process-after": "absent",
+        "no-game-process-before": "absent",
+        "optical-media": "exact",
+        "private-inputs-distinct": "distinct",
+        "probe-image-stable": "unchanged",
+        "probe-process-x86": "x86",
+        "registry-current-exact-access": "win32-0",
+        "registry-explorer-exact-denial": "win32-5",
+        "registry-location-binding": "matches",
+        "registry-read-only": "unchanged",
+        "required-host-tools": "available",
+        "virtual-store-plain": "plain-or-absent",
+        "virtual-store-stable": "unchanged",
+        "wsl-token-high-hazard": "confirmed",
+    }
+    checks = [
+        {"detail_code": details[check_id], "id": check_id, "outcome": "pass", "required": True}
+        for check_id in sorted(REQUIRED_CHECK_IDS)
+    ]
+    api_required = set(expectations["required_api_ids"])
+    tool_required = set(expectations["required_tool_ids"])
+    capabilities = {
+        "apis": [
+            {"id": item, "present": True, "required": item in api_required}
+            for item in sorted(REQUIRED_API_IDS)
+        ],
+        "tools": [
+            {
+                "file": {"byte_count": 1, "sha256": "b" * 64}
+                if item in tool_required
+                else None,
+                "id": item,
+                "present": item in tool_required,
+                "required": item in tool_required,
+            }
+            for item in sorted(REQUIRED_TOOL_IDS)
+        ],
+    }
+    token_common = {
+        "account_sid_sha256": "8" * 64,
+        "elevation_type": "full",
+        "integrity": "high",
+        "is_administrator": True,
+        "privileges": [],
+        "session_id": 2,
+    }
+    explorer = dict(token_common)
+    explorer.update({"elevation_type": "limited", "integrity": "medium", "is_administrator": False})
+    return {
+        "capabilities": capabilities,
+        "checks": checks,
+        "errors": [],
+        "guards": {
+            "cm0102_launched": False,
+            "game_process_count_after": 0,
+            "game_process_count_before": 0,
+            "installed_tree": {"after": present_tree, "before": present_tree, "unchanged": True},
+            "private_inputs_distinct": True,
+            "virtual_store_tree": {"after": absent_tree, "before": absent_tree, "unchanged": True},
+        },
+        "host": {
+            "architecture": "x86-64",
+            "display_version": "self-test",
+            "edition": "self-test",
+            "locale": "en-GB",
+            "machine_fingerprint_sha256": "7" * 64,
+            "os_build": 1,
+            "os_major": 10,
+            "os_minor": 0,
+            "product_name": "Windows",
+            "time_zone": "UTC",
+        },
+        "inputs": {
+            "clean": {
+                "after": clean_capture,
+                "before": clean_capture,
+                "manifest": {
+                    "expected_match": True,
+                    "identity": {
+                        "byte_count": expectations["clean_manifest_bytes"],
+                        "sha256": expectations["clean_manifest_sha256"],
+                    },
+                },
+                "unchanged": True,
+            },
+            "iso": {
+                "file": {
+                    "expected_match": True,
+                    "identity": {"byte_count": expectations["iso_bytes"], "sha256": expectations["iso_sha256"]},
+                },
+                "optical_media": {
+                    "drive_type": 5,
+                    "executable": {
+                        "byte_count": expectations["optical_executable_bytes"],
+                        "sha256": expectations["optical_executable_sha256"],
+                    },
+                    "expected_match": True,
+                    "volume_label_matches": True,
+                    "volume_label_sha256": hashlib.sha256(
+                        str(expectations["optical_volume_label"]).encode("utf-16le")
+                    ).hexdigest(),
+                },
+            },
+        },
+        "probe": {
+            "executable": {"byte_count": 100, "sha256": "9" * 64},
+            "executable_after": {"byte_count": 100, "sha256": "9" * 64},
+            "executable_unchanged": True,
+            "expectations_sha256": hashlib.sha256(expectations_raw).hexdigest(),
+            "id": "cm0102-original-host-qualification",
+            "private_locator_sha256": hashlib.sha256(private_raw).hexdigest(),
+            "process_architecture": "x86",
+            "source_revision": "6" * 40,
+            "version": "1.0.0",
+        },
+        "registry": {
+            "acl": {"aces": [], "group_sid": "S-1-5-18", "owner_sid": "S-1-5-18"},
+            "exact_access": {
+                "desired_access": expectations["registry_exact_access_mask"],
+                "explorer_token_win32_result": 5,
+                "probe_token_win32_result": 0,
+            },
+            "key_id": expectations["registry_key_id"],
+            "last_write_unchanged": True,
+            "location": {
+                "equals_configured_install_root": True,
+                "sha256_utf16le": "c" * 64,
+                "utf16le_bytes": 20,
+                "value_kind": "String",
+            },
+            "view": "32-bit",
+        },
+        "run": {"elapsed_ms": 1, "observed_at_utc": "2026-01-01T00:00:00.0000000Z"},
+        "schema_version": 1,
+        "session": {
+            "active_console_session_id": 2,
+            "bits_per_pixel": 32,
+            "current_process_session_id": 2,
+            "explorer_process_count": 1,
+            "explorer_session_id": 2,
+            "input_desktop": "Default",
+            "screen_height": 1080,
+            "screen_width": 1920,
+            "window_station": "WinSta0",
+        },
+        "summary": {
+            "comparison_verdict": "not-run",
+            "completeness": "complete",
+            "direct_wsl_launch_safe": False,
+            "error_count": 0,
+            "failed_count": 0,
+            "original_execution_status": "not-run",
+            "passed_count": len(checks),
+            "required_check_count": len(checks),
+            "safety_verdict": "eligible-for-synthetic-launcher-test",
+        },
+        "tokens": {"explorer": explorer, "impersonation_restored": True, "probe": token_common},
+    }
 
 
 def self_test() -> None:
@@ -524,9 +1190,73 @@ def self_test() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = pathlib.Path(directory)
         private = root / "private.json"
-        private.write_text(json.dumps({"path": r"C:\private\game"}), encoding="utf-8")
-        if r"C:\private\game" not in private_strings(private):
+        private_value = {
+            "clean_manifest": r"C:\private\clean.tsv",
+            "clean_tree": r"C:\private\clean",
+            "installed_tree": r"C:\private\installed",
+            "iso_file": r"C:\private\disc.iso",
+            "optical_root": "D:\\",
+            "schema_version": 1,
+            "virtual_store_tree": r"C:\private\virtual",
+        }
+        private.write_bytes(canonical(private_value))
+        if r"C:\private\clean" not in private_strings(private):
             raise AssertionError("redaction self-test")
+        expectations_value = {
+            "clean_file_count": 1,
+            "clean_manifest_bytes": 10,
+            "clean_manifest_sha256": "1" * 64,
+            "clean_total_bytes": 20,
+            "iso_bytes": 30,
+            "iso_sha256": "3" * 64,
+            "optical_executable_bytes": 50,
+            "optical_executable_sha256": "5" * 64,
+            "optical_volume_label": "CM0102",
+            "original_executable_bytes": 40,
+            "original_executable_sha256": "4" * 64,
+            "profile_id": "self-test",
+            "registry_exact_access_mask": 0x000F003F,
+            "registry_key_id": "cm0102-install-location",
+            "registry_subkey": "Software\\Vendor\\Product",
+            "registry_value_name": "Location",
+            "required_api_ids": sorted(REQUIRED_API_IDS),
+            "required_tool_ids": ["csc-x86", "powershell", "python313"],
+            "schema_version": 1,
+        }
+        expectations = root / "expectations.json"
+        expectations.write_bytes(canonical(expectations_value))
+        full = synthetic_full_document(
+            expectations_value, expectations.read_bytes(), private.read_bytes()
+        )
+        full_output = root / "full-output.json"
+        full_output.write_bytes(canonical(full))
+        verify(full_output, private, expectations)
+        for check_id in sorted(REQUIRED_CHECK_IDS):
+            contradiction = decode_json(canonical(full))
+            changed = next(
+                item for item in contradiction["checks"] if item["id"] == check_id
+            )
+            changed["outcome"] = "fail"
+            contradiction["summary"]["passed_count"] -= 1
+            contradiction["summary"]["failed_count"] += 1
+            contradiction["summary"]["safety_verdict"] = "unsafe"
+            full_output.write_bytes(canonical(contradiction))
+            expect_rejected(
+                lambda: verify(full_output, private, expectations),
+                f"semantic contradiction {check_id}",
+            )
+        leaked = decode_json(canonical(full))
+        leaked["host"]["product_name"] = private_value["installed_tree"]
+        full_output.write_bytes(canonical(leaked))
+        expect_rejected(
+            lambda: verify(full_output, private, expectations), "full privacy leak"
+        )
+        unsafe_hidden = decode_json(canonical(full))
+        unsafe_hidden["guards"]["game_process_count_after"] = 1
+        full_output.write_bytes(canonical(unsafe_hidden))
+        expect_rejected(
+            lambda: verify(full_output, private, expectations), "hidden unsafe observation"
+        )
         check = {
             "detail_code": "self-test",
             "id": "probe",
@@ -562,22 +1292,39 @@ def self_test() -> None:
         }
         output = root / "output.json"
         output.write_bytes(canonical(document))
-        verify(output, private)
+        verify(output, private, expectations)
         output.write_bytes(b'{"schema_version":1,"schema_version":1}\n')
-        try:
-            verify(output, private)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("duplicate-key self-test")
+        expect_rejected(lambda: verify(output, private, expectations), "duplicate-key self-test")
         document["guards"]["cm0102_launched"] = True
         output.write_bytes(canonical(document))
-        try:
-            verify(output, private)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("game-launch guard self-test")
+        expect_rejected(lambda: verify(output, private, expectations), "minimal shape self-test")
+        document["guards"]["cm0102_launched"] = False
+        document["host"] = {"leak": r"C:\private\clean"}
+        output.write_bytes(canonical(document))
+        expect_rejected(lambda: verify(output, private, expectations), "privacy self-test")
+
+        static_good = root / "good.cs"
+        static_good.write_text("class X { void Observe() { File.OpenRead(\"x\"); } }", encoding="utf-8")
+        static_source([static_good])
+        banned_samples = (
+            "p . StArT ( );",
+            "p./* disguise */Start();",
+            "Create ProcessW (x);".replace(" ", ""),
+            "Shell Execute ExW (x);".replace(" ", ""),
+            "WIN EXEC (x);".replace(" ", ""),
+            "Reg Set Value ExW (x);".replace(" ", ""),
+            "key . Create Sub Key (x);".replace(" ", ""),
+            "File . Write All Bytes (x,y);".replace(" ", ""),
+            "Directory . Create Directory (x);".replace(" ", ""),
+            "new FileStream(x, FileMode . Open Or Create);".replace(" ", ""),
+            "new FileStream(x, FileMode.Open, File Access . Read Write);".replace(" ", ""),
+            "new FileStream(x, FileMode.Open);",
+            '[DllImport("kernel32.dll")] static extern int Beep(int a, int b);',
+        )
+        for index, source in enumerate(banned_samples):
+            banned = root / f"banned-{index}.cs"
+            banned.write_text(source, encoding="utf-8")
+            expect_rejected(lambda banned=banned: static_source([banned]), f"static negative {index}")
 
 
 def main() -> int:
@@ -588,14 +1335,15 @@ def main() -> int:
     static.add_argument("paths", nargs="+", type=pathlib.Path)
     output = sub.add_parser("verify")
     output.add_argument("path", type=pathlib.Path)
-    output.add_argument("--forbid-file", type=pathlib.Path)
+    output.add_argument("--forbid-file", required=True, type=pathlib.Path)
+    output.add_argument("--expectations", required=True, type=pathlib.Path)
     args = parser.parse_args()
     if args.command == "self-test":
         self_test()
     elif args.command == "static-source":
         static_source(args.paths)
     else:
-        verify(args.path, args.forbid_file)
+        verify(args.path, args.forbid_file, args.expectations)
     print("PASS")
     return 0
 

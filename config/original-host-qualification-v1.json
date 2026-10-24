@@ -15,5 +15,17 @@
   "registry_key_id": "cm0102-install-location",
   "registry_subkey": "Software\\Sports Interactive Ltd\\Championship Manager 01-02",
   "registry_value_name": "Location",
-  "registry_exact_access_mask": 983103
+  "registry_exact_access_mask": 983103,
+  "required_api_ids": [
+    "advapi32-registry",
+    "advapi32-token",
+    "kernel32-filesystem",
+    "user32-desktop",
+    "wtsapi32-session"
+  ],
+  "required_tool_ids": [
+    "csc-x86",
+    "powershell",
+    "python313"
+  ]
 }

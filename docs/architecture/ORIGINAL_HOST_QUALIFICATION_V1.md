@@ -1,6 +1,6 @@
 # Original Windows host qualification v1
 
-Status: contract frozen; implementation and retained live evidence remain pending.
+Status: contract and implementation present; retained live evidence remains pending.
 
 This probe converts the preliminary Windows observations into reproducible, fail-closed evidence before any original executable launch. It is host research tooling, not game logic, a launcher, original behaviour evidence, or a comparison result.
 
@@ -14,7 +14,7 @@ The exact registry access check is `RegOpenKeyExA` against the configured 32-bit
 
 ## Inputs
 
-The public strict expectations file contains only versioned IDs, expected counts/sizes/hashes, registry key/access expectations, volume expectations, and required API/tool names. It contains no deployment paths.
+The public strict expectations file contains only versioned IDs, expected counts/sizes/hashes, registry key/access expectations, volume expectations, and lexicographically sorted required API/tool IDs. It contains no deployment paths. Each expectations, locator and clean-manifest file is read once into a bounded immutable byte snapshot; parsing and reported identity use that same snapshot.
 
 A private strict locator, retained outside Git, supplies only:
 
@@ -25,9 +25,9 @@ A private strict locator, retained outside Git, supplies only:
 - `iso_file`
 - `optical_root`
 
-Unknown/missing fields, relative paths, aliases, reparse points, case-colliding files, unreadable entries, input mutation during inspection, and identity mismatch fail closed. Raw paths never enter public output.
+Unknown/missing fields, relative paths, aliases, reparse points, case-colliding files, unreadable entries, input mutation during inspection, and identity mismatch fail closed. Locator objects and traversed entries are opened without following reparse points, their filesystem identities/final paths are checked for containment and distinctness, and handles prevent replacement during inspection. Tree digests include type-tagged directory as well as file rows. The clean tree is captured twice and both snapshots must match. Raw paths never enter public output.
 
-The calling harness binds hashes for expectations, locator, source/compiler and output executable. It builds outside the repository and invokes the probe directly through WSL interop with a 30-minute outer timeout and mode-private capture. It does not use a `cmd.exe`/PowerShell launch wrapper and does not pass a CM path.
+The calling harness binds hashes for expectations, locator, every source, compiler and output executable, plus the exact command, source commit, exit status, stderr identity and canonical stdout identity. It builds outside the repository and invokes the probe directly through WSL interop with a 30-minute outer timeout, 4 MiB stream caps and mode-private capture. It refuses an existing destination and publishes a sanitized canonical run manifest only after the strict output verifier succeeds. It does not use a `cmd.exe`/PowerShell launch wrapper and does not pass a CM path.
 
 ## Required observations
 
@@ -64,7 +64,7 @@ Standard output is exactly one UTF-8, no-BOM, minified JSON object followed by L
 - `errors`
 - `summary`
 
-The report never contains raw paths, usernames, hostnames, registry Location text, relative filenames, environment values, exception messages, or stack traces. Identifiers that must correlate use SHA-256. Before emission, the probe recursively scans every string against all private strings plus slash/escaped variants. A redaction hit emits only a minimal inconclusive document.
+The report never contains raw paths, usernames, hostnames, registry Location text, relative filenames, environment values, exception messages, or stack traces. Identifiers that must correlate use SHA-256. Before emission, the probe recursively scans every string against all private strings plus slash/escaped variants. A redaction hit emits only the exact minimal inconclusive schema. The independent verifier requires the private locator, rejects any other minimal-document shape, and recomputes every required check and final verdict from the observed fields rather than trusting declared outcomes.
 
 The summary always contains `original_execution_status: not-run` and `comparison_verdict: not-run`. Exit status meanings are: `0` complete and eligible only for synthetic-launcher testing; `2` complete but unsafe; `3` incomplete/inconclusive; `64` usage/config failure. It must never describe the host as qualified for original execution.
 

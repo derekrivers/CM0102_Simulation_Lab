@@ -144,10 +144,14 @@ namespace Cm0102.OriginalHostQualification
 
     internal static class StrictJson
     {
-        public static Dictionary<string, object> ReadObject(string path, string[] exactKeys)
+        public static Dictionary<string, object> ReadObject(string path, string[] exactKeys, out FileIdentity identity)
         {
-            byte[] bytes = File.ReadAllBytes(path);
-            if (bytes.Length == 0 || bytes.Length > 1024 * 1024) throw new UsageException();
+            FileSnapshot snapshot;
+            try { snapshot = FileSnapshot.Read(path, 1024 * 1024); }
+            catch (Exception) { throw new UsageException(); }
+            byte[] bytes = snapshot.Bytes;
+            identity = snapshot.Identity;
+            if (bytes.Length == 0) throw new UsageException();
             string text = new UTF8Encoding(false, true).GetString(bytes);
             DuplicateKeyScanner.RejectTopLevelDuplicates(text);
             object decoded = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 }.DeserializeObject(text);
@@ -177,6 +181,24 @@ namespace Cm0102.OriginalHostQualification
         {
             string result = String(value, key).ToLowerInvariant();
             if (!Regex.IsMatch(result, "^[0-9a-f]{64}$")) throw new UsageException();
+            return result;
+        }
+
+        public static List<string> SortedIdentifiers(Dictionary<string, object> value, string key)
+        {
+            object[] raw = value[key] as object[];
+            if (raw == null || raw.Length == 0 || raw.Length > 64) throw new UsageException();
+            List<string> result = new List<string>();
+            string previous = null;
+            foreach (object item in raw)
+            {
+                string identifier = item as string;
+                if (System.String.IsNullOrEmpty(identifier) || !Regex.IsMatch(identifier, "^[a-z0-9][a-z0-9-]{0,63}$") ||
+                    (previous != null && StringComparer.Ordinal.Compare(previous, identifier) >= 0))
+                    throw new UsageException();
+                result.Add(identifier);
+                previous = identifier;
+            }
             return result;
         }
     }
@@ -345,6 +367,9 @@ namespace Cm0102.OriginalHostQualification
         public string RegistrySubkey;
         public string RegistryValueName;
         public int RegistryExactAccessMask;
+        public List<string> RequiredApiIds;
+        public List<string> RequiredToolIds;
+        public FileIdentity SourceIdentity;
 
         public static Expectations Load(string path)
         {
@@ -353,9 +378,11 @@ namespace Cm0102.OriginalHostQualification
                 "clean_manifest_bytes", "clean_manifest_sha256", "original_executable_bytes",
                 "original_executable_sha256", "iso_bytes", "iso_sha256", "optical_volume_label",
                 "optical_executable_bytes", "optical_executable_sha256", "registry_key_id",
-                "registry_subkey", "registry_value_name", "registry_exact_access_mask"
+                "registry_subkey", "registry_value_name", "registry_exact_access_mask",
+                "required_api_ids", "required_tool_ids"
             };
-            Dictionary<string, object> value = StrictJson.ReadObject(path, keys);
+            FileIdentity sourceIdentity;
+            Dictionary<string, object> value = StrictJson.ReadObject(path, keys, out sourceIdentity);
             if (StrictJson.Integer(value, "schema_version") != 1) throw new UsageException();
             Expectations result = new Expectations();
             result.ProfileId = StrictJson.String(value, "profile_id");
@@ -373,6 +400,9 @@ namespace Cm0102.OriginalHostQualification
             result.RegistryKeyId = StrictJson.String(value, "registry_key_id");
             result.RegistrySubkey = StrictJson.String(value, "registry_subkey");
             result.RegistryValueName = StrictJson.String(value, "registry_value_name");
+            result.RequiredApiIds = StrictJson.SortedIdentifiers(value, "required_api_ids");
+            result.RequiredToolIds = StrictJson.SortedIdentifiers(value, "required_tool_ids");
+            result.SourceIdentity = sourceIdentity;
             long access = StrictJson.Integer(value, "registry_exact_access_mask");
             if (access < 0 || access > Int32.MaxValue) throw new UsageException();
             result.RegistryExactAccessMask = (int)access;
@@ -383,7 +413,16 @@ namespace Cm0102.OriginalHostQualification
                 result.IsoBytes <= 0 || result.IsoBytes > (1L << 40) ||
                 result.OpticalExecutableBytes <= 0 || result.OpticalExecutableBytes > (1L << 34))
                 throw new UsageException();
+            ValidateSupported(result.RequiredApiIds, CapabilityCatalog.ApiIds);
+            ValidateSupported(result.RequiredToolIds, CapabilityCatalog.ToolIds);
             return result;
+        }
+
+        private static void ValidateSupported(IEnumerable<string> required, IEnumerable<string> supported)
+        {
+            HashSet<string> available = new HashSet<string>(supported, StringComparer.Ordinal);
+            foreach (string id in required)
+                if (!available.Contains(id)) throw new UsageException();
         }
     }
 
@@ -395,11 +434,13 @@ namespace Cm0102.OriginalHostQualification
         public string VirtualStoreTree;
         public string IsoFile;
         public string OpticalRoot;
+        public FileIdentity SourceIdentity;
 
         public static PrivateLocator Load(string path)
         {
             string[] keys = { "schema_version", "clean_tree", "clean_manifest", "installed_tree", "virtual_store_tree", "iso_file", "optical_root" };
-            Dictionary<string, object> value = StrictJson.ReadObject(path, keys);
+            FileIdentity sourceIdentity;
+            Dictionary<string, object> value = StrictJson.ReadObject(path, keys, out sourceIdentity);
             if (StrictJson.Integer(value, "schema_version") != 1) throw new UsageException();
             PrivateLocator result = new PrivateLocator();
             result.CleanTree = FullPath(value, "clean_tree");
@@ -413,8 +454,9 @@ namespace Cm0102.OriginalHostQualification
             if (!Regex.IsMatch(result.OpticalRoot, "^[A-Za-z]:\\\\$")) throw new UsageException();
             HashSet<string> distinctPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string locatorPath in result.AllPaths())
-                if (!distinctPaths.Add(locatorPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)))
+                if (!distinctPaths.Add(PathSafety.PreserveRoot(locatorPath)))
                     throw new UsageException();
+            result.SourceIdentity = sourceIdentity;
             return result;
         }
 
@@ -422,8 +464,7 @@ namespace Cm0102.OriginalHostQualification
         {
             string raw = StrictJson.String(value, key);
             if (!Path.IsPathRooted(raw)) throw new UsageException();
-            string path = Path.GetFullPath(raw);
-            return path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return PathSafety.PreserveRoot(Path.GetFullPath(raw));
         }
 
         public IEnumerable<string> AllPaths()
@@ -487,8 +528,12 @@ namespace Cm0102.OriginalHostQualification
             redactor.Add(executablePath);
 
             FileIdentity executable = FileIdentity.Read(executablePath);
-            FileIdentity expectationsIdentity = FileIdentity.Read(expectationsPath);
-            FileIdentity privateIdentity = FileIdentity.Read(privateConfigPath);
+            FileIdentity expectationsIdentity = expectations.SourceIdentity;
+            FileIdentity privateIdentity = locator.SourceIdentity;
+
+            bool privateInputsDistinct = PathSafety.AreDistinctExistingObjects(locator.AllPaths());
+            AddCheck("private-inputs-distinct", true, privateInputsDistinct,
+                privateInputsDistinct ? "distinct" : "alias-detected");
 
             int gameCountBefore = CountGameProcesses();
             AddCheck("no-game-process-before", true, gameCountBefore == 0, gameCountBefore == 0 ? "absent" : "present");
@@ -497,37 +542,30 @@ namespace Cm0102.OriginalHostQualification
 
             SortedDictionary<string, object> host = ObserveHost();
             SessionObservation session = ObserveSession();
-            AddCheck("active-input-desktop", true,
-                session.ActiveConsoleSessionId == session.ExplorerSessionId && session.InputDesktopName == "Default",
-                session.InputDesktopName == "Default" ? "default" : "not-default");
-
-            bool currentTokenWasThreadToken;
-            TokenObservation currentToken = TokenObservation.EffectiveCurrent(out currentTokenWasThreadToken);
             TokenObservation explorerToken = session.ExplorerToken;
-            redactor.Add(currentToken.RawSid);
-            redactor.Add(explorerToken.RawSid);
-            bool currentHigh = currentToken.Integrity == "high" && currentToken.IsAdministrator;
-            bool explorerMedium = explorerToken.Integrity == "medium" && !explorerToken.IsAdministrator &&
-                explorerToken.SessionId == session.ActiveConsoleSessionId && explorerToken.RawSid == currentToken.RawSid;
-            AddCheck("wsl-token-high-hazard", true, currentHigh, currentHigh ? "confirmed" : "unexpected-token");
-            AddCheck("explorer-token-medium", true, explorerMedium, explorerMedium ? "confirmed" : "unexpected-token");
-
+            TokenObservation currentToken = null;
             RegistryObservation registry;
             try
             {
+                AddCheck("active-input-desktop", true,
+                    QualificationPolicy.SessionSafe(session.ActiveConsoleSessionId, session.ExplorerSessionId, session.InputDesktopName),
+                    session.InputDesktopName == "Default" ? "default" : "not-default");
+
+                bool currentTokenWasThreadToken;
+                currentToken = TokenObservation.EffectiveCurrent(out currentTokenWasThreadToken);
+                bool currentHigh = QualificationPolicy.DirectTokenHazard(currentToken);
+                bool explorerMedium = QualificationPolicy.ExplorerTokenSafe(currentToken, explorerToken, session.ActiveConsoleSessionId);
+                AddCheck("wsl-token-high-hazard", true, currentHigh, currentHigh ? "confirmed" : "unexpected-token");
+                AddCheck("explorer-token-medium", true, explorerMedium, explorerMedium ? "confirmed" : "unexpected-token");
                 registry = ObserveRegistry(currentToken, currentTokenWasThreadToken, explorerToken);
             }
             finally
             {
-                if (explorerToken.DuplicatedImpersonationToken != IntPtr.Zero)
-                {
-                    NativeMethods.CloseHandle(explorerToken.DuplicatedImpersonationToken);
-                    explorerToken.DuplicatedImpersonationToken = IntPtr.Zero;
-                }
+                explorerToken.DisposeImpersonationToken();
             }
-            AddCheck("registry-current-exact-access", true, registry.CurrentAccessResult == 0,
+            AddCheck("registry-current-exact-access", true, QualificationPolicy.DirectRegistryAccessExpected(registry.CurrentAccessResult),
                 "win32-" + registry.CurrentAccessResult.ToString(CultureInfo.InvariantCulture));
-            AddCheck("registry-explorer-exact-denial", true, registry.ExplorerAccessResult == NativeMethods.ErrorAccessDenied,
+            AddCheck("registry-explorer-exact-denial", true, QualificationPolicy.ExplorerRegistryDenied(registry.ExplorerAccessResult),
                 "win32-" + registry.ExplorerAccessResult.ToString(CultureInfo.InvariantCulture));
             AddCheck("registry-location-binding", true, registry.LocationMatchesInstalled,
                 registry.LocationMatchesInstalled ? "matches" : "mismatch");
@@ -539,17 +577,17 @@ namespace Cm0102.OriginalHostQualification
 
             CleanObservation clean = ObserveClean();
             AddCheck("clean-manifest-identity", true, clean.ManifestMatches, clean.ManifestMatches ? "exact" : "mismatch");
-            AddCheck("clean-tree-exact", true, clean.TreeMatches, clean.TreeMatches ? "exact" : "mismatch");
-            AddCheck("clean-tree-read-only", true, clean.WritableOpenCount == 0,
-                clean.WritableOpenCount == 0 ? "non-writable" : "writable");
+            AddCheck("clean-tree-exact", true, clean.BothMatch && clean.Unchanged,
+                clean.BothMatch && clean.Unchanged ? "two-captures-exact" : "mismatch-or-mutation");
+            AddCheck("clean-tree-read-only", true, clean.Before.WritableOpenCount == 0 && clean.After.WritableOpenCount == 0,
+                clean.Before.WritableOpenCount == 0 && clean.After.WritableOpenCount == 0 ? "non-writable" : "writable");
 
             IsoObservation iso = ObserveIso();
             AddCheck("iso-identity", true, iso.IsoMatches, iso.IsoMatches ? "exact" : "mismatch");
             AddCheck("optical-media", true, iso.OpticalMatches, iso.OpticalMatches ? "exact" : "mismatch");
 
             SortedDictionary<string, object> capabilities = ObserveCapabilities();
-            bool requiredTools = CapabilityPresent(capabilities, "csc-x86") &&
-                CapabilityPresent(capabilities, "powershell") && CapabilityPresent(capabilities, "python313");
+            bool requiredTools = RequiredCapabilitiesPresent(capabilities);
             AddCheck("required-host-tools", true, requiredTools, requiredTools ? "available" : "missing");
 
             TreeManifest installedAfter = TreeManifest.Capture(locator.InstalledTree, false);
@@ -581,8 +619,8 @@ namespace Cm0102.OriginalHostQualification
                 else if (check.Outcome == "fail") failed++;
                 else errored++;
             }
-            bool complete = errored == 0;
-            bool eligible = complete && failed == 0;
+            bool complete = QualificationPolicy.IsComplete(checks);
+            bool eligible = QualificationPolicy.IsEligible(checks);
             string verdict = eligible ? "eligible-for-synthetic-launcher-test" : (complete ? "unsafe" : "inconclusive");
 
             errors.Sort(delegate(object left, object right)
@@ -601,15 +639,19 @@ namespace Cm0102.OriginalHostQualification
                     "cm0102_launched", false,
                     "game_process_count_after", gameCountAfter,
                     "game_process_count_before", gameCountBefore,
+                    "private_inputs_distinct", privateInputsDistinct,
                     "installed_tree", JsonObjects.Object("after", installedAfter.ToJson(), "before", installedBefore.ToJson(), "unchanged", installedStable),
                     "virtual_store_tree", JsonObjects.Object("after", virtualAfter.ToJson(), "before", virtualBefore.ToJson(), "unchanged", virtualStable)),
                 "host", host,
                 "inputs", JsonObjects.Object("clean", clean.ToJson(), "iso", iso.ToJson()),
                 "probe", JsonObjects.Object(
                     "executable", executable.ToJson(),
+                    "executable_after", executableAfter.ToJson(),
+                    "executable_unchanged", executable.Same(executableAfter),
                     "expectations_sha256", expectationsIdentity.Sha256,
                     "id", "cm0102-original-host-qualification",
                     "private_locator_sha256", privateIdentity.Sha256,
+                    "process_architecture", Environment.Is64BitProcess ? "x64" : "x86",
                     "source_revision", sourceRevision,
                     "version", "1.0.0"),
                 "registry", registry.ToJson(expectations.RegistryKeyId, expectations.RegistryExactAccessMask),
@@ -628,7 +670,8 @@ namespace Cm0102.OriginalHostQualification
                     "passed_count", passed,
                     "required_check_count", checks.Count,
                     "safety_verdict", verdict),
-                "tokens", JsonObjects.Object("explorer", explorerToken.ToJson(), "probe", currentToken.ToJson()));
+                "tokens", JsonObjects.Object("explorer", explorerToken.ToJson(), "impersonation_restored", registry.ImpersonationRestored,
+                    "probe", currentToken.ToJson()));
 
             return new ProbeResult
             {
@@ -684,27 +727,36 @@ namespace Cm0102.OriginalHostQualification
         {
             uint active = NativeMethods.WTSGetActiveConsoleSessionId();
             Process[] explorers = Process.GetProcessesByName("explorer");
-            List<Process> matching = new List<Process>();
-            foreach (Process process in explorers)
-                if ((uint)process.SessionId == active) matching.Add(process);
-            if (matching.Count != 1) throw new InvalidOperationException("active-explorer-count");
-            string inputDesktop = NativeMethods.GetInputDesktopName();
-            string windowStation = NativeMethods.GetWindowStationName();
-            Screen primary = Screen.PrimaryScreen;
-            TokenObservation token = TokenObservation.FromProcess(matching[0]);
-            return new SessionObservation
+            try
             {
-                ActiveConsoleSessionId = active,
-                CurrentSessionId = Process.GetCurrentProcess().SessionId,
-                ExplorerSessionId = matching[0].SessionId,
-                ExplorerProcessCount = matching.Count,
-                InputDesktopName = inputDesktop,
-                WindowStationName = windowStation,
-                ScreenWidth = primary.Bounds.Width,
-                ScreenHeight = primary.Bounds.Height,
-                BitsPerPixel = primary.BitsPerPixel,
-                ExplorerToken = token
-            };
+                List<Process> matching = new List<Process>();
+                foreach (Process process in explorers)
+                    if ((uint)process.SessionId == active) matching.Add(process);
+                if (matching.Count != 1) throw new InvalidOperationException("active-explorer-count");
+                string inputDesktop = NativeMethods.GetInputDesktopName();
+                string windowStation = NativeMethods.GetWindowStationName();
+                Screen primary = Screen.PrimaryScreen;
+                int currentSession;
+                using (Process current = Process.GetCurrentProcess()) currentSession = current.SessionId;
+                SessionObservation result = new SessionObservation
+                {
+                    ActiveConsoleSessionId = active,
+                    CurrentSessionId = currentSession,
+                    ExplorerSessionId = matching[0].SessionId,
+                    ExplorerProcessCount = matching.Count,
+                    InputDesktopName = inputDesktop,
+                    WindowStationName = windowStation,
+                    ScreenWidth = primary.Bounds.Width,
+                    ScreenHeight = primary.Bounds.Height,
+                    BitsPerPixel = primary.BitsPerPixel
+                };
+                result.ExplorerToken = TokenObservation.FromProcess(matching[0]);
+                return result;
+            }
+            finally
+            {
+                foreach (Process process in explorers) process.Dispose();
+            }
         }
 
         private RegistryObservation ObserveRegistry(TokenObservation currentToken, bool currentTokenWasThreadToken,
@@ -713,7 +765,7 @@ namespace Cm0102.OriginalHostQualification
             long before = NativeMethods.RegistryLastWrite(expectations.RegistrySubkey);
             int currentResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask);
             int explorerResult;
-            using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(explorerToken.DuplicatedImpersonationToken))
+            using (WindowsImpersonationContext context = WindowsIdentity.Impersonate(explorerToken.ImpersonationTokenHandle))
             {
                 try { explorerResult = NativeMethods.ExactRegistryOpen(expectations.RegistrySubkey, expectations.RegistryExactAccessMask); }
                 finally { context.Undo(); }
@@ -768,6 +820,7 @@ namespace Cm0102.OriginalHostQualification
             {
                 CurrentAccessResult = currentResult,
                 ExplorerAccessResult = explorerResult,
+                ImpersonationRestored = true,
                 LastWriteBefore = before,
                 LastWriteAfter = after,
                 LocationMatchesInstalled = String.Equals(normalizedLocation, normalizedInstalled, StringComparison.OrdinalIgnoreCase),
@@ -787,8 +840,25 @@ namespace Cm0102.OriginalHostQualification
 
         private CleanObservation ObserveClean()
         {
-            FileIdentity manifestIdentity = FileIdentity.Read(locator.CleanManifest);
-            Dictionary<string, ManifestRow> expectedRows = ManifestRow.Parse(locator.CleanManifest);
+            FileSnapshot manifestSnapshot = FileSnapshot.Read(locator.CleanManifest, 1024 * 1024);
+            Dictionary<string, ManifestRow> expectedRows = ManifestRow.Parse(manifestSnapshot.Bytes);
+            CleanCaptureObservation before = ObserveCleanCapture(expectedRows);
+            CleanCaptureObservation after = ObserveCleanCapture(expectedRows);
+            bool manifestMatches = QualificationPolicy.IdentityMatches(manifestSnapshot.Identity,
+                expectations.CleanManifestBytes, expectations.CleanManifestSha256);
+            return new CleanObservation
+            {
+                Manifest = manifestSnapshot.Identity,
+                ManifestMatches = manifestMatches,
+                Before = before,
+                After = after,
+                BothMatch = before.TreeMatches && after.TreeMatches,
+                Unchanged = before.Tree.SameIdentity(after.Tree) && before.Executable.Same(after.Executable)
+            };
+        }
+
+        private CleanCaptureObservation ObserveCleanCapture(Dictionary<string, ManifestRow> expectedRows)
+        {
             TreeManifest tree = TreeManifest.Capture(locator.CleanTree, true);
             int missing = 0;
             int extra = 0;
@@ -803,19 +873,21 @@ namespace Cm0102.OriginalHostQualification
                 if (!expectedRows.ContainsKey(actual)) extra++;
             TreeRow executable;
             bool hasExecutable = tree.Rows.TryGetValue("cm0102.exe", out executable);
-            bool manifestMatches = manifestIdentity.Bytes == expectations.CleanManifestBytes &&
-                manifestIdentity.Sha256 == expectations.CleanManifestSha256;
             bool treeMatches = tree.FileCount == expectations.CleanFileCount && tree.TotalBytes == expectations.CleanTotalBytes &&
                 expectedRows.Count == expectations.CleanFileCount && missing == 0 && extra == 0 && mismatched == 0 &&
                 tree.CaseCollisionCount == 0 && tree.ReparseCount == 0 && tree.UnstableCount == 0 &&
                 hasExecutable && executable.Bytes == expectations.OriginalExecutableBytes &&
                 executable.Sha256 == expectations.OriginalExecutableSha256;
-            return new CleanObservation
+            FileIdentity executableIdentity = hasExecutable ?
+                new FileIdentity { Bytes = executable.Bytes, Sha256 = executable.Sha256 } :
+                new FileIdentity { Bytes = 0, Sha256 = Hashing.BytesSha256(new byte[0]) };
+            return new CleanCaptureObservation
             {
-                Manifest = manifestIdentity,
                 Tree = tree,
-                ManifestMatches = manifestMatches,
                 TreeMatches = treeMatches,
+                Executable = executableIdentity,
+                ExecutableMatches = hasExecutable && executable.Bytes == expectations.OriginalExecutableBytes &&
+                    executable.Sha256 == expectations.OriginalExecutableSha256,
                 MissingCount = missing,
                 ExtraCount = extra,
                 MismatchCount = mismatched,
@@ -826,7 +898,7 @@ namespace Cm0102.OriginalHostQualification
         private IsoObservation ObserveIso()
         {
             FileIdentity iso = FileIdentity.Read(locator.IsoFile);
-            bool isoMatches = iso.Bytes == expectations.IsoBytes && iso.Sha256 == expectations.IsoSha256;
+            bool isoMatches = QualificationPolicy.IdentityMatches(iso, expectations.IsoBytes, expectations.IsoSha256);
             uint driveType = NativeMethods.GetDriveTypeW(locator.OpticalRoot);
             string label = NativeMethods.GetVolumeLabel(locator.OpticalRoot);
             string opticalExecutablePath = Path.Combine(locator.OpticalRoot, "cm0102.exe");
@@ -851,16 +923,8 @@ namespace Cm0102.OriginalHostQualification
         {
             string windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             string system = Environment.GetFolderPath(Environment.SpecialFolder.System);
-            Dictionary<string, string> candidates = new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                { "cmd", Path.Combine(system, "cmd.exe") },
-                { "powershell", Path.Combine(system, @"WindowsPowerShell\v1.0\powershell.exe") },
-                { "csc-x86", Path.Combine(windows, @"Microsoft.NET\Framework\v4.0.30319\csc.exe") },
-                { "csc-x64", Path.Combine(windows, @"Microsoft.NET\Framework64\v4.0.30319\csc.exe") },
-                { "python313", Path.Combine(Path.GetPathRoot(windows), @"Python313\python.exe") },
-                { "windbg", Path.Combine(Path.GetPathRoot(windows), @"Program Files (x86)\Windows Kits\10\Debuggers\x86\windbg.exe") },
-                { "cdb", Path.Combine(Path.GetPathRoot(windows), @"Program Files (x86)\Windows Kits\10\Debuggers\x86\cdb.exe") }
-            };
+            Dictionary<string, string> candidates = CapabilityCatalog.ToolPaths(windows, system);
+            HashSet<string> requiredTools = new HashSet<string>(expectations.RequiredToolIds, StringComparer.Ordinal);
             List<object> tools = new List<object>();
             foreach (KeyValuePair<string, string> candidate in candidates)
             {
@@ -869,37 +933,134 @@ namespace Cm0102.OriginalHostQualification
                 tools.Add(JsonObjects.Object(
                     "file", present ? FileIdentity.Read(candidate.Value).ToJson() : null,
                     "id", candidate.Key,
-                    "present", present));
+                    "present", present,
+                    "required", requiredTools.Contains(candidate.Key)));
             }
             tools.Sort(delegate(object left, object right)
             {
                 return StringComparer.Ordinal.Compare((string)((IDictionary<string, object>)left)["id"], (string)((IDictionary<string, object>)right)["id"]);
             });
-            List<object> apis = new List<object>
+            HashSet<string> requiredApis = new HashSet<string>(expectations.RequiredApiIds, StringComparer.Ordinal);
+            List<object> apis = new List<object>();
+            foreach (string id in CapabilityCatalog.ApiIds)
             {
-                JsonObjects.Object("id", "advapi32-registry", "present", true),
-                JsonObjects.Object("id", "advapi32-token", "present", true),
-                JsonObjects.Object("id", "kernel32-filesystem", "present", true),
-                JsonObjects.Object("id", "user32-desktop", "present", true),
-                JsonObjects.Object("id", "wtsapi32-session", "present", true)
-            };
+                apis.Add(JsonObjects.Object("id", id, "present", CapabilityCatalog.ApiPresent(id),
+                    "required", requiredApis.Contains(id)));
+            }
             return JsonObjects.Object("apis", apis, "tools", tools);
         }
 
-        private static bool CapabilityPresent(SortedDictionary<string, object> capabilities, string id)
+        private static bool RequiredCapabilitiesPresent(SortedDictionary<string, object> capabilities)
         {
-            IEnumerable tools = (IEnumerable)capabilities["tools"];
-            foreach (object item in tools)
+            foreach (string group in new string[] { "apis", "tools" })
             {
-                IDictionary<string, object> tool = (IDictionary<string, object>)item;
-                if ((string)tool["id"] == id) return (bool)tool["present"];
+                IEnumerable entries = (IEnumerable)capabilities[group];
+                foreach (object item in entries)
+                {
+                    IDictionary<string, object> entry = (IDictionary<string, object>)item;
+                    if ((bool)entry["required"] && !(bool)entry["present"]) return false;
+                }
             }
-            return false;
+            return true;
         }
 
         private static int CountGameProcesses()
         {
-            return Process.GetProcessesByName("cm0102").Length + Process.GetProcessesByName("cm0102_GDI").Length;
+            int count = 0;
+            foreach (string name in new string[] { "cm0102", "cm0102_GDI" })
+            {
+                Process[] processes = Process.GetProcessesByName(name);
+                count += processes.Length;
+                foreach (Process process in processes) process.Dispose();
+            }
+            return count;
+        }
+    }
+
+    internal static class CapabilityCatalog
+    {
+        public static readonly string[] ApiIds = {
+            "advapi32-registry", "advapi32-token", "kernel32-filesystem", "user32-desktop", "wtsapi32-session"
+        };
+        public static readonly string[] ToolIds = { "cdb", "cmd", "csc-x64", "csc-x86", "powershell", "python313", "windbg" };
+
+        public static Dictionary<string, string> ToolPaths(string windows, string system)
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { "cdb", Path.Combine(Path.GetPathRoot(windows), @"Program Files (x86)\Windows Kits\10\Debuggers\x86\cdb.exe") },
+                { "cmd", Path.Combine(system, "cmd.exe") },
+                { "csc-x64", Path.Combine(windows, @"Microsoft.NET\Framework64\v4.0.30319\csc.exe") },
+                { "csc-x86", Path.Combine(windows, @"Microsoft.NET\Framework\v4.0.30319\csc.exe") },
+                { "powershell", Path.Combine(system, @"WindowsPowerShell\v1.0\powershell.exe") },
+                { "python313", Path.Combine(Path.GetPathRoot(windows), @"Python313\python.exe") },
+                { "windbg", Path.Combine(Path.GetPathRoot(windows), @"Program Files (x86)\Windows Kits\10\Debuggers\x86\windbg.exe") }
+            };
+        }
+
+        public static bool ApiPresent(string id)
+        {
+            if (id == "advapi32-registry") return NativeMethods.ExportsPresent("advapi32.dll", new string[] { "RegOpenKeyExA", "RegQueryInfoKeyA" });
+            if (id == "advapi32-token") return NativeMethods.ExportsPresent("advapi32.dll", new string[] { "OpenProcessToken", "DuplicateTokenEx", "GetTokenInformation" });
+            if (id == "kernel32-filesystem") return NativeMethods.ExportsPresent("kernel32.dll", new string[] { "CreateFileW", "GetFinalPathNameByHandleW", "GetFileInformationByHandle" });
+            if (id == "user32-desktop") return NativeMethods.ExportsPresent("user32.dll", new string[] { "OpenInputDesktopW", "GetUserObjectInformationW" });
+            if (id == "wtsapi32-session") return NativeMethods.ExportsPresent("wtsapi32.dll", new string[] { "WTSQuerySessionInformationW" });
+            throw new InvalidOperationException("unknown-api-id");
+        }
+    }
+
+    internal static class QualificationPolicy
+    {
+        public static readonly string[] RequiredCheckIds = {
+            "active-input-desktop", "clean-manifest-identity", "clean-tree-exact", "clean-tree-read-only",
+            "explorer-token-medium", "installed-tree-plain", "installed-tree-stable", "iso-identity",
+            "no-game-process-after", "no-game-process-before", "optical-media", "private-inputs-distinct",
+            "probe-image-stable", "probe-process-x86", "registry-current-exact-access",
+            "registry-explorer-exact-denial", "registry-location-binding", "registry-read-only",
+            "required-host-tools", "virtual-store-plain", "virtual-store-stable", "wsl-token-high-hazard"
+        };
+
+        public static bool DirectTokenHazard(TokenObservation token)
+        {
+            return token != null && token.Integrity == "high" && token.IsAdministrator;
+        }
+
+        public static bool ExplorerTokenSafe(TokenObservation current, TokenObservation explorer, uint activeSession)
+        {
+            return current != null && explorer != null && explorer.Integrity == "medium" && !explorer.IsAdministrator &&
+                explorer.SessionId == activeSession && explorer.RawSid == current.RawSid;
+        }
+
+        public static bool SessionSafe(uint activeSession, int explorerSession, string desktop)
+        {
+            return activeSession == explorerSession && desktop == "Default";
+        }
+
+        public static bool DirectRegistryAccessExpected(int result) { return result == 0; }
+        public static bool ExplorerRegistryDenied(int result) { return result == NativeMethods.ErrorAccessDenied; }
+
+        public static bool IdentityMatches(FileIdentity actual, long expectedBytes, string expectedSha256)
+        {
+            return actual != null && actual.Bytes == expectedBytes && actual.Sha256 == expectedSha256;
+        }
+
+        public static bool IsComplete(IEnumerable<CheckRecord> checks)
+        {
+            HashSet<string> expected = new HashSet<string>(RequiredCheckIds, StringComparer.Ordinal);
+            HashSet<string> observed = new HashSet<string>(StringComparer.Ordinal);
+            foreach (CheckRecord check in checks)
+            {
+                if (!check.Required || !expected.Contains(check.Id) || !observed.Add(check.Id) || check.Outcome == "error") return false;
+            }
+            return observed.SetEquals(expected);
+        }
+
+        public static bool IsEligible(IEnumerable<CheckRecord> checks)
+        {
+            if (!IsComplete(checks)) return false;
+            foreach (CheckRecord check in checks)
+                if (check.Required && check.Outcome != "pass") return false;
+            return true;
         }
     }
 
@@ -939,14 +1100,24 @@ namespace Cm0102.OriginalHostQualification
         public string ElevationType;
         public bool IsAdministrator;
         public List<object> Privileges;
-        public IntPtr DuplicatedImpersonationToken;
+        private SafeKernelHandle duplicatedImpersonationToken;
+
+        public IntPtr ImpersonationTokenHandle
+        {
+            get
+            {
+                if (duplicatedImpersonationToken == null || duplicatedImpersonationToken.IsInvalid || duplicatedImpersonationToken.IsClosed)
+                    throw new InvalidOperationException("explorer-token-unavailable");
+                return duplicatedImpersonationToken.DangerousGetHandle();
+            }
+        }
 
         public static TokenObservation Current()
         {
             IntPtr token;
             if (!NativeMethods.OpenProcessToken(NativeMethods.GetCurrentProcess(), NativeMethods.TokenQuery | NativeMethods.TokenDuplicate, out token))
                 throw new InvalidOperationException("open-current-token");
-            try { return FromToken(token, Process.GetCurrentProcess().SessionId, false); }
+            try { return FromToken(token, false); }
             finally { NativeMethods.CloseHandle(token); }
         }
 
@@ -956,7 +1127,7 @@ namespace Cm0102.OriginalHostQualification
             if (NativeMethods.TryOpenCurrentThreadToken(out token))
             {
                 fromThreadToken = true;
-                try { return FromToken(token, Process.GetCurrentProcess().SessionId, false); }
+                try { return FromToken(token, false); }
                 finally { NativeMethods.CloseHandle(token); }
             }
             fromThreadToken = false;
@@ -974,29 +1145,37 @@ namespace Cm0102.OriginalHostQualification
                     throw new InvalidOperationException("open-explorer-token");
             }
             finally { NativeMethods.CloseHandle(handle); }
-            try { return FromToken(token, process.SessionId, true); }
+            try { return FromToken(token, true); }
             finally { NativeMethods.CloseHandle(token); }
         }
 
-        private static TokenObservation FromToken(IntPtr token, int sessionId, bool duplicate)
+        private static TokenObservation FromToken(IntPtr token, bool duplicate)
         {
             TokenObservation result = new TokenObservation();
             result.RawSid = NativeMethods.TokenSid(token);
-            result.SessionId = sessionId;
+            result.SessionId = NativeMethods.TokenSessionId(token);
             result.Integrity = NativeMethods.TokenIntegrity(token);
             result.ElevationType = NativeMethods.TokenElevation(token);
             result.IsAdministrator = NativeMethods.TokenIsAdministrator(token);
             result.Privileges = NativeMethods.TokenPrivileges(token);
-            result.DuplicatedImpersonationToken = IntPtr.Zero;
             if (duplicate)
             {
                 IntPtr duplicated;
                 if (!NativeMethods.DuplicateTokenEx(token, NativeMethods.TokenQuery | NativeMethods.TokenImpersonate,
                     IntPtr.Zero, 2, 2, out duplicated))
                     throw new InvalidOperationException("duplicate-explorer-token");
-                result.DuplicatedImpersonationToken = duplicated;
+                result.duplicatedImpersonationToken = new SafeKernelHandle(duplicated);
             }
             return result;
+        }
+
+        public void DisposeImpersonationToken()
+        {
+            if (duplicatedImpersonationToken != null)
+            {
+                duplicatedImpersonationToken.Dispose();
+                duplicatedImpersonationToken = null;
+            }
         }
 
         public SortedDictionary<string, object> ToJson()
@@ -1023,6 +1202,7 @@ namespace Cm0102.OriginalHostQualification
     {
         public int CurrentAccessResult;
         public int ExplorerAccessResult;
+        public bool ImpersonationRestored;
         public long LastWriteBefore;
         public long LastWriteAfter;
         public bool LocationMatchesInstalled;
@@ -1055,9 +1235,28 @@ namespace Cm0102.OriginalHostQualification
     internal sealed class CleanObservation
     {
         public FileIdentity Manifest;
-        public TreeManifest Tree;
         public bool ManifestMatches;
+        public CleanCaptureObservation Before;
+        public CleanCaptureObservation After;
+        public bool BothMatch;
+        public bool Unchanged;
+
+        public SortedDictionary<string, object> ToJson()
+        {
+            return JsonObjects.Object(
+                "after", After.ToJson(),
+                "before", Before.ToJson(),
+                "manifest", JsonObjects.Object("expected_match", ManifestMatches, "identity", Manifest.ToJson()),
+                "unchanged", Unchanged);
+        }
+    }
+
+    internal sealed class CleanCaptureObservation
+    {
+        public TreeManifest Tree;
         public bool TreeMatches;
+        public FileIdentity Executable;
+        public bool ExecutableMatches;
         public int MissingCount;
         public int ExtraCount;
         public int MismatchCount;
@@ -1066,8 +1265,8 @@ namespace Cm0102.OriginalHostQualification
         public SortedDictionary<string, object> ToJson()
         {
             return JsonObjects.Object(
+                "executable", JsonObjects.Object("expected_match", ExecutableMatches, "identity", Executable.ToJson()),
                 "extra_count", ExtraCount,
-                "manifest", JsonObjects.Object("expected_match", ManifestMatches, "identity", Manifest.ToJson()),
                 "mismatch_count", MismatchCount,
                 "missing_count", MissingCount,
                 "tree", Tree.ToJson(),
@@ -1106,24 +1305,193 @@ namespace Cm0102.OriginalHostQualification
 
         public static FileIdentity Read(string path)
         {
-            FileInfo before = new FileInfo(path);
-            if ((before.Attributes & FileAttributes.ReparsePoint) != 0)
-                throw new InvalidDataException("reparse-file");
-            long bytes = before.Length;
-            DateTime write = before.LastWriteTimeUtc;
-            string hash;
-            using (FileStream input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (SHA256 sha = SHA256.Create())
-                hash = Hashing.Hex(sha.ComputeHash(input));
-            FileInfo after = new FileInfo(path);
-            if ((after.Attributes & FileAttributes.ReparsePoint) != 0)
-                throw new InvalidDataException("reparse-file");
-            if (after.Length != bytes || after.LastWriteTimeUtc != write) throw new IOException("file-changed-during-read");
-            return new FileIdentity { Bytes = bytes, Sha256 = hash };
+            using (VerifiedPath opened = PathSafety.OpenVerified(path, false, null, true))
+                return FileSnapshot.Hash(opened, null).Identity;
         }
 
         public bool Same(FileIdentity other) { return Bytes == other.Bytes && Sha256 == other.Sha256; }
         public SortedDictionary<string, object> ToJson() { return JsonObjects.Object("byte_count", Bytes, "sha256", Sha256); }
+    }
+
+    internal sealed class FileSnapshot
+    {
+        public byte[] Bytes;
+        public FileIdentity Identity;
+
+        public static FileSnapshot Read(string path, int maximumBytes)
+        {
+            using (VerifiedPath opened = PathSafety.OpenVerified(path, false, null, true))
+                return Hash(opened, maximumBytes);
+        }
+
+        internal static FileSnapshot Hash(VerifiedPath opened, int? maximumBytes)
+        {
+            NativeFileIdentity before = NativeMethods.GetFileIdentity(opened.Handle);
+            if (before.IsDirectory || before.IsReparsePoint) throw new InvalidDataException("file-type-invalid");
+            if (maximumBytes.HasValue && (before.Bytes < 0 || before.Bytes > maximumBytes.Value))
+                throw new InvalidDataException("bounded-input-size");
+            byte[] snapshot = maximumBytes.HasValue ? new byte[(int)before.Bytes] : null;
+            string hash;
+            long observedBytes = 0;
+            NativeFileIdentity after;
+            using (FileStream input = new FileStream(opened.Handle, FileAccess.Read, 65536, false))
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] buffer = new byte[65536];
+                int offset = 0;
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    observedBytes += read;
+                    if (maximumBytes.HasValue)
+                    {
+                        if (observedBytes > maximumBytes.Value || offset + read > snapshot.Length)
+                            throw new InvalidDataException("bounded-input-growth");
+                        Buffer.BlockCopy(buffer, 0, snapshot, offset, read);
+                        offset += read;
+                    }
+                    sha.TransformBlock(buffer, 0, read, null, 0);
+                }
+                sha.TransformFinalBlock(new byte[0], 0, 0);
+                hash = Hashing.Hex(sha.Hash);
+                if (maximumBytes.HasValue && offset != snapshot.Length)
+                    throw new IOException("file-short-read");
+                after = NativeMethods.GetFileIdentity(opened.Handle);
+            }
+            if (!before.Same(after) || observedBytes != before.Bytes) throw new IOException("file-changed-during-read");
+            return new FileSnapshot
+            {
+                Bytes = snapshot,
+                Identity = new FileIdentity { Bytes = observedBytes, Sha256 = hash }
+            };
+        }
+    }
+
+    internal sealed class VerifiedPath : IDisposable
+    {
+        public SafeFileHandle Handle;
+        public NativeFileIdentity Identity;
+        public string FinalPath;
+
+        public void Dispose()
+        {
+            if (Handle != null) Handle.Dispose();
+        }
+    }
+
+    internal sealed class NativeFileIdentity
+    {
+        public uint VolumeSerial;
+        public ulong FileIndex;
+        public long Bytes;
+        public long LastWrite;
+        public uint Attributes;
+        public bool IsDirectory { get { return (Attributes & (uint)FileAttributes.Directory) != 0; } }
+        public bool IsReparsePoint { get { return (Attributes & (uint)FileAttributes.ReparsePoint) != 0; } }
+        public string ObjectId { get { return VolumeSerial.ToString("x8", CultureInfo.InvariantCulture) + ":" + FileIndex.ToString("x16", CultureInfo.InvariantCulture); } }
+
+        public bool Same(NativeFileIdentity other)
+        {
+            return other != null && VolumeSerial == other.VolumeSerial && FileIndex == other.FileIndex && Bytes == other.Bytes &&
+                LastWrite == other.LastWrite && Attributes == other.Attributes;
+        }
+    }
+
+    internal static class PathSafety
+    {
+        public static string PreserveRoot(string path)
+        {
+            string full = Path.GetFullPath(path);
+            string root = Path.GetPathRoot(full);
+            if (String.Equals(full, root, StringComparison.OrdinalIgnoreCase)) return root;
+            return full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
+
+        public static VerifiedPath OpenVerified(string path, bool directory, string containmentRoot, bool requirePlain)
+        {
+            return OpenVerified(path, directory, containmentRoot, requirePlain, !directory);
+        }
+
+        public static VerifiedPath OpenVerified(string path, bool directory, string containmentRoot, bool requirePlain, bool readContents)
+        {
+            string expected = PreserveRoot(path);
+            VerifyParentChain(expected);
+            SafeFileHandle handle = NativeMethods.OpenPathNoFollow(expected, directory, readContents);
+            try
+            {
+                NativeFileIdentity identity = NativeMethods.GetFileIdentity(handle);
+                if (identity.IsDirectory != directory) throw new InvalidDataException("path-type-mismatch");
+                if (requirePlain && identity.IsReparsePoint) throw new InvalidDataException("reparse-path");
+                string finalPath = PreserveRoot(NativeMethods.GetFinalPath(handle));
+                if (!String.Equals(finalPath, expected, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("path-alias");
+                if (containmentRoot != null && !IsContained(finalPath, containmentRoot))
+                    throw new InvalidDataException("path-escaped-root");
+                return new VerifiedPath { Handle = handle, Identity = identity, FinalPath = finalPath };
+            }
+            catch
+            {
+                handle.Dispose();
+                throw;
+            }
+        }
+
+        public static bool AreDistinctExistingObjects(IEnumerable<string> paths)
+        {
+            HashSet<string> objects = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string path in paths)
+            {
+                uint attributes;
+                int error;
+                if (!NativeMethods.TryGetPathAttributes(path, out attributes, out error))
+                {
+                    if (error == 2 || error == 3) continue;
+                    throw new IOException("locator-attributes-" + error.ToString(CultureInfo.InvariantCulture));
+                }
+                bool directory = (attributes & (uint)FileAttributes.Directory) != 0;
+                using (VerifiedPath opened = OpenVerified(path, directory, null, true))
+                    if (!objects.Add(opened.Identity.ObjectId)) return false;
+            }
+            return true;
+        }
+
+        private static bool IsContained(string path, string root)
+        {
+            string normalizedRoot = PreserveRoot(root);
+            if (String.Equals(path, normalizedRoot, StringComparison.OrdinalIgnoreCase)) return true;
+            string prefix = normalizedRoot.EndsWith("\\", StringComparison.Ordinal) ? normalizedRoot : normalizedRoot + "\\";
+            return path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void VerifyParentChain(string path)
+        {
+            string root = Path.GetPathRoot(path);
+            if (String.IsNullOrEmpty(root)) throw new InvalidDataException("path-root-missing");
+            VerifyDirectoryComponent(root);
+            string parent = Path.GetDirectoryName(path);
+            if (String.IsNullOrEmpty(parent)) return;
+            string relative = parent.Substring(root.Length).Trim(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string current = root;
+            if (relative.Length == 0) return;
+            foreach (string component in relative.Split(Path.DirectorySeparatorChar))
+            {
+                current = Path.Combine(current, component);
+                VerifyDirectoryComponent(current);
+            }
+        }
+
+        private static void VerifyDirectoryComponent(string path)
+        {
+            SafeFileHandle handle = NativeMethods.OpenPathNoFollow(path, true, false);
+            try
+            {
+                NativeFileIdentity identity = NativeMethods.GetFileIdentity(handle);
+                if (!identity.IsDirectory || identity.IsReparsePoint) throw new InvalidDataException("unsafe-parent-component");
+                if (!String.Equals(PreserveRoot(NativeMethods.GetFinalPath(handle)), PreserveRoot(path), StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("parent-path-alias");
+            }
+            finally { handle.Dispose(); }
+        }
     }
 
     internal sealed class ManifestRow
@@ -1131,10 +1499,11 @@ namespace Cm0102.OriginalHostQualification
         public long Bytes;
         public string Sha256;
 
-        public static Dictionary<string, ManifestRow> Parse(string path)
+        public static Dictionary<string, ManifestRow> Parse(byte[] snapshot)
         {
             Dictionary<string, ManifestRow> rows = new Dictionary<string, ManifestRow>(StringComparer.OrdinalIgnoreCase);
-            using (StreamReader reader = new StreamReader(path, new UTF8Encoding(false, true), false))
+            using (MemoryStream input = new MemoryStream(snapshot, false))
+            using (StreamReader reader = new StreamReader(input, new UTF8Encoding(false, true), false))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
@@ -1183,15 +1552,18 @@ namespace Cm0102.OriginalHostQualification
         public int UnstableCount;
         public int WritableOpenCount;
         public Dictionary<string, TreeRow> Rows;
+        public string RootObjectIdSha256;
 
         public static TreeManifest CaptureOptional(string root)
         {
-            FileAttributes attributes;
-            try { attributes = File.GetAttributes(root); }
-            catch (FileNotFoundException) { return Missing(); }
-            catch (DirectoryNotFoundException) { return Missing(); }
-            if ((attributes & FileAttributes.Directory) == 0)
-                throw new InvalidDataException("tree-root-not-directory");
+            uint attributes;
+            int error;
+            if (!NativeMethods.TryGetPathAttributes(root, out attributes, out error))
+            {
+                if (error == 2 || error == 3) return Missing();
+                throw new IOException("optional-tree-attributes-" + error.ToString(CultureInfo.InvariantCulture));
+            }
+            if ((attributes & (uint)FileAttributes.Directory) == 0) throw new InvalidDataException("tree-root-not-directory");
             return Capture(root, false);
         }
 
@@ -1200,6 +1572,7 @@ namespace Cm0102.OriginalHostQualification
             return new TreeManifest
             {
                 Present = false,
+                RootObjectIdSha256 = Hashing.StringSha256("absent"),
                 TreeSha256 = Hashing.BytesSha256(new byte[0]),
                 Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase)
             };
@@ -1207,102 +1580,131 @@ namespace Cm0102.OriginalHostQualification
 
         public static TreeManifest Capture(string root, bool testWriteOpen)
         {
-            string canonicalRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            FileAttributes rootAttributes = File.GetAttributes(canonicalRoot);
-            if ((rootAttributes & FileAttributes.Directory) == 0) throw new InvalidDataException("tree-root-not-directory");
-            if ((rootAttributes & FileAttributes.ReparsePoint) != 0)
-                return new TreeManifest
+            string canonicalRoot = PathSafety.PreserveRoot(root);
+            VerifiedPath openedRoot = PathSafety.OpenVerified(canonicalRoot, true, null, false);
+            if (openedRoot.Identity.IsReparsePoint)
+            {
+                openedRoot.Dispose();
+                return UnsafeRootManifest(openedRoot.Identity.ObjectId);
+            }
+            List<VerifiedPath> heldDirectories = new List<VerifiedPath> { openedRoot };
+            try
+            {
+                TreeManifest result = new TreeManifest
                 {
                     Present = true,
                     DirectoryCount = 1,
-                    ReparseCount = 1,
-                    TreeSha256 = Hashing.BytesSha256(new byte[0]),
+                    RootObjectIdSha256 = Hashing.StringSha256(openedRoot.Identity.ObjectId),
                     Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase)
                 };
-            List<string> directoryList = new List<string>();
-            List<string> fileList = new List<string>();
-            Stack<string> pending = new Stack<string>();
-            pending.Push(canonicalRoot);
-            int discoveredReparsePoints = 0;
-            while (pending.Count != 0)
-            {
-                string current = pending.Pop();
-                string[] children = Directory.GetDirectories(current, "*", SearchOption.TopDirectoryOnly);
-                foreach (string child in children)
+                if (testWriteOpen && NativeMethods.CanOpenForWrite(canonicalRoot, true)) result.WritableOpenCount++;
+                HashSet<string> exact = new HashSet<string>(StringComparer.Ordinal);
+                HashSet<string> foldedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                List<string> digestRows = new List<string> { "D\t.\n" };
+                Stack<VerifiedPath> pending = new Stack<VerifiedPath>();
+                pending.Push(openedRoot);
+                while (pending.Count != 0)
                 {
-                    directoryList.Add(child);
-                    if ((new DirectoryInfo(child).Attributes & FileAttributes.ReparsePoint) != 0)
-                        discoveredReparsePoints++;
-                    else
-                        pending.Push(child);
+                    VerifiedPath current = pending.Pop();
+                    string[] children = Directory.GetDirectories(current.FinalPath, "*", SearchOption.TopDirectoryOnly);
+                    foreach (string child in children)
+                    {
+                        string relative = Relative(canonicalRoot, child);
+                        RecordName(relative, exact, foldedPaths, result);
+                        result.DirectoryCount++;
+                        VerifiedPath opened = PathSafety.OpenVerified(child, true, canonicalRoot, false);
+                        if (opened.Identity.IsReparsePoint)
+                        {
+                            result.ReparseCount++;
+                            digestRows.Add("R\t" + relative + "\n");
+                            opened.Dispose();
+                            continue;
+                        }
+                        heldDirectories.Add(opened);
+                        pending.Push(opened);
+                        digestRows.Add("D\t" + relative + "\n");
+                        if (testWriteOpen && NativeMethods.CanOpenForWrite(child, true)) result.WritableOpenCount++;
+                    }
+                    string[] files = Directory.GetFiles(current.FinalPath, "*", SearchOption.TopDirectoryOnly);
+                    foreach (string file in files)
+                    {
+                        string relative = Relative(canonicalRoot, file);
+                        RecordName(relative, exact, foldedPaths, result);
+                        using (VerifiedPath metadata = PathSafety.OpenVerified(file, false, canonicalRoot, false, false))
+                        {
+                            if (metadata.Identity.IsReparsePoint)
+                            {
+                                result.ReparseCount++;
+                                digestRows.Add("R\t" + relative + "\n");
+                                continue;
+                            }
+                            if (testWriteOpen && NativeMethods.CanOpenForWrite(file, false)) result.WritableOpenCount++;
+                            using (VerifiedPath opened = PathSafety.OpenVerified(file, false, canonicalRoot, true))
+                            {
+                                if (!metadata.Identity.Same(opened.Identity))
+                                    throw new IOException("file-mutated-before-read");
+                                FileSnapshot snapshot = FileSnapshot.Hash(opened, null);
+                                TreeRow row = new TreeRow { Relative = relative, Bytes = snapshot.Identity.Bytes, Sha256 = snapshot.Identity.Sha256 };
+                                if (!result.Rows.ContainsKey(relative)) result.Rows.Add(relative, row);
+                                result.FileCount++;
+                                result.TotalBytes += row.Bytes;
+                                digestRows.Add("F\t" + relative + "\t" + row.Bytes.ToString(CultureInfo.InvariantCulture) + "\t" + row.Sha256 + "\n");
+                            }
+                        }
+                    }
                 }
-                fileList.AddRange(Directory.GetFiles(current, "*", SearchOption.TopDirectoryOnly));
+                foreach (VerifiedPath directory in heldDirectories)
+                {
+                    NativeFileIdentity after = NativeMethods.GetFileIdentity(directory.Handle);
+                    if (!directory.Identity.Same(after) ||
+                        !String.Equals(directory.FinalPath, PathSafety.PreserveRoot(NativeMethods.GetFinalPath(directory.Handle)), StringComparison.OrdinalIgnoreCase))
+                        result.UnstableCount++;
+                }
+                digestRows.Sort(delegate(string left, string right)
+                {
+                    int folded = StringComparer.OrdinalIgnoreCase.Compare(left, right);
+                    return folded != 0 ? folded : StringComparer.Ordinal.Compare(left, right);
+                });
+                using (MemoryStream rowsBytes = new MemoryStream())
+                {
+                    foreach (string row in digestRows)
+                    {
+                        byte[] bytes = Encoding.UTF8.GetBytes(row);
+                        rowsBytes.Write(bytes, 0, bytes.Length);
+                    }
+                    result.TreeSha256 = Hashing.BytesSha256(rowsBytes.ToArray());
+                }
+                return result;
             }
-            string[] directories = directoryList.ToArray();
-            string[] files = fileList.ToArray();
-            Array.Sort(directories, StringComparer.OrdinalIgnoreCase);
-            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-            TreeManifest result = new TreeManifest
+            finally
+            {
+                foreach (VerifiedPath directory in heldDirectories) directory.Dispose();
+            }
+        }
+
+        private static TreeManifest UnsafeRootManifest(string rootObjectId)
+        {
+            return new TreeManifest
             {
                 Present = true,
-                DirectoryCount = directories.LongLength + 1,
-                FileCount = files.LongLength,
-                Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase),
-                ReparseCount = discoveredReparsePoints
+                DirectoryCount = 1,
+                ReparseCount = 1,
+                RootObjectIdSha256 = Hashing.StringSha256(rootObjectId),
+                TreeSha256 = Hashing.BytesSha256(Encoding.UTF8.GetBytes("R\t.\n")),
+                Rows = new Dictionary<string, TreeRow>(StringComparer.OrdinalIgnoreCase)
             };
-            if (testWriteOpen && NativeMethods.CanOpenForWrite(canonicalRoot, true)) result.WritableOpenCount++;
-            HashSet<string> exact = new HashSet<string>(StringComparer.Ordinal);
-            HashSet<string> foldedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string directory in directories)
-            {
-                string relative = NormalizeRelative(directory.Substring(canonicalRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-                if (!exact.Add(relative) || !foldedPaths.Add(relative)) result.CaseCollisionCount++;
-                if ((new DirectoryInfo(directory).Attributes & FileAttributes.ReparsePoint) != 0) continue;
-                if (testWriteOpen && NativeMethods.CanOpenForWrite(directory, true)) result.WritableOpenCount++;
-            }
+        }
 
-            List<TreeRow> orderedRows = new List<TreeRow>();
-            foreach (string file in files)
-            {
-                FileInfo info = new FileInfo(file);
-                string relative = NormalizeRelative(file.Substring(canonicalRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-                if (!exact.Add(relative) || !foldedPaths.Add(relative)) result.CaseCollisionCount++;
-                if ((info.Attributes & FileAttributes.ReparsePoint) != 0)
-                {
-                    result.ReparseCount++;
-                    continue;
-                }
-                FileAttributes attributes = info.Attributes;
-                long bytes = info.Length;
-                DateTime write = info.LastWriteTimeUtc;
-                string hash;
-                using (FileStream input = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (SHA256 sha = SHA256.Create())
-                    hash = Hashing.Hex(sha.ComputeHash(input));
-                info.Refresh();
-                if ((info.Attributes & FileAttributes.ReparsePoint) != 0) result.ReparseCount++;
-                if (info.Length != bytes || info.LastWriteTimeUtc != write || info.Attributes != attributes) result.UnstableCount++;
-                if (testWriteOpen && NativeMethods.CanOpenForWrite(file, false)) result.WritableOpenCount++;
-                TreeRow row = new TreeRow { Relative = relative, Bytes = bytes, Sha256 = hash };
-                orderedRows.Add(row);
-                if (!result.Rows.ContainsKey(relative)) result.Rows.Add(relative, row);
-                result.TotalBytes += bytes;
-            }
-            orderedRows.Sort(delegate(TreeRow left, TreeRow right)
-            {
-                int folded = StringComparer.OrdinalIgnoreCase.Compare(left.Relative, right.Relative);
-                return folded != 0 ? folded : StringComparer.Ordinal.Compare(left.Relative, right.Relative);
-            });
-            using (MemoryStream rowsBytes = new MemoryStream())
-            {
-                foreach (TreeRow row in orderedRows)
-                {
-                    byte[] bytes = Encoding.UTF8.GetBytes(row.Relative + "\t" + row.Bytes.ToString(CultureInfo.InvariantCulture) + "\t" + row.Sha256 + "\n");
-                    rowsBytes.Write(bytes, 0, bytes.Length);
-                }
-                result.TreeSha256 = Hashing.BytesSha256(rowsBytes.ToArray());
-            }
-            return result;
+        private static string Relative(string root, string path)
+        {
+            string prefix = root.EndsWith("\\", StringComparison.Ordinal) ? root : root + "\\";
+            if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("tree-path-escaped");
+            return NormalizeRelative(path.Substring(prefix.Length));
+        }
+
+        internal static void RecordName(string relative, HashSet<string> exact, HashSet<string> folded, TreeManifest result)
+        {
+            if (!exact.Add(relative) || !folded.Add(relative)) result.CaseCollisionCount++;
         }
 
         public static string NormalizeRelative(string relative)
@@ -1320,7 +1722,8 @@ namespace Cm0102.OriginalHostQualification
         {
             return Present == other.Present && FileCount == other.FileCount && DirectoryCount == other.DirectoryCount &&
                 TotalBytes == other.TotalBytes && TreeSha256 == other.TreeSha256 && CaseCollisionCount == other.CaseCollisionCount &&
-                ReparseCount == other.ReparseCount && UnstableCount == 0 && other.UnstableCount == 0;
+                ReparseCount == other.ReparseCount && RootObjectIdSha256 == other.RootObjectIdSha256 &&
+                UnstableCount == 0 && other.UnstableCount == 0;
         }
 
         public bool IsPlain(bool requirePresent)
@@ -1336,6 +1739,7 @@ namespace Cm0102.OriginalHostQualification
                 "file_count", FileCount,
                 "present", Present,
                 "reparse_count", ReparseCount,
+                "root_object_id_sha256", RootObjectIdSha256,
                 "total_bytes", TotalBytes,
                 "tree_sha256", TreeSha256,
                 "unstable_count", UnstableCount);
@@ -1412,6 +1816,13 @@ namespace Cm0102.OriginalHostQualification
         }
     }
 
+    internal sealed class SafeKernelHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        public SafeKernelHandle() : base(true) { }
+        public SafeKernelHandle(IntPtr handle) : base(true) { SetHandle(handle); }
+        protected override bool ReleaseHandle() { return NativeMethods.CloseHandle(handle); }
+    }
+
     internal static class NativeMethods
     {
         public const int ErrorAccessDenied = 5;
@@ -1422,12 +1833,15 @@ namespace Cm0102.OriginalHostQualification
         public const uint TokenImpersonate = 0x0004;
         public const uint TokenQuery = 0x0008;
         public const uint ProcessQueryLimitedInformation = 0x1000;
+        private const uint GenericRead = 0x80000000;
         private const uint GenericWrite = 0x40000000;
+        private const uint FileReadAttributes = 0x00000080;
         private const uint FileShareRead = 0x1;
         private const uint FileShareWrite = 0x2;
         private const uint FileShareDelete = 0x4;
         private const uint OpenExisting = 3;
         private const uint FileFlagBackupSemantics = 0x02000000;
+        private const uint FileFlagOpenReparsePoint = 0x00200000;
         private static readonly IntPtr InvalidHandleValue = new IntPtr(-1);
         private static readonly IntPtr HkeyLocalMachine = new IntPtr(unchecked((int)0x80000002));
 
@@ -1450,6 +1864,21 @@ namespace Cm0102.OriginalHostQualification
         [StructLayout(LayoutKind.Sequential)] private struct LUID { public uint LowPart; public int HighPart; }
         [StructLayout(LayoutKind.Sequential)] private struct LUID_AND_ATTRIBUTES { public LUID Luid; public uint Attributes; }
         [StructLayout(LayoutKind.Sequential)] private struct SID_AND_ATTRIBUTES { public IntPtr Sid; public uint Attributes; }
+        [StructLayout(LayoutKind.Sequential)] private struct FILETIME { public uint Low; public uint High; }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BY_HANDLE_FILE_INFORMATION
+        {
+            public uint FileAttributes;
+            public FILETIME CreationTime;
+            public FILETIME LastAccessTime;
+            public FILETIME LastWriteTime;
+            public uint VolumeSerialNumber;
+            public uint FileSizeHigh;
+            public uint FileSizeLow;
+            public uint NumberOfLinks;
+            public uint FileIndexHigh;
+            public uint FileIndexLow;
+        }
 
         [DllImport("ntdll.dll", CharSet = CharSet.Unicode)] public static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX version);
         [DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
@@ -1470,6 +1899,12 @@ namespace Cm0102.OriginalHostQualification
         [DllImport("advapi32.dll")] private static extern int RegCloseKey(IntPtr key);
         [DllImport("advapi32.dll", CharSet = CharSet.Ansi, ExactSpelling = true)] private static extern int RegQueryInfoKeyA(IntPtr key, IntPtr className, IntPtr classLength, IntPtr reserved, IntPtr subkeys, IntPtr maxSubkey, IntPtr maxClass, IntPtr values, IntPtr maxValueName, IntPtr maxValueLength, IntPtr securityDescriptor, out long lastWrite);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern IntPtr CreateFileW(string name, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern uint GetFileAttributesW(string name);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern uint GetFinalPathNameByHandleW(SafeFileHandle handle, StringBuilder path, uint length, uint flags);
+        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out BY_HANDLE_FILE_INFORMATION information);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern IntPtr LoadLibraryW(string fileName);
+        [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr GetProcAddress(IntPtr module, string name);
+        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool FreeLibrary(IntPtr module);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] public static extern uint GetDriveTypeW(string root);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern bool GetVolumeInformationW(string root, StringBuilder label, int labelSize, out uint serial, out uint maxComponent, out uint flags, StringBuilder fileSystem, int fileSystemSize);
         [DllImport("kernel32.dll")] public static extern uint WTSGetActiveConsoleSessionId();
@@ -1523,6 +1958,66 @@ namespace Cm0102.OriginalHostQualification
             return true;
         }
 
+        public static SafeFileHandle OpenPathNoFollow(string path, bool directory, bool readContents)
+        {
+            uint flags = FileFlagOpenReparsePoint | (directory ? FileFlagBackupSemantics : 0);
+            IntPtr raw = CreateFileW(path, readContents ? GenericRead : FileReadAttributes,
+                readContents ? FileShareRead : (FileShareRead | FileShareWrite),
+                IntPtr.Zero, OpenExisting, flags, IntPtr.Zero);
+            if (raw == InvalidHandleValue) throw new IOException("open-path-" + Marshal.GetLastWin32Error().ToString(CultureInfo.InvariantCulture));
+            return new SafeFileHandle(raw, true);
+        }
+
+        public static bool TryGetPathAttributes(string path, out uint attributes, out int error)
+        {
+            attributes = GetFileAttributesW(path);
+            if (attributes != UInt32.MaxValue)
+            {
+                error = 0;
+                return true;
+            }
+            error = Marshal.GetLastWin32Error();
+            return false;
+        }
+
+        public static NativeFileIdentity GetFileIdentity(SafeFileHandle handle)
+        {
+            BY_HANDLE_FILE_INFORMATION information;
+            if (!GetFileInformationByHandle(handle, out information)) throw new IOException("file-information");
+            return new NativeFileIdentity
+            {
+                Attributes = information.FileAttributes,
+                Bytes = ((long)information.FileSizeHigh << 32) | information.FileSizeLow,
+                FileIndex = ((ulong)information.FileIndexHigh << 32) | information.FileIndexLow,
+                LastWrite = ((long)information.LastWriteTime.High << 32) | information.LastWriteTime.Low,
+                VolumeSerial = information.VolumeSerialNumber
+            };
+        }
+
+        public static string GetFinalPath(SafeFileHandle handle)
+        {
+            StringBuilder path = new StringBuilder(32768);
+            uint length = GetFinalPathNameByHandleW(handle, path, (uint)path.Capacity, 0);
+            if (length == 0 || length >= path.Capacity) throw new IOException("final-path");
+            string result = path.ToString();
+            if (result.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase)) return @"\\" + result.Substring(8);
+            if (result.StartsWith(@"\\?\", StringComparison.OrdinalIgnoreCase)) return result.Substring(4);
+            return result;
+        }
+
+        public static bool ExportsPresent(string library, IEnumerable<string> exports)
+        {
+            IntPtr module = LoadLibraryW(library);
+            if (module == IntPtr.Zero) return false;
+            try
+            {
+                foreach (string export in exports)
+                    if (GetProcAddress(module, export) == IntPtr.Zero) return false;
+                return true;
+            }
+            finally { FreeLibrary(module); }
+        }
+
         public static string GetVolumeLabel(string root)
         {
             StringBuilder label = new StringBuilder(261);
@@ -1572,6 +2067,13 @@ namespace Cm0102.OriginalHostQualification
                 return SidString(user.Sid);
             }
             finally { Marshal.FreeHGlobal(allocation); }
+        }
+
+        public static int TokenSessionId(IntPtr token)
+        {
+            byte[] data = TokenBuffer(token, 12);
+            if (data.Length < 4) throw new InvalidOperationException("token-session-size");
+            return BitConverter.ToInt32(data, 0);
         }
 
         public static string TokenIntegrity(IntPtr token)

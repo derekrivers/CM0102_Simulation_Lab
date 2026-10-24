@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Cm0102.OriginalHostQualification
@@ -19,6 +20,14 @@ namespace Cm0102.OriginalHostQualification
             Run("strict-private-config", TestStrictPrivateConfig);
             Run("tree-manifest-stability", TestTreeManifestStability);
             Run("tree-plain-qualification", TestTreePlainQualification);
+            Run("case-collision", TestCaseCollision);
+            Run("actual-reparse", TestActualReparse);
+            Run("object-alias", TestObjectAlias);
+            Run("unreadable-and-share-protected", TestUnreadableAndShareProtected);
+            Run("qualification-policies", TestQualificationPolicies);
+            Run("clean-iso-identity-mismatch", TestCleanIsoIdentityMismatch);
+            Run("installed-virtual-store-mutation", TestInstalledVirtualStoreMutation);
+            Run("completeness", TestCompleteness);
             Run("relative-path-rejection", TestRelativePathRejection);
             Console.WriteLine(failures == 0 ? "PASS" : "FAIL " + failures);
             return failures == 0 ? 0 : 1;
@@ -87,6 +96,7 @@ namespace Cm0102.OriginalHostQualification
                 File.WriteAllText(path, valid, new UTF8Encoding(false));
                 Expectations expectations = Expectations.Load(path);
                 Assert(expectations.RegistryExactAccessMask == 0x000f003f);
+                Assert(expectations.SourceIdentity.Sha256 == Hashing.BytesSha256(new UTF8Encoding(false).GetBytes(valid)));
 
                 File.WriteAllText(path, valid.Replace("{\"schema_version\":1", "{\"schema_version\":1,\"schema_version\":1"), new UTF8Encoding(false));
                 AssertThrowsUsage(delegate { Expectations.Load(path); });
@@ -98,6 +108,12 @@ namespace Cm0102.OriginalHostQualification
                 AssertThrowsUsage(delegate { Expectations.Load(path); });
 
                 File.WriteAllText(path, valid.Replace("\"clean_total_bytes\":1", "\"clean_total_bytes\":-1"), new UTF8Encoding(false));
+                AssertThrowsUsage(delegate { Expectations.Load(path); });
+
+                File.WriteAllText(path, valid.Replace("\"csc-x86\",\"powershell\"", "\"powershell\",\"csc-x86\""), new UTF8Encoding(false));
+                AssertThrowsUsage(delegate { Expectations.Load(path); });
+
+                File.WriteAllText(path, valid.Replace("\"csc-x86\"", "\"unsupported-tool\""), new UTF8Encoding(false));
                 AssertThrowsUsage(delegate { Expectations.Load(path); });
 
                 DuplicateKeyScanner.RejectTopLevelDuplicates("{\"nested\":{\"items\":[{\"value\":1}]},\"other\":true}");
@@ -114,7 +130,9 @@ namespace Cm0102.OriginalHostQualification
                 "\"original_executable_sha256\":\"" + hash + "\",\"iso_bytes\":1,\"iso_sha256\":\"" + hash + "\"," +
                 "\"optical_volume_label\":\"TEST\",\"optical_executable_bytes\":1,\"optical_executable_sha256\":\"" + hash + "\"," +
                 "\"registry_key_id\":\"test\",\"registry_subkey\":\"SOFTWARE\\\\test\",\"registry_value_name\":\"Path\"," +
-                "\"registry_exact_access_mask\":983103}";
+                "\"registry_exact_access_mask\":983103," +
+                "\"required_api_ids\":[\"advapi32-registry\",\"advapi32-token\",\"kernel32-filesystem\",\"user32-desktop\",\"wtsapi32-session\"]," +
+                "\"required_tool_ids\":[\"csc-x86\",\"powershell\",\"python313\"]}";
         }
 
         private static void TestStrictPrivateConfig()
@@ -156,6 +174,7 @@ namespace Cm0102.OriginalHostQualification
             {
                 Directory.CreateDirectory(Path.Combine(root, "B"));
                 Directory.CreateDirectory(Path.Combine(root, "a"));
+                Directory.CreateDirectory(Path.Combine(root, "empty"));
                 File.WriteAllText(Path.Combine(root, "B", "two.txt"), "two", new UTF8Encoding(false));
                 File.WriteAllText(Path.Combine(root, "a", "one.txt"), "one", new UTF8Encoding(false));
                 TreeManifest first = TreeManifest.Capture(root, false);
@@ -163,6 +182,12 @@ namespace Cm0102.OriginalHostQualification
                 Assert(first.SameIdentity(second));
                 Assert(first.FileCount == 2);
                 Assert(first.TotalBytes == 6);
+                Assert(first.DirectoryCount == 4);
+                TreeManifest writable = TreeManifest.Capture(root, true);
+                Assert(writable.WritableOpenCount >= 3);
+                Directory.Delete(Path.Combine(root, "empty"));
+                TreeManifest withoutEmpty = TreeManifest.Capture(root, false);
+                Assert(first.TreeSha256 != withoutEmpty.TreeSha256);
                 File.AppendAllText(Path.Combine(root, "a", "one.txt"), "changed");
                 TreeManifest third = TreeManifest.Capture(root, false);
                 Assert(!first.SameIdentity(third));
@@ -180,6 +205,142 @@ namespace Cm0102.OriginalHostQualification
             Assert(!new TreeManifest { Present = true, ReparseCount = 1 }.IsPlain(true));
             Assert(!new TreeManifest { Present = true, CaseCollisionCount = 1 }.IsPlain(true));
             Assert(!new TreeManifest { Present = true, UnstableCount = 1 }.IsPlain(true));
+        }
+
+        private static void TestCaseCollision()
+        {
+            TreeManifest manifest = new TreeManifest();
+            HashSet<string> exact = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> folded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            TreeManifest.RecordName("Data/index.dat", exact, folded, manifest);
+            TreeManifest.RecordName("data/INDEX.dat", exact, folded, manifest);
+            Assert(manifest.CaseCollisionCount == 1);
+        }
+
+        private static void TestActualReparse()
+        {
+            string root = NewTemporaryDirectory();
+            string target = NewTemporaryDirectory();
+            try
+            {
+                string link = Path.Combine(root, "junction");
+                if (!CreateSymbolicLinkW(link, target, 0x1 | 0x2))
+                    throw new InvalidOperationException("create-synthetic-reparse-" + Marshal.GetLastWin32Error());
+                TreeManifest manifest = TreeManifest.Capture(root, false);
+                Assert(manifest.ReparseCount == 1);
+                Assert(!manifest.IsPlain(true));
+            }
+            finally
+            {
+                Directory.Delete(root, true);
+                Directory.Delete(target, true);
+            }
+        }
+
+        private static void TestObjectAlias()
+        {
+            string root = NewTemporaryDirectory();
+            try
+            {
+                string original = Path.Combine(root, "original.bin");
+                string alias = Path.Combine(root, "alias.bin");
+                File.WriteAllText(original, "same-object", new UTF8Encoding(false));
+                if (!CreateHardLinkW(alias, original, IntPtr.Zero))
+                    throw new InvalidOperationException("create-synthetic-hardlink-" + Marshal.GetLastWin32Error());
+                Assert(!PathSafety.AreDistinctExistingObjects(new string[] { original, alias }));
+            }
+            finally { Directory.Delete(root, true); }
+        }
+
+        private static void TestUnreadableAndShareProtected()
+        {
+            string root = NewTemporaryDirectory();
+            try
+            {
+                string path = Path.Combine(root, "locked.bin");
+                File.WriteAllText(path, "stable", new UTF8Encoding(false));
+                using (FileStream exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    AssertThrowsIo(delegate { FileIdentity.Read(path); });
+                using (VerifiedPath opened = PathSafety.OpenVerified(path, false, root, true))
+                using (FileStream reader = new FileStream(opened.Handle, FileAccess.Read, 4096, false))
+                    AssertThrowsIo(delegate { using (FileStream writer = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read)) { } });
+            }
+            finally { Directory.Delete(root, true); }
+        }
+
+        private static void TestQualificationPolicies()
+        {
+            TokenObservation current = new TokenObservation { RawSid = "S-1-5-21-1", Integrity = "high", IsAdministrator = true, SessionId = 3 };
+            TokenObservation explorer = new TokenObservation { RawSid = "S-1-5-21-1", Integrity = "medium", IsAdministrator = false, SessionId = 3 };
+            Assert(QualificationPolicy.DirectTokenHazard(current));
+            Assert(QualificationPolicy.ExplorerTokenSafe(current, explorer, 3));
+            Assert(!QualificationPolicy.ExplorerTokenSafe(current, explorer, 4));
+            Assert(QualificationPolicy.SessionSafe(3, 3, "Default"));
+            Assert(!QualificationPolicy.SessionSafe(3, 3, "Winlogon"));
+            Assert(QualificationPolicy.DirectRegistryAccessExpected(0));
+            Assert(!QualificationPolicy.DirectRegistryAccessExpected(5));
+            Assert(QualificationPolicy.ExplorerRegistryDenied(5));
+            Assert(!QualificationPolicy.ExplorerRegistryDenied(0));
+        }
+
+        private static void TestCleanIsoIdentityMismatch()
+        {
+            FileIdentity identity = new FileIdentity { Bytes = 10, Sha256 = new string('a', 64) };
+            Assert(QualificationPolicy.IdentityMatches(identity, 10, new string('a', 64)));
+            Assert(!QualificationPolicy.IdentityMatches(identity, 11, new string('a', 64)));
+            Assert(!QualificationPolicy.IdentityMatches(identity, 10, new string('b', 64)));
+        }
+
+        private static void TestInstalledVirtualStoreMutation()
+        {
+            string installed = NewTemporaryDirectory();
+            string virtualStore = NewTemporaryDirectory();
+            string movedVirtual = virtualStore + "-moved";
+            try
+            {
+                string installedFile = Path.Combine(installed, "state.bin");
+                File.WriteAllText(installedFile, "before", new UTF8Encoding(false));
+                TreeManifest installedBefore = TreeManifest.Capture(installed, false);
+                File.WriteAllText(installedFile, "after", new UTF8Encoding(false));
+                TreeManifest installedAfter = TreeManifest.Capture(installed, false);
+                Assert(!installedBefore.SameIdentity(installedAfter));
+
+                File.WriteAllText(Path.Combine(virtualStore, "same.bin"), "same", new UTF8Encoding(false));
+                TreeManifest virtualBefore = TreeManifest.Capture(virtualStore, false);
+                Directory.Move(virtualStore, movedVirtual);
+                Directory.CreateDirectory(virtualStore);
+                File.WriteAllText(Path.Combine(virtualStore, "same.bin"), "same", new UTF8Encoding(false));
+                TreeManifest virtualAfter = TreeManifest.Capture(virtualStore, false);
+                Assert(virtualBefore.TreeSha256 == virtualAfter.TreeSha256);
+                Assert(virtualBefore.RootObjectIdSha256 != virtualAfter.RootObjectIdSha256);
+                Assert(!virtualBefore.SameIdentity(virtualAfter));
+            }
+            finally
+            {
+                if (Directory.Exists(installed)) Directory.Delete(installed, true);
+                if (Directory.Exists(virtualStore)) Directory.Delete(virtualStore, true);
+                if (Directory.Exists(movedVirtual)) Directory.Delete(movedVirtual, true);
+            }
+        }
+
+        private static void TestCompleteness()
+        {
+            List<CheckRecord> passing = new List<CheckRecord>();
+            foreach (string id in QualificationPolicy.RequiredCheckIds)
+                passing.Add(new CheckRecord { Id = id, Required = true, Outcome = "pass" });
+            Assert(QualificationPolicy.IsComplete(passing));
+            Assert(QualificationPolicy.IsEligible(passing));
+            List<CheckRecord> failed = new List<CheckRecord>(passing);
+            failed[0] = new CheckRecord { Id = QualificationPolicy.RequiredCheckIds[0], Required = true, Outcome = "fail" };
+            Assert(QualificationPolicy.IsComplete(failed));
+            Assert(!QualificationPolicy.IsEligible(failed));
+            List<CheckRecord> errored = new List<CheckRecord>(passing);
+            errored[0] = new CheckRecord { Id = QualificationPolicy.RequiredCheckIds[0], Required = true, Outcome = "error" };
+            Assert(!QualificationPolicy.IsComplete(errored));
+            Assert(!QualificationPolicy.IsEligible(errored));
+            List<CheckRecord> missing = new List<CheckRecord>(passing);
+            missing.RemoveAt(0);
+            Assert(!QualificationPolicy.IsComplete(missing));
         }
 
         private static void TestRelativePathRejection()
@@ -216,5 +377,19 @@ namespace Cm0102.OriginalHostQualification
             catch (UsageException) { threw = true; }
             Assert(threw);
         }
+
+        private static void AssertThrowsIo(Action action)
+        {
+            bool threw = false;
+            try { action(); }
+            catch (IOException) { threw = true; }
+            Assert(threw);
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool CreateSymbolicLinkW(string symbolicFileName, string targetFileName, uint flags);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool CreateHardLinkW(string fileName, string existingFileName, IntPtr securityAttributes);
     }
 }

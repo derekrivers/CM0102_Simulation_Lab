@@ -11,13 +11,13 @@ the original PE32 executable.
 
 ```bat
 set CSC=%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe
-%CSC% /nologo /warnaserror+ /optimize+ /platform:x86 /target:exe /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualification.exe CanonicalJson.cs OriginalHostQualification.cs
-%CSC% /nologo /warnaserror+ /optimize+ /platform:x86 /target:exe /main:Cm0102.OriginalHostQualification.OriginalHostQualificationTests /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualificationTests.exe CanonicalJson.cs OriginalHostQualification.cs OriginalHostQualificationTests.cs
+%CSC% /nologo /warnaserror+ /optimize+ /platform:x86 /target:exe /r:System.Security.dll /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualification.exe CanonicalJson.cs OriginalHostQualification.cs
+%CSC% /nologo /warnaserror+ /optimize+ /platform:x86 /target:exe /main:Cm0102.OriginalHostQualification.OriginalHostQualificationTests /r:System.Security.dll /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /out:OriginalHostQualificationTests.exe CanonicalJson.cs OriginalHostQualification.cs OriginalHostQualificationTests.cs
 OriginalHostQualificationTests.exe
 ```
 
-Build in a private temporary directory, not in the repository. The private
-locator is strict JSON with exactly these fields:
+Synthetic tests may build in a private temporary directory, not in the
+repository. The private locator is strict JSON with exactly these fields:
 
 ```json
 {
@@ -32,20 +32,46 @@ locator is strict JSON with exactly these fields:
 ```
 
 The six normalized paths must be distinct. Keep this locator and all captured
-output outside Git. Before a retained run, bind the exact source revision,
-source/compiler/executable hashes, public expectations hash, private locator
-hash, command, exit status and canonical stdout hash in the calling harness.
-Invoke the compiled executable directly, with a 30-minute outer timeout and a
-4 MiB stdout cap:
-
-```text
-OriginalHostQualification.exe --expectations <public-json> --private-config <private-json> --source-revision <40-lowercase-hex-commit>
-```
-
-The public verifier must accept the captured stdout before the result is used:
+output outside Git. Do not invoke the production probe by hand for retained
+evidence. From WSL, use the versioned harness after the exact source revision
+has passed independent review:
 
 ```sh
-python3 tools/windows/original-host-qualification/verify_output.py verify output.json --forbid-file private-locator.json
+python3 tools/windows/original-host-qualification/retained_run_v1.py run \
+  --repo /absolute/repository \
+  --source-commit <40-lowercase-hex-commit> \
+  --compiler /mnt/c/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe \
+  --expectations /absolute/repository/config/original-host-qualification-v1.json \
+  --private-locator /outside-git/private-locator.json \
+  --retained-dir /outside-git/new-retained-run-directory
+```
+
+The destination must not exist and must be outside the repository. The harness
+verifies source bytes against the named commit, writes commit-bound read-only
+source snapshots into a mode-private build directory, invokes `csc.exe` and
+the probe directly without a shell, and enforces a 30-minute probe timeout and
+independent 4 MiB stdout/stderr caps. It refuses identity drift and publishes
+`retained-run-v1.json` only after the captured stdout passes the strict
+verifier. The retained manifest contains hashes and sanitized argument roles,
+never locator paths or a game command.
+
+For independent verification of captured stdout, both the public expectations
+and private locator are mandatory:
+
+```sh
+python3 tools/windows/original-host-qualification/verify_output.py verify output.json \
+  --expectations config/original-host-qualification-v1.json \
+  --forbid-file private-locator.json
+```
+
+Run the no-launch negative controls with:
+
+```sh
+python3 tools/windows/original-host-qualification/verify_output.py self-test
+python3 tools/windows/original-host-qualification/retained_run_v1.py self-test
+python3 tools/windows/original-host-qualification/verify_output.py static-source \
+  tools/windows/original-host-qualification/CanonicalJson.cs \
+  tools/windows/original-host-qualification/OriginalHostQualification.cs
 ```
 
 Exit `0` means only that the host is eligible for a separately reviewed
