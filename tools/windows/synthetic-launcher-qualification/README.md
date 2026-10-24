@@ -77,8 +77,9 @@ The harness commit-binds and snapshots the sources, profile, verifier, harness,
 qualified compiler and compiler companion; binds the absolute x86 Framework
 references including explicit `mscorlib.dll` under `/nostdlib+`, exact command
 roles and minimal environment; validates both outputs' PE32/i386 headers, CLI
-flags, metadata streams/tables, mapped `Main` MethodDef and subsystem; and runs
-only `SyntheticFixtureTests.exe` under bounded
+flags, every declared metadata table and index, exact mapped private-static-IL
+`int Main()` MethodDef and bounded method body, and subsystem; and runs only
+`SyntheticFixtureTests.exe` under bounded
 stream and time limits. Its canonical path-free manifest records explicitly
 that `SyntheticLauncherFixture.exe` was not executed and original execution is
 `not-run`. No binary or private retained directory is committed.
