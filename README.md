@@ -1,2 +1,22 @@
-# CM0102_Simulation_Lab
-Reverse Engineering 
+# CM0102 Simulation Lab
+
+## Foundational upstream projects
+
+This project builds on Max Evans's existing work:
+
+- [cm0102-bosman-edition](https://github.com/maxevans60/cm0102-bosman-edition): our initial native execution backend, recompiler/runtime reference and source of reusable headless and differential test infrastructure.
+- [cm0102-function-map](https://github.com/maxevans60/cm0102-function-map): our starting function/global inventory, names, provenance and call/data relationship clues. Import it in P00; add our evidence rather than starting a blank map.
+
+[Upstream integration](docs/research/UPSTREAM_INTEGRATION.md) specifies pins, exact inputs, adapters, test reuse, map ingestion and upgrade qualification. The original executable remains the behavioural reference. Neither upstream project is treated as automatically complete or infallible.
+
+A research and reconstruction programme for the **entire Championship Manager 01/02 game**: a faithful playable game, understandable source, and deliberate extensions.
+
+The laboratory is the first enabling product. It runs repeatable experiments against the original game and a pinned Bosman build, records evidence, and verifies the replacement. The reconstructed game and simulator use **Rust**. The browser interface uses **React and TypeScript** with the Rust core compiled to WebAssembly. Python supports existing reverse-engineering tooling.
+
+Status: architecture and delivery plan, 24 October 2026. No simulator, VPS service or reconstructed engine has been implemented by this planning bundle.
+
+Start with [ROADMAP.md](ROADMAP.md), [non-negotiables](docs/NON_NEGOTIABLES.md), [stack decisions](docs/architecture/TECH_STACK.md), and the [simulator design](docs/architecture/SIMULATOR.md). The detailed [implementation roadmap](docs/roadmap/implementation-roadmap.md) links all phase gates. [Sources and limitations](docs/research/SOURCES.md) distinguish inspected code from proposed behaviour.
+
+Whole-game scope includes management, world simulation, competition rules, match engines, databases, save/load, news, navigation, presentation, settings and supported modes. Match fidelity is one workstream.
+
+The existing MIT licence is retained for this repository. Upstream material has its own terms; see the [provenance decision](docs/architecture/TECH_STACK.md#provenance-and-distribution). No original executable, game assets, databases or saves are included.
