@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "id": "faithful-3.9.68-original-2001",
+      "status": "pending_input_qualification",
+      "description": "Unmodified official 3.9.68 behaviour with matching original 2001 data; changing-rules disabled where applicable.",
+      "executable_sha256": null,
+      "data_identity": null,
+      "accepted_deviations": []
+    },
+    {
+      "id": "extended",
+      "status": "reserved",
+      "description": "Opt-in future extensions. No extension is currently implemented.",
+      "base_profile": "faithful-3.9.68-original-2001",
+      "feature_versions": {}
+    }
+  ],
+  "deviations": []
+}

@@ -1,0 +1,12 @@
+/target/
+/.cache/
+/artifacts/
+/private/
+*.exe
+*.iso
+*.sav
+*.zip
+*.7z
+*.rar
+*.dmp
+*.trace

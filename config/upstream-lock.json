@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "importer": {
+    "package": "lab-cli",
+    "source_path": "crates/lab-cli",
+    "format": "b0-map-import-v1",
+    "rust_toolchain": "1.99.1 (58cf8f9c35b355199727627d07ae34a4e2846d67)"
+  },
+  "sources": {
+    "bosman": {
+      "repository": "https://github.com/maxevans60/cm0102-bosman-edition",
+      "commit": "144ed82c248228c7769c6785899527eae5b33c3d",
+      "tree": "81f376f62451203eaa32f7539f1d6a741b3f2099",
+      "license": {
+        "declared": "GNU General Public License version 3",
+        "path": "LICENSE",
+        "sha256": "e57f1c320b8cf8798a7d2ff83a6f9e06a33a03585f6e065fea97f1d86db84052"
+      },
+      "files": {
+        "README.md": {
+          "sha256": "0e8347dab4188553c5017ce83a44bbb548a737c10a8f3c770cbd18457d83523f"
+        }
+      }
+    },
+    "function_map": {
+      "repository": "https://github.com/maxevans60/cm0102-function-map",
+      "commit": "2bb558ef6a6bcdbd304dd1a6a4cf156c6707007c",
+      "tree": "ab79904e2c3fb0217be9df7c6a53f6bebd655dd5",
+      "license": {
+        "spdx": "CC-BY-4.0",
+        "path": "LICENSE",
+        "sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411",
+        "attribution": "CM 01/02 function map, github.com/maxevans60/cm0102-function-map"
+      },
+      "documentation": {
+        "README.md": "0d4bc682c7152a84c523fa90118de65981eb1d4faf3ba21db68c88df16d814c8",
+        "AI-LICENSE.md": "09e179af6ab007da5365615e6f74029d21ff3b7bbaab6d8b888004d36f895ef3"
+      },
+      "files": {
+        "map/function-files.tsv": {
+          "sha256": "1321845fa50b3a5e2f406ea0cf4f8a4a308dc49c725e3fb58b5879553ddc76b5",
+          "rows": 11747
+        },
+        "map/functions.tsv": {
+          "sha256": "266925fc26ec7d221e4f61feaf73ab490816648209e0e745322bbd8db672fa97",
+          "rows": 6863
+        },
+        "map/names.tsv": {
+          "sha256": "05df21a482beea0aa6bc7e6fa02e7f1c7a79881d0d0880e0b09c61d4fa1a73ec",
+          "rows": 6863
+        },
+        "map/not-high.tsv": {
+          "sha256": "5f35bae6114f0a9b1068d5ee793342e30cfdd14cd46ae1ef999c8d22e1811c0c",
+          "rows": 1161
+        },
+        "data-map/globals.tsv": {
+          "sha256": "7d8a2e5b8b98b21e3ce5abf2c411cbc57b4301a954bce03e5a3bed32fbb0ae50",
+          "rows": 4428
+        },
+        "data-map/data.tsv": {
+          "sha256": "f26e35a9f2091b247199be63ba85043a87d2fdb0c23d983af3d5f2d38ea8a4af",
+          "rows": 4428
+        }
+      }
+    }
+  }
+}

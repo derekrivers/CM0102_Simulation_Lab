@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "baseline_id": "official-3.9.68-original-2001",
+  "status": "execution_inputs_missing",
+  "inventoried_at": "2026-10-24",
+  "required_inputs": [
+    {
+      "kind": "original_executable",
+      "status": "missing",
+      "expected_version": "3.9.68",
+      "sha256": null,
+      "distribution": "private_only"
+    },
+    {
+      "kind": "original_2001_data",
+      "status": "missing",
+      "sha256": null,
+      "distribution": "private_only"
+    },
+    {
+      "kind": "original_assets",
+      "status": "missing",
+      "sha256": null,
+      "distribution": "private_only"
+    },
+    {
+      "kind": "reference_saves",
+      "status": "missing",
+      "sha256": null,
+      "distribution": "private_only"
+    }
+  ],
+  "address_validation": "pending_executable",
+  "bosman_build": "blocked_missing_original_inputs",
+  "notes": [
+    "No substitute executable or modern data set may be silently registered as the baseline.",
+    "Private source locations are deployment configuration and are intentionally absent from this public manifest."
+  ]
+}
