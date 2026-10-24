@@ -56,3 +56,34 @@ The digest-list aggregate `3507a688ea96adc5d89503c38f9927bb92b40ad5797cc60e27d84
 This qualifies clean input identity and records two successful upstream startup/first-news/holiday smoke observations under the stated policy. It removes the clean-data blocker, but does not claim deterministic replay because the ordinary runner did not fix seed/clock state. A separate controlled same-save invocation then ran `normal` and `again` with the runner's fixed clock and seed 1, advanced each save by 14 game days, observed 21,017 and 21,024 idle sleeps respectively, and reported byte-identical saves and `PASS`. Its retained 1,199-byte log has SHA-256 `97ff8b277e47ba1ce0602c8ebec9190a5349d7d5b5db95f709305c226df44550`; that pre-adapter observation established the endpoint before protocol integration.
 
 Neither smoke evidence nor same-save equality is an original-versus-Bosman fidelity comparison. The controlled route tests repeatability within the qualified Bosman build; the repository replay manifest therefore retains `comparison_verdict: not-run` until a distinct reference comparison is performed.
+
+## Supervised Bosman protocol acceptance
+
+The bounded adapter at repository revision `237490d738f44575d8ca8599703ba9e6da4722d4` was built in release mode and transferred to the WSL worker. The 912,960-byte `lab-bosman-adapter` had SHA-256 `8995c04106198b72d7ed804638e962a3d3b9556c811d5a31e1f6adf17513f3fb`; the 1,237,616-byte `lab-cli` supervisor had SHA-256 `6b816edec51d0cf311223b8a5221a8faeade876e359e53df13355820638bb140`. The canonical request bound the following positional identities:
+
+| Slot | Input | Bytes | SHA-256 |
+|---:|---|---:|---|
+| 0 | qualified Bosman executable | 48,696,400 | `9a41f4a028f0dd1df71e3f9f18f9821a17f91947bb20e7ed0ba9fc18fcafa07b` |
+| 1 | clean-file manifest | 72,879 | `920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6` |
+| 2 | pinned smoke runner | 41,619 | `3428aeae65a2dcd899e123b8c9649d109404cd11c601d2c89947d872d8d7196b` |
+| 3 | Python 3.12 interpreter | 8,020,928 | `e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f` |
+
+The request SHA-256 was `a09c40b71ef50f1e41ee5084c7504340ef3f66cf5d80628958fbba44bc119c7f`. Before and after execution the adapter verified the exact manifest through its already-hashed open file and then all 760 clean-tree rows; it also rejected writable source entries and reverified the executable and runner. The runner used classic mode, seed 1, its fixed clock, two jobs, the `normal,again` run set, and the 14-game-day endpoint. It reported:
+
+```text
+run   normal: saved after 14 game days in 82 s, idle sleeps 21025
+run   again: saved after 14 game days in 83 s, idle sleeps 21013
+ok    again: the save is the same as normal
+PASS
+```
+
+The supervisor completed in 1 minute 23.43 seconds with peak RSS 175,384 KiB, no swap, and exit status 0. It published four private evidence files:
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| canonical `request.json` | 1,209 | `a09c40b71ef50f1e41ee5084c7504340ef3f66cf5d80628958fbba44bc119c7f` |
+| `stdout.ndjson` | 1,242 | `ce1bfd44c8b7b2170a240baca9ddcf5b5d95b4a3b7f2e6dd9870e7d0c9ac2b85` |
+| sanitized `stderr.log` | 201 | `7f0e559361bb60b0fe0dbf3b7260ec665f933b9ac702e8dac4aefba6599b329d` |
+| `replay-manifest.json` | 2,000 | `06dd62e011659aaa44dfe76ab21537ffa2b2ab79fb4e9f68b3650bb961331d01` |
+
+The protocol has a matching handshake, contiguous sequences 0 through 5, explicit input-verification and run-completion progress, the byte-identical relation, and a final `succeeded` / `completed-target` frame for `classic-same-save-normal-again-14-days-equal`. A recursive scan found no private `/home/derek` path in the retained attempt. The manifest's execution status is successful while its comparison verdict correctly remains `not-run`: this is a controlled Bosman self-repeat, not original/Bosman parity.

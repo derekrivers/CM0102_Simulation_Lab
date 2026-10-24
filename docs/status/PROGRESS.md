@@ -7,8 +7,9 @@ Updated: 24 October 2026 (Europe/London)
 - Roadmap revision 3 was validated, independently reviewed, and merged in PR #1 at commit `d750f3b9f8839994b4258ee5720c4b489fded9f7`.
 - The pinned B0 map inventory importer was independently reviewed, corrected, re-reviewed with no findings, and merged in PR #2 at commit `28928e649d75b01dabe61b5cdcb9cc81cbbde3a7`.
 - The executable/input qualification and PE-backed map-address validation were independently reviewed with no findings and merged in PR #4 at commit `0e64c4acfea612de58409639f5bed7241c7d94a7`.
+- The bounded local request/process contract was independently reviewed, corrected for canonical-request and process-tree hazards, and merged in PR #7 at commit `6ecdfe63c6b9ebdb362b4511fbbf3cf1f1ab871d`.
 - A user-authorized Windows installation was copied to private storage and verified file-for-file against source hashes. Its `cm0102.exe` exactly matches official 3.9.68 as required by the pinned Bosman source.
-- The pinned Bosman source now has a qualified native Linux Release build on the PC/WSL worker. All 45 registered upstream tests pass. The official ISO and patch produced a separate clean 760-file runtime set, and two clean upstream smoke runs passed. A bounded local execution-request validator and protocol process supervisor are implemented with synthetic contract tests; the Bosman-specific protocol adapter remains outstanding.
+- The pinned Bosman source now has a qualified native Linux Release build on the PC/WSL worker. All 45 registered upstream tests pass. The official ISO and patch produced a separate clean 760-file runtime set, two clean upstream smoke runs passed, and the bounded Bosman adapter produced one successful controlled same-save protocol replay against that set.
 - P00/B0 input inventory is active. No phase is complete.
 - The two foundational public repositories are checked out outside the public repository at their selected commits. The source lock and deterministic map importer are implemented in the B0 delivery increment.
 
@@ -36,9 +37,11 @@ Updated: 24 October 2026 (Europe/London)
 - The translation report records 1,882,000 handled instructions out of 1,882,031 (99.9983528433%), 31 explicitly listed unhandled instructions, one decode stop, and three missing-function targets. All 45 registered CTest cases pass. The source checkout remained clean; `draw_test` needed a build-only `-lm` link correction, and the unrelated default demo target has an upstream Linux `CommonCrypto` include defect.
 - An explicitly non-baseline diagnostic run used isolated classic-layout settings and the modified installed data. The pinned Bosman build reached first news and exited zero in 2 minutes 3.43 seconds with peak RSS 177,080 KiB. This establishes that the build can traverse the startup UI on the available data; it is not qualified replay or fidelity evidence because the data differ from the clean manifest and the exploratory console log was not retained as a durable protocol artifact.
 - Against the reconstructed clean data, the upstream classic smoke scenario passed twice through settings, setup, league selection, first news, and holiday date advancement. The repeat was exact at setup, leagues, and first news; it completed in 1 minute 15.32 seconds at 183,492 KiB peak RSS with a durable log. The ordinary runner did not fix seed/clock state, so this records bounded smoke observations rather than deterministic replay.
-- The local process-contract increment rejects unknown request fields, hash mismatches before spawn, inherited environment secrets, malformed or misordered NDJSON, handshake identity mismatch, missing/wrong terminal endpoints, output overflow, timeout survivors, and attempt-directory reuse. Successful synthetic executions atomically publish hashed stdout, stderr, and a replay manifest whose comparison verdict is `not-run`. The direct Bosman binary is not yet connected to this protocol.
+- The local process contract rejects unknown request fields, hash mismatches before spawn, inherited environment secrets, malformed or misordered NDJSON, handshake identity mismatch, missing/wrong terminal endpoints, output overflow, timeout survivors, and attempt-directory reuse. Successful executions atomically publish hashed stdout, stderr, and a replay manifest whose comparison verdict is `not-run`.
+- The bounded Bosman adapter accepts only the clean classic fixed-clock, seed-1, `normal,again`, 14-game-day same-save profile. It verifies the four declared file identities and every clean-tree manifest row, restricts the nested launcher to the configured clean directory and seed, and requires both saved-run lines, a positive normal idle-sleep count, byte equality, and final `PASS`.
+- The final supervised clean adapter acceptance passed in 1 minute 23.43 seconds at 175,384 KiB peak RSS and no swap. Both runs saved after 14 game days, the repeat save was byte-identical, and the canonical request, six-frame protocol, sanitized diagnostics, and replay manifest were retained by hash without private paths.
 - Independent review initially found a canonical-lock bypass plus physical-row and equivalent-address defects. Strict direct lock paths, numeric address canonicalization, physical-row retention, and regression tests resolved all three before PR #2 merged.
-- Matching clean data identity is now qualified and two upstream Bosman smoke observations pass. The controlled Bosman-specific protocol replay, original process observations, and original/Bosman parity remain outstanding. The installed folder remains modified and is kept separate from the new clean set.
+- Matching clean data identity is qualified, two upstream Bosman smoke observations pass, and one controlled Bosman-specific protocol replay passes. Original process observations and original/Bosman parity remain outstanding. The installed folder remains modified and is kept separate from the new clean set.
 - The current host is below the roadmap's provisional 4 vCPU / 8 GiB / 80 GiB-free pilot envelope. This is a measurement constraint, not a purchase request; no 24-hour worker pilot is scheduled.
 - Off-host backup destination remains unset, so unattended durability cannot be certified.
 
@@ -46,8 +49,8 @@ Updated: 24 October 2026 (Europe/London)
 
 1. Maintain the deterministic B0 map import, provenance report, reconciliation, and negative tests as the upstream inventory evolves through reviewed pin changes.
 2. Expand the coverage register from direct observation when matching data and a qualified execution path become available.
-3. Implement the Bosman-specific UI-driving protocol adapter against the qualified clean private runtime set.
-4. Run one bounded clean Bosman job with endpoint evidence, logs, and a replay manifest; only then consider the B1 clean-baseline gate.
+3. Add failed-attempt retention and stronger nested-output/resource controls before expanding the adapter beyond its single bounded profile.
+4. Define and independently review the first original-executable observation route before any original/Bosman parity claim.
 
 ## Model routing record
 
