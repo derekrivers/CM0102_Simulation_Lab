@@ -37,6 +37,12 @@ jobs:
         python3 tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py verify \
           --repo "$GITHUB_WORKSPACE" \
           --source-commit "$GITHUB_SHA"
+    - name: Verify authority-free controller engine
+      run: |
+        python3 tools/windows/synthetic-launcher-controller/verify_controller_engine.py self-test
+        python3 tools/windows/synthetic-launcher-controller/verify_controller_engine.py verify \
+          --repo "$GITHUB_WORKSPACE" \
+          --source-commit "$GITHUB_SHA"
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -61,3 +67,34 @@ jobs:
         if ($LASTEXITCODE -ne 0) { throw 'policy compilation failed' }
         $actual = (& $output | Out-String).Trim()
         if ($LASTEXITCODE -ne 0 -or $actual -cne 'PASS 2601') { throw "unexpected policy result: $actual" }
+    - name: Build and run authority-free x86 engine tests
+      shell: pwsh
+      run: |
+        $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319'
+        $compiler = Join-Path $framework 'csc.exe'
+        $output = Join-Path $env:RUNNER_TEMP 'ControllerEngineTests.exe'
+        $policy = (Resolve-Path 'tools\windows\synthetic-launcher-controller\ControllerPolicy.cs').Path
+        $engine = (Resolve-Path 'tools\windows\synthetic-launcher-controller\ControllerEngine.cs').Path
+        $tests = (Resolve-Path 'tools\windows\synthetic-launcher-controller\ControllerEngineTests.cs').Path
+        & $compiler /nologo /noconfig /warnaserror+ /optimize+ /nostdlib+ /platform:x86 /target:exe `
+          /main:Cm0102.SyntheticLauncherController.ControllerEngineTests `
+          "/reference:$framework\mscorlib.dll" "/reference:$framework\System.dll" "/out:$output" `
+          $policy $engine $tests
+        if ($LASTEXITCODE -ne 0) { throw 'engine compilation failed' }
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $output
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        $process = [System.Diagnostics.Process]::new()
+        $process.StartInfo = $startInfo
+        if (-not $process.Start()) { throw 'engine test start failed' }
+        if (-not $process.WaitForExit(30000)) {
+          $process.Kill()
+          throw 'engine test timed out'
+        }
+        $actual = $process.StandardOutput.ReadToEnd().Trim()
+        $diagnostics = $process.StandardError.ReadToEnd().Trim()
+        if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS 1235') {
+          throw "unexpected engine result: $actual"
+        }
