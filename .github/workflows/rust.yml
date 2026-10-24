@@ -25,7 +25,33 @@ jobs:
           --fixture "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-qualification/SyntheticFixture.cs" \
           --tests "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-qualification/SyntheticFixtureTests.cs" \
           --profile "$GITHUB_WORKSPACE/config/synthetic-launcher-fixture-v1.json"
+    - name: Verify authority-free controller policy
+      run: |
+        python3 tools/windows/synthetic-launcher-controller/verify_controller_policy.py self-test
+        python3 tools/windows/synthetic-launcher-controller/verify_controller_policy.py verify \
+          --repo "$GITHUB_WORKSPACE" \
+          --source-commit "$GITHUB_SHA"
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+
+  controller-policy-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build and run authority-free x86 policy tests
+      shell: pwsh
+      run: |
+        $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319'
+        $compiler = Join-Path $framework 'csc.exe'
+        $output = Join-Path $env:RUNNER_TEMP 'ControllerPolicyTests.exe'
+        $policy = (Resolve-Path 'tools\windows\synthetic-launcher-controller\ControllerPolicy.cs').Path
+        $tests = (Resolve-Path 'tools\windows\synthetic-launcher-controller\ControllerPolicyTests.cs').Path
+        & $compiler /nologo /noconfig /warnaserror+ /optimize+ /nostdlib+ /platform:x86 /target:exe `
+          /main:Cm0102.SyntheticLauncherController.ControllerPolicyTests `
+          "/reference:$framework\mscorlib.dll" "/reference:$framework\System.dll" "/out:$output" `
+          $policy $tests
+        if ($LASTEXITCODE -ne 0) { throw 'policy compilation failed' }
+        $actual = (& $output | Out-String).Trim()
+        if ($LASTEXITCODE -ne 0 -or $actual -cne 'PASS 2601') { throw "unexpected policy result: $actual" }
