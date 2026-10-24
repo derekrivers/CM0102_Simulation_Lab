@@ -558,7 +558,11 @@ def validate_cli_metadata(
     version_end = version_start + version_length
     if version_end > end or raw[version_end - 1] != 0:
         raise HarnessError("CLI metadata version is invalid")
-    version = raw[version_start:version_end - 1]
+    version_field = raw[version_start:version_end]
+    terminator = version_field.find(b"\0")
+    if terminator <= 0 or any(version_field[terminator:]):
+        raise HarnessError("CLI metadata version padding is invalid")
+    version = version_field[:terminator]
     if not version or any(byte < 0x20 or byte > 0x7E for byte in version):
         raise HarnessError("CLI metadata version is not printable ASCII")
     cursor = (version_end + 3) & ~3
