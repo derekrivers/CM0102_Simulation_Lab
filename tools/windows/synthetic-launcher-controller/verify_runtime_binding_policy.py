@@ -22,20 +22,31 @@ PROFILE_PATH = "config/synthetic-launcher-controller-runtime-v1.json"
 VERIFIER_PATH = "tools/windows/synthetic-launcher-controller/verify_runtime_binding_policy.py"
 WORKFLOW_PATH = ".github/workflows/rust.yml"
 BASE_GUARD_PATH = ".github/workflows/runtime-binding-base-guard.yml"
+QUALIFICATION_PATH = "docs/architecture/SYNTHETIC_LAUNCHER_QUALIFICATION_V1.md"
+IMPLEMENTATION_CONTRACT_PATH = "docs/architecture/SYNTHETIC_LAUNCHER_IMPLEMENTATION_V1.md"
+RUNTIME_CONTRACT_VERIFIER_PATH = (
+    "tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py")
 CONTROLLER_DIRECTORY = "tools/windows/synthetic-launcher-controller"
 MAX_BYTES = 256 * 1024
 GIT = pathlib.Path("/usr/bin/git")
 WORKFLOW_SHA_PLACEHOLDER = "RUNTIME_BINDING_VERIFIER_SHA256"
 NORMALIZED_WORKFLOW_IDENTITY = (
     8569, "064001f956f304364d42bf7902cdff43d7e92b125399e3217986e2cff88f910c")
+RUNTIME_IMPLEMENTATION_SHA_PLACEHOLDER = "RUNTIME_IMPLEMENTATION_VERIFIER_SHA256"
+STAGE2_NORMALIZED_WORKFLOW_IDENTITY = (
+    12189, "6bf69f017ed713a352142f1b02cae201c201e345991dda2606a3a0f4052c8dd3")
 
 # Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
 FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
-    BASE_GUARD_PATH: (1181, "bdcbfbee204c36b5d985f921ed87b647620d3dba8b05d82706527a70cd4589b2"),
+    BASE_GUARD_PATH: (11219, "4937a3c143f4ef63b76655fc6fc5b61137561a5e430be19f7a51286cc5a0e5e7"),
     SOURCE_PATH: (26943, "f59f3c12978e2c01788f89a030009ac852934ebf0187ad87e0be89f5a68990bc"),
     TEST_PATH: (24400, "c726f5240a6ca0d4a9f7cce267ed25af64f1e2cc04784e67b8cf4b563710e8e5"),
     README_PATH: (3571, "416b96ccb4b6599936a4542a608c5346989b1b06ab8f6ae9b1c38bfaada0aa9f"),
     PROFILE_PATH: (5510, "0f4e98d7fe1c273e3c0b7cf342bae84bcc99a4a5ef16cf087a4fe99d3bb396d1"),
+    QUALIFICATION_PATH: (23840, "aaddf101ade96bf1ad2256e0ba92a3ee18dc12429b819480a67ce6967b3ddd66"),
+    IMPLEMENTATION_CONTRACT_PATH: (19737, "6269a4390bdf64cf9c36043036f77a3d91710ac35949bbc5526264caf831185a"),
+    RUNTIME_CONTRACT_VERIFIER_PATH: (
+        31463, "5a66b62dc91940c2db9c647ab63a2712263631ce064f218c31fd0674ce8bac81"),
 }
 BOUND_PATHS = tuple(FROZEN_IDENTITIES) + (WORKFLOW_PATH, VERIFIER_PATH)
 EXPECTED_CONTROLLER_FILES = (
@@ -667,8 +678,21 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     if workflow.count(verifier_sha256) != 1:
         raise VerificationError("workflow verifier digest binding")
     normalized_workflow = workflow.replace(verifier_sha256, WORKFLOW_SHA_PLACEHOLDER)
-    if identity(normalized_workflow.encode("ascii", "strict")) != NORMALIZED_WORKFLOW_IDENTITY:
-        raise VerificationError("normalized workflow identity")
+    normalized_identity = identity(normalized_workflow.encode("ascii", "strict"))
+    if normalized_identity == NORMALIZED_WORKFLOW_IDENTITY:
+        workflow_stage = "bootstrap"
+    else:
+        implementation_pattern = re.compile(
+            r'(?<=verify_runtime_implementation[.]py" ")[0-9a-f]{64}(?=" "[$]@")')
+        implementation_digests = implementation_pattern.findall(normalized_workflow)
+        if len(implementation_digests) != 1:
+            raise VerificationError("runtime implementation workflow digest binding")
+        stage2_normalized = implementation_pattern.sub(
+            RUNTIME_IMPLEMENTATION_SHA_PLACEHOLDER, normalized_workflow)
+        if identity(stage2_normalized.encode("ascii", "strict")) != \
+                STAGE2_NORMALIZED_WORKFLOW_IDENTITY:
+            raise VerificationError("normalized workflow identity")
+        workflow_stage = "stage2"
     for value in ("run_bound_runtime_verifier self-test",
             "run_bound_runtime_verifier verify", "/usr/bin/python3 -I -B -c",
             "os.O_NOFOLLOW", "os.memfd_create", "fcntl.F_ADD_SEALS", "fcntl.F_SEAL_WRITE",
@@ -678,6 +702,20 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
             "PASS 202", "WaitForExit(30000)"):
         if value not in workflow:
             raise VerificationError("workflow binding gate " + value)
+    if workflow_stage == "bootstrap":
+        if "verify_runtime_implementation.py" in workflow or \
+                "RuntimeGateTests.exe" in workflow:
+            raise VerificationError("bootstrap workflow contains Stage 2 route")
+    else:
+        for value in ("Verify synthetic launcher runtime implementation",
+                "run_bound_runtime_implementation_verifier self-test",
+                "run_bound_runtime_implementation_verifier verify",
+                "runtime-implementation-verifier", "RuntimeCanonicalData.cs",
+                "RuntimeGate.cs", "RuntimeGateTests.cs",
+                "/main:Cm0102.SyntheticLauncherRuntime.RuntimeGateTests",
+                "PASS runtime-gate-v1", "WaitForExit(30000)"):
+            if value not in workflow:
+                raise VerificationError("Stage 2 workflow gate " + value)
 
 
 def run_git(repo: pathlib.Path, arguments: list[str]) -> bytes:

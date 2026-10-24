@@ -10,17 +10,21 @@ permissions:
 jobs:
   immutable-runtime-bootstrap:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.pull_request.base.sha }}
         fetch-depth: 0
         persist-credentials: false
-    - name: Preserve the base-reviewed runtime verifier bootstrap
+    - name: Preserve bootstrap or admit the one reviewed Stage 2 transition
       shell: /bin/bash --noprofile --norc -euo pipefail {0}
       env:
         BASH_ENV: /dev/null
         ENV: /dev/null
+        GIT_CONFIG_NOSYSTEM: 1
+        GIT_CONFIG_GLOBAL: /dev/null
+        GIT_NO_REPLACE_OBJECTS: 1
         BASE_REF: ${{ github.event.pull_request.base.ref }}
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -29,7 +33,153 @@ jobs:
         [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
         [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
         test "$GITHUB_SHA" = "$BASE_SHA"
-        /usr/bin/git fetch --no-tags origin "$HEAD_SHA"
+        /usr/bin/timeout 60s /usr/bin/git fetch --no-tags origin "$HEAD_SHA"
         test "$(/usr/bin/git cat-file -t "$BASE_SHA")" = commit
         test "$(/usr/bin/git cat-file -t "$HEAD_SHA")" = commit
-        /usr/bin/git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- .github/workflows
+        /usr/bin/git merge-base --is-ancestor "$BASE_SHA" "$HEAD_SHA"
+        changed="$(/usr/bin/git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- .github/workflows)"
+        if test -z "$changed"; then
+          exit 0
+        fi
+        test "$changed" = .github/workflows/rust.yml
+        test "$(/usr/bin/git diff --name-only "$BASE_SHA" "$HEAD_SHA")" = \
+          .github/workflows/rust.yml
+        /usr/bin/git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+          .github/workflows/runtime-binding-base-guard.yml
+        /usr/bin/env -i PATH=/usr/bin:/bin LC_ALL=C GIT_CONFIG_NOSYSTEM=1 \
+          GIT_CONFIG_GLOBAL=/dev/null /usr/bin/python3 -I -B - "$BASE_SHA" "$HEAD_SHA" <<'PY'
+        import hashlib
+        import os
+        import re
+        import subprocess
+        import sys
+
+        WORKFLOW = ".github/workflows/rust.yml"
+        RUNTIME_VERIFIER = "tools/windows/synthetic-launcher-runtime/verify_runtime_implementation.py"
+        PURE_INPUTS = (
+            "tools/windows/synthetic-launcher-runtime/RuntimeCanonicalData.cs",
+            "tools/windows/synthetic-launcher-runtime/RuntimeGate.cs",
+            "tools/windows/synthetic-launcher-runtime/RuntimeGateTests.cs",
+        )
+        BINDING_PATTERN = re.compile(
+            rb'(?<=verify_runtime_binding_policy[.]py" ")[0-9a-f]{64}(?=" "[$]@")')
+        IMPLEMENTATION_PATTERN = re.compile(
+            rb'(?<=verify_runtime_implementation[.]py" ")[0-9a-f]{64}(?=" "[$]@")')
+        BASE_IDENTITY = (8569,
+            "064001f956f304364d42bf7902cdff43d7e92b125399e3217986e2cff88f910c")
+        BINDING_PLACEHOLDER = b"RUNTIME_BINDING_VERIFIER_SHA256"
+
+        LINUX_ANCHOR = b'''    - name: Verify controller runtime contract
+              run: |
+                python3 tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py self-test
+                python3 tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py verify \\
+                  --repo "$GITHUB_WORKSPACE" \\
+                  --source-commit "$GITHUB_SHA"
+        '''
+        LINUX_BLOCK = b'''    - name: Verify synthetic launcher runtime implementation
+              shell: /bin/bash --noprofile --norc -euo pipefail {0}
+              env:
+                BASH_ENV: /dev/null
+                ENV: /dev/null
+              run: |
+                run_bound_runtime_implementation_verifier() {
+                  /usr/bin/env -i PATH=/usr/bin:/bin LC_ALL=C /usr/bin/python3 -I -B -c 'import fcntl,hashlib,os,stat,sys; source=os.open(sys.argv[1],os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC); before=os.fstat(source); raw=os.read(source,262145); after=os.fstat(source); ok=stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_size==len(raw) and len(raw)<=262144 and os.read(source,1)==b"" and (before.st_dev,before.st_ino,before.st_mode,before.st_nlink,before.st_size,before.st_mtime_ns,before.st_ctime_ns)==(after.st_dev,after.st_ino,after.st_mode,after.st_nlink,after.st_size,after.st_mtime_ns,after.st_ctime_ns) and hashlib.sha256(raw).hexdigest()==sys.argv[2]; ok or sys.exit(1); snapshot=os.memfd_create("runtime-implementation-verifier",os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING); len(raw)==os.write(snapshot,raw) or sys.exit(1); fcntl.fcntl(snapshot,fcntl.F_ADD_SEALS,fcntl.F_SEAL_SEAL|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_GROW|fcntl.F_SEAL_WRITE); os.lseek(snapshot,0,os.SEEK_SET); os.set_inheritable(snapshot,True); os.close(source); os.execve("/usr/bin/python3",["/usr/bin/python3","-I","-B","/proc/self/fd/"+str(snapshot)]+sys.argv[3:],{"PATH":"/usr/bin:/bin","LC_ALL":"C","PYTHONDONTWRITEBYTECODE":"1"})' "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-runtime/verify_runtime_implementation.py" "{digest}" "$@"
+                }
+                run_bound_runtime_implementation_verifier self-test
+                run_bound_runtime_implementation_verifier verify \\
+                  --repo "$GITHUB_WORKSPACE" \\
+                  --source-commit "$GITHUB_SHA"
+        '''
+        WINDOWS_BLOCK = b'''    - name: Build and run P/Invoke-free x86 runtime gate tests
+              shell: pwsh
+              run: |
+                $framework = Join-Path $env:WINDIR 'Microsoft.NET\\Framework\\v4.0.30319'
+                $compiler = Join-Path $framework 'csc.exe'
+                $output = Join-Path $env:RUNNER_TEMP 'RuntimeGateTests.exe'
+                $canonical = (Resolve-Path 'tools\\windows\\synthetic-launcher-runtime\\RuntimeCanonicalData.cs').Path
+                $gate = (Resolve-Path 'tools\\windows\\synthetic-launcher-runtime\\RuntimeGate.cs').Path
+                $tests = (Resolve-Path 'tools\\windows\\synthetic-launcher-runtime\\RuntimeGateTests.cs').Path
+                & $compiler /nologo /noconfig /warnaserror+ /optimize+ /nostdlib+ /platform:x86 /target:exe `
+                  /main:Cm0102.SyntheticLauncherRuntime.RuntimeGateTests `
+                  "/reference:$framework\\mscorlib.dll" "/reference:$framework\\System.dll" "/out:$output" `
+                  $canonical $gate $tests
+                if ($LASTEXITCODE -ne 0) { throw 'runtime gate compilation failed' }
+                $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+                $startInfo.FileName = $output
+                $startInfo.UseShellExecute = $false
+                $startInfo.RedirectStandardOutput = $true
+                $startInfo.RedirectStandardError = $true
+                $process = [System.Diagnostics.Process]::new()
+                $process.StartInfo = $startInfo
+                if (-not $process.Start()) { throw 'runtime gate test start failed' }
+                if (-not $process.WaitForExit(30000)) {
+                  $process.Kill()
+                  throw 'runtime gate test timed out'
+                }
+                $actual = $process.StandardOutput.ReadToEnd().Trim()
+                $diagnostics = $process.StandardError.ReadToEnd().Trim()
+                if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS runtime-gate-v1') {
+                  throw "unexpected runtime gate result: $actual"
+                }
+        '''
+
+        def git(arguments):
+            environment = {
+                "PATH": "/usr/bin:/bin", "LC_ALL": "C", "GIT_CONFIG_NOSYSTEM": "1",
+                "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_NO_REPLACE_OBJECTS": "1",
+            }
+            completed = subprocess.run(["/usr/bin/git", "--no-replace-objects",
+                "-c", "protocol.file.allow=never", "-c", "core.fsmonitor=false", *arguments],
+                cwd=os.getcwd(), env=environment, stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=20, check=False)
+            if completed.returncode != 0 or completed.stderr:
+                raise SystemExit("guard Git read failed")
+            return completed.stdout
+
+        base, head = sys.argv[1:]
+        for revision, path, maximum in ((base, WORKFLOW, 65536),
+                (head, WORKFLOW, 65536), (base, RUNTIME_VERIFIER, 262144),
+                (head, RUNTIME_VERIFIER, 262144),
+                *((revision, path, 262144) for revision in (base, head)
+                    for path in PURE_INPUTS)):
+            raw_size = git(["cat-file", "-s", revision + ":" + path])
+            if not raw_size.endswith(b"\n") or not raw_size[:-1].isdigit() or \
+                    not 0 < int(raw_size) <= maximum:
+                raise SystemExit("guarded blob size")
+        base_workflow = git(["show", base + ":" + WORKFLOW])
+        head_workflow = git(["show", head + ":" + WORKFLOW])
+        matches = BINDING_PATTERN.findall(base_workflow)
+        if len(matches) != 1:
+            raise SystemExit("base runtime-binding digest")
+        normalized = BINDING_PATTERN.sub(BINDING_PLACEHOLDER, base_workflow)
+        if (len(normalized), hashlib.sha256(normalized).hexdigest()) != BASE_IDENTITY:
+            raise SystemExit("base workflow is not the reviewed bootstrap")
+        if base_workflow.count(LINUX_ANCHOR) != 1 or RUNTIME_VERIFIER.encode() in base_workflow:
+            raise SystemExit("base workflow transition already consumed")
+        for path in (RUNTIME_VERIFIER, *PURE_INPUTS):
+            if git(["cat-file", "-t", base + ":" + path]) != b"blob\n" or \
+                    git(["cat-file", "-t", head + ":" + path]) != b"blob\n":
+                raise SystemExit("Stage 2 input is not a blob")
+            base_line = git(["ls-tree", base, "--", path]).decode("ascii", "strict")
+            head_line = git(["ls-tree", head, "--", path]).decode("ascii", "strict")
+            if not base_line.startswith("100644 blob ") or \
+                    not head_line.startswith("100644 blob ") or \
+                    git(["show", base + ":" + path]) != git(["show", head + ":" + path]):
+                raise SystemExit("Stage 2 input is not base-reviewed and byte-identical")
+        verifier = git(["show", base + ":" + RUNTIME_VERIFIER])
+        digest = hashlib.sha256(verifier).hexdigest().encode("ascii")
+        if IMPLEMENTATION_PATTERN.findall(head_workflow) != [digest]:
+            raise SystemExit("runtime verifier digest binding")
+        if not git(["ls-tree", base, "--", WORKFLOW]).decode("ascii", "strict").startswith(
+                "100644 blob ") or not git(["ls-tree", head, "--", WORKFLOW]).decode(
+                "ascii", "strict").startswith("100644 blob "):
+            raise SystemExit("workflow mode")
+        dependency = b"  controller-policy-windows:\n    needs: runtime-binding\n"
+        if base_workflow.count(dependency) != 1:
+            raise SystemExit("base dependency")
+        expected = base_workflow.replace(LINUX_ANCHOR,
+            LINUX_ANCHOR + LINUX_BLOCK.replace(b"{digest}", digest), 1).replace(
+            dependency, b"  controller-policy-windows:\n    needs: build\n", 1) + WINDOWS_BLOCK
+        if head_workflow != expected:
+            raise SystemExit("workflow differs from exact one-use Stage 2 transition")
+        PY
