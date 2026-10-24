@@ -8,6 +8,7 @@ Updated: 24 October 2026 (Europe/London)
 - The pinned B0 map inventory importer was independently reviewed, corrected, re-reviewed with no findings, and merged in PR #2 at commit `28928e649d75b01dabe61b5cdcb9cc81cbbde3a7`.
 - The executable/input qualification and PE-backed map-address validation were independently reviewed with no findings and merged in PR #4 at commit `0e64c4acfea612de58409639f5bed7241c7d94a7`.
 - The bounded local request/process contract was independently reviewed, corrected for canonical-request and process-tree hazards, and merged in PR #7 at commit `6ecdfe63c6b9ebdb362b4511fbbf3cf1f1ab871d`.
+- The bounded clean Bosman same-save adapter was independently reviewed, corrected to execute the verified runner file descriptor, accepted against the private 760-file clean set, and merged in PR #8 at commit `f53e2ddc351fb5265b87f4e498beddd280db0e3c`.
 - A user-authorized Windows installation was copied to private storage and verified file-for-file against source hashes. Its `cm0102.exe` exactly matches official 3.9.68 as required by the pinned Bosman source.
 - The pinned Bosman source now has a qualified native Linux Release build on the PC/WSL worker. All 45 registered upstream tests pass. The official ISO and patch produced a separate clean 760-file runtime set, two clean upstream smoke runs passed, and the bounded Bosman adapter produced one successful controlled same-save protocol replay against that set.
 - P00/B0 input inventory is active. No phase is complete.
