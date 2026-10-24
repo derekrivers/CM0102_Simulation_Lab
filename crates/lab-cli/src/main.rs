@@ -9,6 +9,8 @@ use std::process::Command;
 
 const EXPECTED_COMMIT: &str = "2bb558ef6a6bcdbd304dd1a6a4cf156c6707007c";
 const EXPECTED_REPOSITORY: &str = "https://github.com/maxevans60/cm0102-function-map";
+const EXPECTED_EXECUTABLE_SHA256: &str =
+    "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86";
 const IMPORT_VERSION: &str = "b0-map-import-v1";
 
 #[derive(Clone, Copy, Debug)]
@@ -119,6 +121,36 @@ struct InvalidAddress {
     raw: String,
 }
 
+#[derive(Debug)]
+struct PeImage {
+    sha256: String,
+    file_size: usize,
+    image_base: u32,
+    image_size: u32,
+    entry_point: u32,
+    sections: Vec<PeSection>,
+}
+
+#[derive(Debug)]
+struct PeSection {
+    name: String,
+    address: u32,
+    virtual_size: u32,
+    raw_size: u32,
+    characteristics: u32,
+}
+
+impl PeSection {
+    fn contains(&self, address: u32) -> bool {
+        let size = self.virtual_size.max(self.raw_size);
+        address >= self.address && address < self.address.saturating_add(size)
+    }
+
+    fn is_code(&self) -> bool {
+        self.characteristics & 0x2000_0000 != 0
+    }
+}
+
 fn main() {
     if let Err(error) = run() {
         eprintln!("lab-cli: {error}");
@@ -143,11 +175,13 @@ fn run() -> ImportResult<()> {
     let mut source = None;
     let mut lock = None;
     let mut output = None;
+    let mut executable = None;
     while let Some(arg) = args.next() {
         let target = match arg.as_str() {
             "--source-dir" | "--source" => &mut source,
             "--lock-manifest" | "--lock" => &mut lock,
             "--output" | "-o" => &mut output,
+            "--executable" => &mut executable,
             "--help" | "-h" => {
                 println!("{}", usage());
                 return Ok(());
@@ -167,14 +201,19 @@ fn run() -> ImportResult<()> {
     let source = source.ok_or_else(|| ImportError("--source-dir is required".to_owned()))?;
     let lock = lock.ok_or_else(|| ImportError("--lock-manifest is required".to_owned()))?;
     let output = output.ok_or_else(|| ImportError("--output is required".to_owned()))?;
-    import_map(&source, &lock, &output)
+    import_map(&source, &lock, &output, executable.as_deref())
 }
 
 fn usage() -> &'static str {
-    "Usage: lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE\n\nImports the six pinned function-map TSVs into a deterministic JSON evidence artifact."
+    "Usage: lab-cli import-map --source-dir DIR --lock-manifest FILE --output FILE [--executable FILE]\n\nImports the six pinned function-map TSVs into a deterministic JSON evidence artifact. When the exact official 3.9.68 executable is supplied, validates every imported VA against its PE32 sections."
 }
 
-fn import_map(source: &Path, lock_path: &Path, output: &Path) -> ImportResult<()> {
+fn import_map(
+    source: &Path,
+    lock_path: &Path,
+    output: &Path,
+    executable: Option<&Path>,
+) -> ImportResult<()> {
     let lock_bytes = fs::read(lock_path)
         .map_err(|e| ImportError(format!("read lock manifest {}: {e}", lock_path.display())))?;
     let lock_json: Value = serde_json::from_slice(&lock_bytes)
@@ -216,17 +255,22 @@ fn import_map(source: &Path, lock_path: &Path, output: &Path) -> ImportResult<()
         return Err(ImportError(message));
     }
 
+    let pe = executable.map(read_pe).transpose()?;
+    let address_validation = match &pe {
+        Some(image) => validate_addresses(&tables, image)?,
+        None => Value::String("pending_executable".into()),
+    };
     let reconciliation = reconciliation(&tables);
     let mut root = Map::new();
     root.insert(
         "import_version".into(),
         Value::String(IMPORT_VERSION.into()),
     );
+    root.insert("address_validation".into(), address_validation);
     root.insert(
-        "address_validation".into(),
-        Value::String("pending_executable".into()),
+        "source_identity".into(),
+        source_identity(&tables, pe.is_some()),
     );
-    root.insert("source_identity".into(), source_identity(&tables));
     root.insert("table_metadata".into(), table_metadata(&tables));
     root.insert("records".into(), records(&tables));
     root.insert("reconciliation".into(), reconciliation);
@@ -245,6 +289,173 @@ fn import_map(source: &Path, lock_path: &Path, output: &Path) -> ImportResult<()
     fs::write(output, bytes)
         .map_err(|e| ImportError(format!("write output {}: {e}", output.display())))?;
     Ok(())
+}
+
+fn read_pe(path: &Path) -> ImportResult<PeImage> {
+    let bytes = fs::read(path)
+        .map_err(|error| ImportError(format!("read executable {}: {error}", path.display())))?;
+    let sha256 = digest(&bytes);
+    if sha256 != EXPECTED_EXECUTABLE_SHA256 {
+        return Err(ImportError(format!(
+            "executable SHA-256 mismatch: expected {EXPECTED_EXECUTABLE_SHA256}, actual {sha256}"
+        )));
+    }
+    parse_pe(&bytes, sha256)
+}
+
+fn parse_pe(bytes: &[u8], sha256: String) -> ImportResult<PeImage> {
+    if bytes.get(..2) != Some(b"MZ") {
+        return Err(ImportError("executable has no DOS MZ signature".into()));
+    }
+    let pe_offset = read_u32(bytes, 0x3c)? as usize;
+    if bytes.get(pe_offset..pe_offset.saturating_add(4)) != Some(b"PE\0\0") {
+        return Err(ImportError("executable has no PE signature".into()));
+    }
+    let machine = read_u16(bytes, pe_offset + 4)?;
+    if machine != 0x014c {
+        return Err(ImportError(format!(
+            "executable PE machine is {machine:#06x}, expected i386 0x014c"
+        )));
+    }
+    let section_count = read_u16(bytes, pe_offset + 6)? as usize;
+    let optional_size = read_u16(bytes, pe_offset + 20)? as usize;
+    let optional = pe_offset + 24;
+    if read_u16(bytes, optional)? != 0x010b {
+        return Err(ImportError("executable optional header is not PE32".into()));
+    }
+    let entry_rva = read_u32(bytes, optional + 16)?;
+    let image_base = read_u32(bytes, optional + 28)?;
+    let image_size = read_u32(bytes, optional + 56)?;
+    let mut sections = Vec::with_capacity(section_count);
+    let section_table = optional
+        .checked_add(optional_size)
+        .ok_or_else(|| ImportError("PE section table offset overflow".into()))?;
+    for index in 0..section_count {
+        let offset = section_table
+            .checked_add(index.saturating_mul(40))
+            .ok_or_else(|| ImportError("PE section offset overflow".into()))?;
+        let name_bytes = bytes
+            .get(offset..offset.saturating_add(8))
+            .ok_or_else(|| ImportError("truncated PE section header".into()))?;
+        let name_end = name_bytes.iter().position(|byte| *byte == 0).unwrap_or(8);
+        let name = std::str::from_utf8(&name_bytes[..name_end])
+            .map_err(|_| ImportError("PE section name is not ASCII/UTF-8".into()))?
+            .to_owned();
+        let virtual_size = read_u32(bytes, offset + 8)?;
+        let virtual_address = read_u32(bytes, offset + 12)?;
+        let raw_size = read_u32(bytes, offset + 16)?;
+        let characteristics = read_u32(bytes, offset + 36)?;
+        let address = image_base
+            .checked_add(virtual_address)
+            .ok_or_else(|| ImportError("PE section VA overflow".into()))?;
+        sections.push(PeSection {
+            name,
+            address,
+            virtual_size,
+            raw_size,
+            characteristics,
+        });
+    }
+    let entry_point = image_base
+        .checked_add(entry_rva)
+        .ok_or_else(|| ImportError("PE entry-point VA overflow".into()))?;
+    Ok(PeImage {
+        sha256,
+        file_size: bytes.len(),
+        image_base,
+        image_size,
+        entry_point,
+        sections,
+    })
+}
+
+fn read_u16(bytes: &[u8], offset: usize) -> ImportResult<u16> {
+    let value = bytes
+        .get(offset..offset.saturating_add(2))
+        .ok_or_else(|| ImportError("truncated PE header".into()))?;
+    Ok(u16::from_le_bytes([value[0], value[1]]))
+}
+
+fn read_u32(bytes: &[u8], offset: usize) -> ImportResult<u32> {
+    let value = bytes
+        .get(offset..offset.saturating_add(4))
+        .ok_or_else(|| ImportError("truncated PE header".into()))?;
+    Ok(u32::from_le_bytes([value[0], value[1], value[2], value[3]]))
+}
+
+fn validate_addresses(tables: &[TableData], image: &PeImage) -> ImportResult<Value> {
+    let mut table_results = Map::new();
+    for table in tables {
+        let requires_code = matches!(table.spec.name, "broad" | "function" | "name" | "not-high");
+        let valid = table
+            .addresses
+            .iter()
+            .filter(|address| {
+                image.sections.iter().any(|section| {
+                    section.contains(**address) && (!requires_code || section.is_code())
+                })
+            })
+            .count();
+        if valid != table.addresses.len() {
+            return Err(ImportError(format!(
+                "{} has {} address(es) outside the expected PE section class",
+                table.spec.path,
+                table.addresses.len() - valid
+            )));
+        }
+        let mut result = Map::new();
+        result.insert(
+            "rows".into(),
+            Value::Number((table.addresses.len() as u64).into()),
+        );
+        result.insert("validated".into(), Value::Number((valid as u64).into()));
+        result.insert(
+            "required_section_class".into(),
+            Value::String(if requires_code { "code" } else { "mapped" }.into()),
+        );
+        table_results.insert(table.spec.name.into(), Value::Object(result));
+    }
+
+    let mut executable = Map::new();
+    executable.insert("sha256".into(), Value::String(image.sha256.clone()));
+    executable.insert(
+        "file_size".into(),
+        Value::Number((image.file_size as u64).into()),
+    );
+    executable.insert("format".into(), Value::String("PE32-i386".into()));
+    executable.insert("image_base".into(), Value::Number(image.image_base.into()));
+    executable.insert("image_size".into(), Value::Number(image.image_size.into()));
+    executable.insert(
+        "entry_point_va".into(),
+        Value::Number(image.entry_point.into()),
+    );
+    executable.insert(
+        "sections".into(),
+        Value::Array(
+            image
+                .sections
+                .iter()
+                .map(|section| {
+                    let mut value = Map::new();
+                    value.insert("name".into(), Value::String(section.name.clone()));
+                    value.insert("address".into(), Value::Number(section.address.into()));
+                    value.insert(
+                        "virtual_size".into(),
+                        Value::Number(section.virtual_size.into()),
+                    );
+                    value.insert("raw_size".into(), Value::Number(section.raw_size.into()));
+                    value.insert("code".into(), Value::Bool(section.is_code()));
+                    Value::Object(value)
+                })
+                .collect(),
+        ),
+    );
+
+    let mut validation = Map::new();
+    validation.insert("status".into(), Value::String("validated".into()));
+    validation.insert("executable".into(), Value::Object(executable));
+    validation.insert("tables".into(), Value::Object(table_results));
+    Ok(Value::Object(validation))
 }
 
 fn parse_table(spec: TableSpec, bytes: &[u8], sha256: String) -> ImportResult<TableData> {
@@ -518,7 +729,7 @@ fn verify_file_lock(
     Ok(())
 }
 
-fn source_identity(tables: &[TableData]) -> Value {
+fn source_identity(tables: &[TableData], executable_validated: bool) -> Value {
     let mut source = Map::new();
     source.insert(
         "repository".into(),
@@ -527,7 +738,14 @@ fn source_identity(tables: &[TableData]) -> Value {
     source.insert("commit".into(), Value::String(EXPECTED_COMMIT.into()));
     source.insert(
         "address_identity".into(),
-        Value::String("raw_hex_until_executable_validation".into()),
+        Value::String(
+            if executable_validated {
+                "validated_va_against_official_3.9.68_pe32"
+            } else {
+                "raw_hex_until_executable_validation"
+            }
+            .into(),
+        ),
     );
     source.insert(
         "files".into(),
@@ -901,5 +1119,45 @@ mod tests {
         assert_eq!(value["named"]["rows"], 1);
         assert_eq!(value["global"]["rows"], 1);
         assert_eq!(value["data"]["rows"], 1);
+    }
+
+    #[test]
+    fn parses_a_minimal_i386_pe32_section_map() {
+        let mut bytes = vec![0_u8; 0x200];
+        bytes[0..2].copy_from_slice(b"MZ");
+        bytes[0x3c..0x40].copy_from_slice(&0x80_u32.to_le_bytes());
+        bytes[0x80..0x84].copy_from_slice(b"PE\0\0");
+        bytes[0x84..0x86].copy_from_slice(&0x014c_u16.to_le_bytes());
+        bytes[0x86..0x88].copy_from_slice(&1_u16.to_le_bytes());
+        bytes[0x94..0x96].copy_from_slice(&0x00e0_u16.to_le_bytes());
+        bytes[0x98..0x9a].copy_from_slice(&0x010b_u16.to_le_bytes());
+        bytes[0xa8..0xac].copy_from_slice(&0x1000_u32.to_le_bytes());
+        bytes[0xb4..0xb8].copy_from_slice(&0x0040_0000_u32.to_le_bytes());
+        bytes[0xd0..0xd4].copy_from_slice(&0x3000_u32.to_le_bytes());
+        let section = 0x178;
+        bytes[section..section + 5].copy_from_slice(b".text");
+        bytes[section + 8..section + 12].copy_from_slice(&0x100_u32.to_le_bytes());
+        bytes[section + 12..section + 16].copy_from_slice(&0x1000_u32.to_le_bytes());
+        bytes[section + 16..section + 20].copy_from_slice(&0x200_u32.to_le_bytes());
+        bytes[section + 36..section + 40].copy_from_slice(&0x6000_0020_u32.to_le_bytes());
+
+        let image = parse_pe(&bytes, "fixture".into()).unwrap();
+        assert_eq!(image.image_base, 0x0040_0000);
+        assert_eq!(image.entry_point, 0x0040_1000);
+        assert!(image.sections[0].contains(0x0040_11ff));
+        assert!(!image.sections[0].contains(0x0040_1200));
+        assert!(image.sections[0].is_code());
+    }
+
+    #[test]
+    fn pe_parser_rejects_truncated_and_wrong_architecture_inputs() {
+        assert!(parse_pe(b"not a PE", "fixture".into()).is_err());
+        let mut bytes = vec![0_u8; 0x100];
+        bytes[0..2].copy_from_slice(b"MZ");
+        bytes[0x3c..0x40].copy_from_slice(&0x40_u32.to_le_bytes());
+        bytes[0x40..0x44].copy_from_slice(b"PE\0\0");
+        bytes[0x44..0x46].copy_from_slice(&0x8664_u16.to_le_bytes());
+        let error = parse_pe(&bytes, "fixture".into()).unwrap_err();
+        assert!(error.to_string().contains("expected i386"));
     }
 }

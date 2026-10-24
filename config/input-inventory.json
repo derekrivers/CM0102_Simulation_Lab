@@ -1,39 +1,66 @@
 {
   "schema_version": 1,
   "baseline_id": "official-3.9.68-original-2001",
-  "status": "execution_inputs_missing",
+  "status": "partial_qualification",
   "inventoried_at": "2026-10-24",
+  "provided_installation": {
+    "status": "copied_and_transfer_verified_private_only",
+    "file_count": 774,
+    "byte_count": 855766040,
+    "source_manifest_sha256": "17d6b31dfb0835604b6ad27e8a16d4c7d316be5bf209871c9b2f523b8a439e63",
+    "destination_manifest_sha256": "17d6b31dfb0835604b6ad27e8a16d4c7d316be5bf209871c9b2f523b8a439e63",
+    "distribution": "private_only"
+  },
   "required_inputs": [
     {
       "kind": "original_executable",
-      "status": "missing",
+      "status": "qualified_exact_official_3.9.68",
       "expected_version": "3.9.68",
-      "sha256": null,
+      "sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+      "byte_count": 7192576,
+      "format": "PE32-i386",
+      "image_base": "0x00400000",
+      "image_size": 10383360,
+      "entry_point_va": "0x00947a13",
       "distribution": "private_only"
     },
     {
       "kind": "original_2001_data",
-      "status": "missing",
+      "status": "present_but_not_clean_baseline",
       "sha256": null,
       "distribution": "private_only"
     },
     {
       "kind": "original_assets",
-      "status": "missing",
+      "status": "present_but_full_installation_not_clean",
       "sha256": null,
       "distribution": "private_only"
     },
     {
       "kind": "reference_saves",
-      "status": "missing",
+      "status": "candidate_present_not_qualified_as_reference",
       "sha256": null,
       "distribution": "private_only"
     }
   ],
-  "address_validation": "pending_executable",
-  "bosman_build": "blocked_missing_original_inputs",
+  "bosman_clean_manifest_check": {
+    "upstream_commit": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "manifest_sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
+    "required_files": 760,
+    "exact_files": 696,
+    "changed_files": 57,
+    "missing_files": 7,
+    "extra_files": 21,
+    "path_comparison": "windows_case_insensitive",
+    "result": "mismatch"
+  },
+  "address_validation": "qualified_exact_executable_pe32",
+  "bosman_build": "executable_qualified_runtime_blocked_matching_data",
   "notes": [
     "No substitute executable or modern data set may be silently registered as the baseline.",
+    "The supplied executable exactly matches the hash required by the pinned Bosman source.",
+    "The supplied installed folder contains modified data and extra runtime/user files, so it is not registered as the clean baseline.",
+    "The official CM0102.iso and cm0102_3968.exe are still needed to reconstruct Bosman's clean 760-file runtime input.",
     "Private source locations are deployment configuration and are intentionally absent from this public manifest."
   ]
 }
