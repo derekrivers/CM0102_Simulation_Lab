@@ -835,9 +835,9 @@ def parse_pe_build_identity(raw: bytes) -> dict[str, object]:
         method_row += rows.get(table, 0) * table_sizes[table]
         if method_row > tables_end:
             raise ComparisonError("truncated CLI table rows before MethodDef")
-    method_end = method_row + entrypoint_rid * table_sizes[6]
-    if method_end > tables_end:
-        raise ComparisonError("truncated CLI entrypoint MethodDef row")
+    method_table_end = method_row + rows[6] * table_sizes[6]
+    if method_table_end > tables_end:
+        raise ComparisonError("truncated CLI MethodDef table")
     if row_cursor + module_size > tables_end:
         raise ComparisonError("truncated CLI Module row")
     generation = u16(raw, row_cursor, tables_end)
@@ -1654,6 +1654,7 @@ def self_test() -> None:
         (0x400 + 8, 4, 1, "metadata reserved field"),
         (0x400 + 0x80, 4, 1, "tables reserved field"),
         (0x400 + 0x80 + 7, 1, 0, "tables reserved byte"),
+        (0x400 + 0x80 + 28, 4, 42, "truncated declared MethodDef table"),
         (0x400 + 0x80 + 32, 2, 1, "Module generation"),
         (0x400 + 0x80 + 34, 2, 0, "Module name"),
         (0x400 + 0x80 + 38, 2, 1, "Module EncId"),
@@ -1674,6 +1675,23 @@ def self_test() -> None:
         else:
             struct.pack_into("<I", malformed, offset, value)
         expect_rejected(lambda raw=bytes(malformed): parse_pe_build_identity(raw), label)
+    exact_method_boundary = bytearray(first)
+    struct.pack_into("<I", exact_method_boundary, 0x400 + 24 + 4, 56)
+    parse_pe_build_identity(bytes(exact_method_boundary))
+    for declared_rows in (2, 0x10000, 0xFFFFFFFF):
+        missing_methods = bytearray(first)
+        struct.pack_into("<I", missing_methods, 0x400 + 0x80 + 28, declared_rows)
+        expect_rejected(
+            lambda raw=bytes(missing_methods): parse_pe_build_identity(raw),
+            f"truncated MethodDef table with {declared_rows} declared rows",
+        )
+    missing_entrypoint = bytearray(exact_method_boundary)
+    struct.pack_into("<I", missing_entrypoint, 0x400 + 0x80 + 28, 2)
+    struct.pack_into("<I", missing_entrypoint, 0x300 + 20, 0x06000002)
+    expect_rejected(
+        lambda: parse_pe_build_identity(bytes(missing_entrypoint)),
+        "entrypoint RID beyond physically present MethodDef rows",
+    )
     with tempfile.TemporaryDirectory() as directory:
         root = pathlib.Path(directory)
         output = root / "result.json"
