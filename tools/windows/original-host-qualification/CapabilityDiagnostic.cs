@@ -12,7 +12,7 @@ namespace Cm0102.OriginalHostQualification
             string windows = null;
             string system = null;
             Run("folder-windows", delegate { windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows); });
-            Run("folder-system", delegate { system = Environment.GetFolderPath(Environment.SpecialFolder.System); });
+            Run("folder-system", delegate { system = Environment.GetFolderPath(Environment.SpecialFolder.SystemX86); });
             if (windows != null && system != null)
             {
                 Dictionary<string, string> tools = null;
