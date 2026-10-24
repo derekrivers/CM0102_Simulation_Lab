@@ -6,8 +6,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import pathlib
 import re
+import stat
 import sys
 import tempfile
 
@@ -157,6 +159,45 @@ def bytes_identity(raw: bytes) -> dict[str, object]:
     return {"byte_count": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
+def read_bounded_plain(path: pathlib.Path, maximum_bytes: int) -> bytes:
+    before = path.stat(follow_symlinks=False)
+    if path.is_symlink() or not stat.S_ISREG(before.st_mode):
+        raise ValueError("input is not a plain regular file")
+    if before.st_size < 0 or before.st_size > maximum_bytes:
+        raise ValueError("input exceeds byte limit")
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    try:
+        opened = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(opened.st_mode)
+            or (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino)
+            or opened.st_size < 0
+            or opened.st_size > maximum_bytes
+        ):
+            raise ValueError("input changed before bounded read")
+        chunks: list[bytes] = []
+        observed = 0
+        while True:
+            chunk = os.read(descriptor, min(65536, maximum_bytes + 1 - observed))
+            if not chunk:
+                break
+            observed += len(chunk)
+            if observed > maximum_bytes:
+                raise ValueError("input grew beyond byte limit")
+            chunks.append(chunk)
+        finished = os.fstat(descriptor)
+    finally:
+        os.close(descriptor)
+    after = path.stat(follow_symlinks=False)
+    fingerprints = {
+        (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns)
+        for item in (before, opened, finished, after)
+    }
+    if len(fingerprints) != 1 or observed != before.st_size:
+        raise ValueError("input changed during bounded read")
+    return b"".join(chunks)
+
+
 EXPECTATION_KEYS = {
     "clean_file_count",
     "clean_manifest_bytes",
@@ -184,8 +225,7 @@ EXPECTATION_KEYS = {
 }
 
 
-def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
-    raw = path.read_bytes()
+def parse_expectations(raw: bytes) -> dict[str, object]:
     if len(raw) > 1024 * 1024 or raw.startswith(b"\xef\xbb\xbf"):
         raise ValueError("expectations framing")
     value = strict_object(decode_json(raw), EXPECTATION_KEYS, "expectations")
@@ -251,7 +291,12 @@ def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
             or not set(items).issubset(supported)
         ):
             raise ValueError(f"expectations.{key}")
-    return value, raw
+    return value
+
+
+def load_expectations(path: pathlib.Path) -> tuple[dict[str, object], bytes]:
+    raw = read_bounded_plain(path, 1024 * 1024)
+    return parse_expectations(raw), raw
 
 
 def strict_object(value: object, keys: set[str], name: str) -> dict[str, object]:
@@ -818,8 +863,7 @@ PRIVATE_LOCATOR_KEYS = {
 }
 
 
-def load_private_locator(config_path: pathlib.Path) -> tuple[dict[str, object], bytes]:
-    raw = config_path.read_bytes()
+def parse_private_locator(raw: bytes) -> dict[str, object]:
     if len(raw) > 1024 * 1024 or raw.startswith(b"\xef\xbb\xbf"):
         raise ValueError("private locator framing")
     value = strict_object(decode_json(raw), PRIVATE_LOCATOR_KEYS, "private locator")
@@ -829,16 +873,25 @@ def load_private_locator(config_path: pathlib.Path) -> tuple[dict[str, object], 
         item = value[key]
         if not isinstance(item, str) or not re.match(r"^(?:[A-Za-z]:[\\/]|\\\\)", item):
             raise ValueError(f"private locator {key}")
-    return value, raw
+    return value
 
 
-def private_strings(config_path: pathlib.Path) -> list[str]:
-    value, _raw = load_private_locator(config_path)
+def load_private_locator(config_path: pathlib.Path) -> tuple[dict[str, object], bytes]:
+    raw = read_bounded_plain(config_path, 1024 * 1024)
+    return parse_private_locator(raw), raw
+
+
+def private_strings_from_value(value: dict[str, object]) -> list[str]:
     result: list[str] = []
     for item in value.values():
         if isinstance(item, str) and len(item) >= 3:
             result.extend((item, item.replace("\\", "/"), item.replace("/", "\\")))
     return result
+
+
+def private_strings(config_path: pathlib.Path) -> list[str]:
+    value, _raw = load_private_locator(config_path)
+    return private_strings_from_value(value)
 
 
 def reject_path_like_strings(value: object) -> None:
@@ -851,16 +904,13 @@ def reject_path_like_strings(value: object) -> None:
             raise ValueError("path-like string present")
 
 
-def verify(
-    path: pathlib.Path, forbid_file: pathlib.Path, expectations_path: pathlib.Path
-) -> None:
-    raw = path.read_bytes()
+def verify_bytes(raw: bytes, private_raw: bytes, expectations_raw: bytes) -> None:
     if len(raw) > 4 * 1024 * 1024 or not raw.endswith(b"\n") or raw.startswith(b"\xef\xbb\xbf"):
         raise ValueError("output framing")
     value = decode_json(raw)
     strict_object(value, TOP_LEVEL, "top-level")
-    private_locator, private_raw = load_private_locator(forbid_file)
-    expectations, expectations_raw = load_expectations(expectations_path)
+    private_locator = parse_private_locator(private_raw)
+    expectations = parse_expectations(expectations_raw)
     if value["schema_version"] != 1:
         raise ValueError("schema version")
     summary = strict_object(value["summary"], SUMMARY, "summary")
@@ -951,9 +1001,18 @@ def verify(
             raise ValueError("private string present")
 
 
+def verify(
+    path: pathlib.Path, forbid_file: pathlib.Path, expectations_path: pathlib.Path
+) -> None:
+    raw = read_bounded_plain(path, 4 * 1024 * 1024)
+    private_raw = read_bounded_plain(forbid_file, 1024 * 1024)
+    expectations_raw = read_bounded_plain(expectations_path, 1024 * 1024)
+    verify_bytes(raw, private_raw, expectations_raw)
+
+
 def static_source(paths: list[pathlib.Path]) -> None:
     for path in paths:
-        source = path.read_text(encoding="utf-8")
+        source = read_bounded_plain(path, 4 * 1024 * 1024).decode("utf-8", "strict")
         without_comments = re.sub(r"/\*.*?\*/|//[^\r\n]*", "", source, flags=re.DOTALL)
         normalized = re.sub(r"\s+", "", without_comments).casefold()
         for pattern, label in BANNED_NORMALIZED_PATTERNS:
@@ -1221,6 +1280,21 @@ def self_test() -> None:
         raise AssertionError("canonical self-test")
     with tempfile.TemporaryDirectory() as directory:
         root = pathlib.Path(directory)
+        oversized = root / "oversized.bin"
+        with oversized.open("wb") as output:
+            output.truncate(4 * 1024 * 1024 + 1)
+        expect_rejected(
+            lambda: read_bounded_plain(oversized, 4 * 1024 * 1024),
+            "pre-read byte limit",
+        )
+        plain = root / "plain.bin"
+        plain.write_bytes(b"plain")
+        plain_link = root / "plain-link.bin"
+        plain_link.symlink_to(plain)
+        expect_rejected(
+            lambda: read_bounded_plain(plain_link, 1024),
+            "bounded input symlink",
+        )
         private = root / "private.json"
         private_value = {
             "clean_manifest": r"C:\private\clean.tsv",

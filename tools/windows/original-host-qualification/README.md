@@ -56,14 +56,23 @@ directory and executes that snapshot. Both identities must match the committed
 expectations.
 
 The build uses `/noconfig`, so an adjacent, unbound `csc.rsp` cannot alter the
-compiler invocation.
+compiler invocation. Framework references use their absolute in-box x86
+Framework paths. Compiler and probe execution use the private build directory
+as the fixed working directory and inherit an empty environment.
 
-The destination must not exist. Before creating it, the harness parses the
+The destination must not exist, and its existing parent must be owned by the
+invoking WSL uid with mode `0700`. A normal DrvFS mount that ignores Unix modes
+is rejected; use a metadata-enabled DrvFS view when the capture must reside on
+`C:`. Before creating it, the harness parses the
 locator, maps every Windows locator path into WSL, resolves existing objects or
 the nearest parent of a missing object, and rejects containment or aliases in
-either direction with the repository or any locator object. It writes
+either direction with the repository or any locator object. Creation is
+relative to a held no-follow parent handle, and the parent and new root remain
+held and revalidated. It writes
 commit-bound read-only source snapshots into the mode-private build directory,
-invokes the compiler snapshot and probe directly without a shell, and enforces
+requires the executing harness and imported verifier to be those canonical
+commit-bound repository files, invokes the compiler snapshot and probe directly
+without a shell or inherited environment, and enforces
 a 30-minute probe timeout and independent 4 MiB stdout/stderr caps. It refuses
 identity drift and publishes `retained-run-v1.json` after every strictly
 verified full or minimal report whose process exit status agrees with the
@@ -71,6 +80,11 @@ report. `verification.qualification_eligible` is separate from verifier
 success; unsafe or incomplete evidence remains retained but is never eligible.
 The manifest contains hashes and sanitized argument roles, never locator paths
 or a game command.
+
+The attempt assumes the invoking account and operating system are not actively
+hostile during the run. Concurrent same-account interference invalidates the
+evidence; the harness does not claim to defeat swap-and-restore attacks by an
+actor with the same account authority.
 
 For independent verification of captured stdout, both the public expectations
 and private locator are mandatory:

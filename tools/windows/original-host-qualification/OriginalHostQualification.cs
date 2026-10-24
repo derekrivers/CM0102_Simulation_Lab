@@ -1359,6 +1359,12 @@ namespace Cm0102.OriginalHostQualification
 
         internal static FileSnapshot Hash(VerifiedPath opened, int? maximumBytes)
         {
+            return Hash(opened, maximumBytes, null);
+        }
+
+        internal static FileSnapshot Hash(VerifiedPath opened, int? maximumBytes,
+            Func<SafeFileHandle, NativeFileIdentity> testAfterIdentity)
+        {
             NativeFileIdentity before = NativeMethods.GetFileIdentity(opened.Handle);
             if (before.IsDirectory || before.IsReparsePoint) throw new InvalidDataException("file-type-invalid");
             if (maximumBytes.HasValue && (before.Bytes < 0 || before.Bytes > maximumBytes.Value))
@@ -1389,7 +1395,8 @@ namespace Cm0102.OriginalHostQualification
                 hash = Hashing.Hex(sha.Hash);
                 if (maximumBytes.HasValue && offset != snapshot.Length)
                     throw new IOException("file-short-read");
-                after = NativeMethods.GetFileIdentity(opened.Handle);
+                after = testAfterIdentity == null ? NativeMethods.GetFileIdentity(opened.Handle) :
+                    testAfterIdentity(opened.Handle);
             }
             if (!before.Same(after) || observedBytes != before.Bytes) throw new IOException("file-changed-during-read");
             return new FileSnapshot
@@ -1484,7 +1491,10 @@ namespace Cm0102.OriginalHostQualification
                 }
                 bool directory = (attributes & (uint)FileAttributes.Directory) != 0;
                 using (VerifiedPath opened = OpenVerified(path, directory, null, true))
+                {
+                    if (!directory && opened.Identity.NumberOfLinks != 1) return false;
                     if (!objects.Add(opened.Identity.ObjectId)) return false;
+                }
             }
             return true;
         }

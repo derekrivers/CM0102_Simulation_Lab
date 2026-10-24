@@ -36,6 +36,14 @@ EXPECTED_COMPILER_WINDOWS = r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.
 EXPECTED_COMPILER_UI_WINDOWS = (
     r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\1033\cscui.dll"
 )
+FRAMEWORK_REFERENCE_WINDOWS = (
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.dll",
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Core.dll",
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Drawing.dll",
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Security.dll",
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Web.Extensions.dll",
+    r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\System.Windows.Forms.dll",
+)
 GAME_LIKE = re.compile(r"(?:cm0?1[-_ ]?0?2|champ(?:ionship)?[-_ ]*man(?:ager)?)", re.IGNORECASE)
 SOURCE_PATHS = (
     "tools/windows/original-host-qualification/CanonicalJson.cs",
@@ -63,23 +71,33 @@ def digest_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def read_plain_bytes(path: pathlib.Path) -> tuple[bytes, dict[str, object]]:
+def read_plain_bytes(
+    path: pathlib.Path, maximum_bytes: int = STREAM_CAP_BYTES
+) -> tuple[bytes, dict[str, object]]:
     before = path.stat(follow_symlinks=False)
     if not stat.S_ISREG(before.st_mode) or path.is_symlink():
         raise HarnessError("identity target is not a plain regular file")
+    if before.st_size < 0 or before.st_size > maximum_bytes:
+        raise HarnessError("identity target exceeds byte limit")
     descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
     try:
         opened = os.fstat(descriptor)
         if not stat.S_ISREG(opened.st_mode) or (before.st_dev, before.st_ino) != (
             opened.st_dev,
             opened.st_ino,
-        ):
+        ) or opened.st_size < 0 or opened.st_size > maximum_bytes:
             raise HarnessError("identity target changed before open")
         chunks = []
+        observed = 0
         while True:
-            chunk = os.read(descriptor, 1024 * 1024)
+            chunk = os.read(
+                descriptor, min(1024 * 1024, maximum_bytes + 1 - observed)
+            )
             if not chunk:
                 break
+            observed += len(chunk)
+            if observed > maximum_bytes:
+                raise HarnessError("identity target grew beyond byte limit")
             chunks.append(chunk)
         finished = os.fstat(descriptor)
     finally:
@@ -89,7 +107,7 @@ def read_plain_bytes(path: pathlib.Path) -> tuple[bytes, dict[str, object]]:
         (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns)
         for item in (before, opened, finished, after)
     }
-    if len(fingerprints) != 1:
+    if len(fingerprints) != 1 or observed != before.st_size:
         raise HarnessError("identity target changed while hashing")
     raw = b"".join(chunks)
     return raw, {"byte_count": len(raw), "sha256": digest_bytes(raw)}
@@ -119,16 +137,24 @@ def _kill(process: subprocess.Popen[bytes]) -> None:
 
 
 def capture_bounded(
-    argv: list[str], timeout_seconds: float, cap_bytes: int
+    argv: list[str],
+    timeout_seconds: float,
+    cap_bytes: int,
+    cwd: pathlib.Path | None = None,
 ) -> tuple[int, bytes, bytes]:
     if not argv or not os.path.isabs(argv[0]):
         raise HarnessError("command executable must be an absolute path")
     reject_game_like_name(pathlib.Path(argv[0]).name)
+    fixed_cwd = pathlib.Path("/") if cwd is None else cwd.resolve(strict=True)
+    if not fixed_cwd.is_dir() or fixed_cwd.is_symlink():
+        raise HarnessError("command working directory is not a plain directory")
     process = subprocess.Popen(
         argv,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        cwd=str(fixed_cwd),
+        env={},
         shell=False,
         start_new_session=True,
     )
@@ -300,24 +326,55 @@ def source_bindings(
     snapshots = {}
     for relative in BOUND_PATHS:
         worktree_path = repo / pathlib.PurePosixPath(relative)
-        actual = worktree_path.read_bytes()
+        actual, actual_identity = read_plain_bytes(worktree_path)
         committed = git_bytes(repo, revision, relative)
         if actual != committed:
             raise HarnessError("source differs from source commit")
-        worktree_stat = worktree_path.stat(follow_symlinks=False)
-        if worktree_path.is_symlink() or not stat.S_ISREG(worktree_stat.st_mode):
-            raise HarnessError("source is not a plain regular file")
         snapshots[pathlib.PurePosixPath(relative).name] = committed
         bindings.append(
             {
                 "id": pathlib.PurePosixPath(relative).name,
-                "identity": {
-                    "byte_count": len(actual),
-                    "sha256": digest_bytes(actual),
-                },
+                "identity": actual_identity,
             }
         )
     return bindings, snapshots
+
+
+def validate_runtime_controls(
+    repo: pathlib.Path,
+    bindings: list[dict[str, object]],
+    harness_path: pathlib.Path | None = None,
+    verifier_path: pathlib.Path | None = None,
+) -> None:
+    expected_paths = {
+        "retained_run_v1.py": (
+            repo / "tools/windows/original-host-qualification/retained_run_v1.py"
+        ).resolve(strict=True),
+        "verify_output.py": (
+            repo / "tools/windows/original-host-qualification/verify_output.py"
+        ).resolve(strict=True),
+    }
+    actual_paths = {
+        "retained_run_v1.py": (
+            pathlib.Path(__file__) if harness_path is None else harness_path
+        ).resolve(strict=True),
+        "verify_output.py": (
+            pathlib.Path(verify_output.__file__)
+            if verifier_path is None
+            else verifier_path
+        ).resolve(strict=True),
+    }
+    identities = {
+        record["id"]: record["identity"]
+        for record in bindings
+        if record["id"] in expected_paths
+    }
+    if set(identities) != set(expected_paths):
+        raise HarnessError("runtime control binding is incomplete")
+    for name in sorted(expected_paths):
+        if actual_paths[name] != expected_paths[name]:
+            raise HarnessError("runtime control is outside the canonical repository path")
+        require_identity(actual_paths[name], identities[name], "runtime control")
 
 
 def committed_expectations(
@@ -331,7 +388,7 @@ def committed_expectations(
     supplied_path = supplied.resolve(strict=True)
     if supplied_path != canonical_path:
         raise HarnessError("expectations must use the canonical repository path")
-    raw, identity = read_plain_bytes(canonical_path)
+    raw, identity = read_plain_bytes(canonical_path, 1024 * 1024)
     if raw != git_bytes(repo, revision, EXPECTATIONS_RELATIVE):
         raise HarnessError("expectations differ from source commit")
     return canonical_path, raw, identity
@@ -422,25 +479,96 @@ def write_verified_snapshot(
     require_identity(path, expected, "snapshot")
 
 
+class DestinationGuard:
+    def __init__(
+        self,
+        path: pathlib.Path,
+        parent_path: pathlib.Path,
+        parent_handle: int,
+        root_handle: int,
+    ) -> None:
+        self.path = path
+        self.parent_path = parent_path
+        self.parent_handle = parent_handle
+        self.root_handle = root_handle
+        self.parent_identity = self._identity(os.fstat(parent_handle))
+        self.root_identity = self._identity(os.fstat(root_handle))
+
+    @staticmethod
+    def _identity(value: os.stat_result) -> tuple[int, int, int, int]:
+        return (
+            value.st_dev,
+            value.st_ino,
+            value.st_uid,
+            stat.S_IMODE(value.st_mode),
+        )
+
+    def verify(self) -> None:
+        if self._identity(os.fstat(self.parent_handle)) != self.parent_identity:
+            raise HarnessError("retained parent handle changed")
+        if self._identity(os.fstat(self.root_handle)) != self.root_identity:
+            raise HarnessError("retained root handle changed")
+        parent_now = self.parent_path.stat(follow_symlinks=False)
+        root_now = self.path.stat(follow_symlinks=False)
+        if (
+            self.parent_path.is_symlink()
+            or self.path.is_symlink()
+            or self._identity(parent_now) != self.parent_identity
+            or self._identity(root_now) != self.root_identity
+        ):
+            raise HarnessError("retained destination path changed")
+
+    def close(self) -> None:
+        for name in ("root_handle", "parent_handle"):
+            descriptor = getattr(self, name, -1)
+            if descriptor >= 0:
+                os.close(descriptor)
+                setattr(self, name, -1)
+
+
 def prepare_destination(
     destination: pathlib.Path,
     repo: pathlib.Path,
     locator_objects: list[pathlib.Path],
-) -> pathlib.Path:
-    absolute = destination.absolute()
+) -> DestinationGuard:
+    absolute = pathlib.Path(os.path.normpath(str(destination.absolute())))
     if absolute.exists() or absolute.is_symlink():
         raise HarnessError("retained destination already exists")
-    candidate = resolve_nearest(absolute)
+    parent_path = absolute.parent.resolve(strict=True)
+    candidate = parent_path / absolute.name
+    parent_metadata = parent_path.stat(follow_symlinks=False)
+    if (
+        parent_path.is_symlink()
+        or not stat.S_ISDIR(parent_metadata.st_mode)
+        or parent_metadata.st_uid != os.geteuid()
+        or stat.S_IMODE(parent_metadata.st_mode) != 0o700
+    ):
+        raise HarnessError("retained parent must be owned and mode 0700")
     protected = [repo.resolve(strict=True), *locator_objects]
     for item in protected:
         if paths_alias_or_overlap(candidate, item):
             raise HarnessError("retained destination overlaps protected input")
-    os.mkdir(candidate, 0o700)
-    if stat.S_IMODE(candidate.stat().st_mode) != 0o700:
-        raise HarnessError("retained destination is not mode-private")
-    build = candidate / "build"
-    os.mkdir(build, 0o700)
-    return candidate
+    directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    parent_handle = os.open(parent_path, directory_flags)
+    root_handle = -1
+    try:
+        opened_parent = os.fstat(parent_handle)
+        if (opened_parent.st_dev, opened_parent.st_ino) != (
+            parent_metadata.st_dev,
+            parent_metadata.st_ino,
+        ):
+            raise HarnessError("retained parent changed before create")
+        os.mkdir(candidate.name, 0o700, dir_fd=parent_handle)
+        root_handle = os.open(candidate.name, directory_flags, dir_fd=parent_handle)
+        os.mkdir("build", 0o700, dir_fd=root_handle)
+        guard = DestinationGuard(candidate, parent_path, parent_handle, root_handle)
+        guard.verify()
+        return guard
+    except Exception:
+        if root_handle >= 0:
+            os.close(root_handle)
+        os.close(parent_handle)
+        raise
 
 
 def expected_exit(report: dict[str, object]) -> int:
@@ -473,30 +601,110 @@ def is_qualification_eligible(report: dict[str, object], exit_code: int) -> bool
     )
 
 
+def finalize_retained_attempt(
+    destination: pathlib.Path,
+    stdout: bytes,
+    stderr: bytes,
+    exit_code: int,
+    locator_value: dict[str, object],
+    locator_raw: bytes,
+    expectations_raw: bytes,
+    report_bindings: dict[str, object],
+    manifest_bindings: dict[str, object],
+    build_exit: int,
+    build_stdout: bytes,
+    build_stderr: bytes,
+) -> dict[str, object]:
+    verify_output.verify_bytes(stdout, locator_raw, expectations_raw)
+    report = validate_exit_pair(verify_output.decode_json(stdout), exit_code)
+    if report["summary"]["completeness"] == "complete":
+        for key in (
+            "source_revision",
+            "executable",
+            "expectations_sha256",
+            "private_locator_sha256",
+        ):
+            if report["probe"][key] != report_bindings[key]:
+                raise HarnessError(f"report {key} binding mismatch")
+    manifest = {
+        "bindings": manifest_bindings,
+        "execution": {
+            "build_exit_code": build_exit,
+            "build_stderr": {
+                "byte_count": len(build_stderr),
+                "sha256": digest_bytes(build_stderr),
+            },
+            "build_stdout": {
+                "byte_count": len(build_stdout),
+                "sha256": digest_bytes(build_stdout),
+            },
+            "probe_exit_code": exit_code,
+            "probe_stderr": {
+                "byte_count": len(stderr),
+                "sha256": digest_bytes(stderr),
+            },
+            "probe_stdout": {
+                "byte_count": len(stdout),
+                "sha256": digest_bytes(stdout),
+            },
+            "stream_cap_bytes": STREAM_CAP_BYTES,
+            "timeout_seconds": PROBE_TIMEOUT_SECONDS,
+        },
+        "harness": {"id": HARNESS_ID, "version": HARNESS_VERSION},
+        "retained_artifacts": {"canonical_stdout": "probe-output.json"},
+        "schema_version": SCHEMA_VERSION,
+        "verification": {
+            "canonical_stdout": True,
+            "completeness": report["summary"]["completeness"],
+            "privacy_locator_enforced": True,
+            "qualification_eligible": is_qualification_eligible(report, exit_code),
+            "result": "pass",
+            "safety_verdict": report["summary"]["safety_verdict"],
+        },
+    }
+    forbidden = verify_output.private_strings_from_value(locator_value)
+    for string_value in verify_output.iter_strings(manifest):
+        if any(item.casefold() in string_value.casefold() for item in forbidden):
+            raise HarnessError("private locator string leaked into manifest")
+    manifest_bytes = canonical(manifest)
+    report_path = destination / "probe-output.json"
+    manifest_path = destination / "retained-run-v1.json"
+    if (
+        report_path.exists()
+        or report_path.is_symlink()
+        or manifest_path.exists()
+        or manifest_path.is_symlink()
+    ):
+        raise FileExistsError("retained artifact already exists")
+    write_exclusive(report_path, stdout)
+    write_exclusive(manifest_path, manifest_bytes)
+    return manifest
+
+
 def retained_run(args: argparse.Namespace) -> None:
     repo = args.repo.resolve(strict=True)
-    locator = args.private_locator.resolve(strict=True)
+    locator_argument = args.private_locator.absolute()
+    locator_stat = locator_argument.stat(follow_symlinks=False)
+    if locator_argument.is_symlink() or not stat.S_ISREG(locator_stat.st_mode):
+        raise HarnessError("private locator is not a plain regular file")
+    locator = locator_argument.resolve(strict=True)
     bindings, source_snapshots = source_bindings(repo, args.source_commit)
+    validate_runtime_controls(repo, bindings)
     expectations, expectations_raw, expectations_identity = committed_expectations(
         repo, args.source_commit, args.expectations
     )
-    expectations_value, loaded_expectations_raw = verify_output.load_expectations(
-        expectations
-    )
-    if loaded_expectations_raw != expectations_raw:
-        raise HarnessError("expectations changed while parsing")
+    expectations_value = verify_output.parse_expectations(expectations_raw)
     compiler, compiler_raw, compiler_identity = verified_compiler(
         args.compiler, expectations_value
     )
     compiler_ui, compiler_ui_raw, compiler_ui_identity = verified_compiler_ui(
         compiler, expectations_value
     )
-    locator_value, loaded_locator_raw = verify_output.load_private_locator(locator)
-    locator_raw, locator_identity = read_plain_bytes(locator)
-    if loaded_locator_raw != locator_raw:
-        raise HarnessError("private locator changed while parsing")
+    locator_raw, locator_identity = read_plain_bytes(locator, 1024 * 1024)
+    locator_value = verify_output.parse_private_locator(locator_raw)
     locator_objects = mapped_locator_paths(locator_value)
-    destination = prepare_destination(args.retained_dir, repo, locator_objects)
+    destination_guard = prepare_destination(args.retained_dir, repo, locator_objects)
+    destination = destination_guard.path
     executable = destination / "build" / "OriginalHostQualification.exe"
     reject_game_like_name(executable.name)
     snapshot_paths = []
@@ -547,12 +755,7 @@ def retained_run(args: argparse.Namespace) -> None:
         "/optimize+",
         "/platform:x86",
         "/target:exe",
-        "/r:System.dll",
-        "/r:System.Core.dll",
-        "/r:System.Drawing.dll",
-        "/r:System.Security.dll",
-        "/r:System.Web.Extensions.dll",
-        "/r:System.Windows.Forms.dll",
+        *("/r:" + path for path in FRAMEWORK_REFERENCE_WINDOWS),
         "/out:" + windows_executable,
         *source_windows,
     ]
@@ -575,6 +778,7 @@ def retained_run(args: argparse.Namespace) -> None:
         "source-original-host-qualification",
     ]
     build_binding = command_binding(build_argv, build_roles)
+    destination_guard.verify()
     if file_identity(compiler) != compiler_identity:
         raise HarnessError("compiler changed before build")
     if file_identity(compiler_snapshot) != compiler_identity:
@@ -584,7 +788,10 @@ def retained_run(args: argparse.Namespace) -> None:
     if file_identity(compiler_ui_snapshot) != compiler_ui_identity:
         raise HarnessError("compiler UI snapshot changed before build")
     build_exit, build_stdout, build_stderr = capture_bounded(
-        build_argv, BUILD_TIMEOUT_SECONDS, STREAM_CAP_BYTES
+        build_argv,
+        BUILD_TIMEOUT_SECONDS,
+        STREAM_CAP_BYTES,
+        destination / "build",
     )
     if build_exit != 0:
         raise HarnessError("probe build failed")
@@ -618,6 +825,7 @@ def retained_run(args: argparse.Namespace) -> None:
         "source-revision",
     ]
     probe_binding = command_binding(probe_argv, probe_roles)
+    destination_guard.verify()
     if file_identity(executable) != executable_identity:
         raise HarnessError("probe executable changed before run")
     if file_identity(expectations_snapshot) != expectations_identity:
@@ -625,7 +833,10 @@ def retained_run(args: argparse.Namespace) -> None:
     if file_identity(locator_snapshot) != locator_identity:
         raise HarnessError("private locator snapshot changed before run")
     exit_code, stdout, stderr = capture_bounded(
-        probe_argv, PROBE_TIMEOUT_SECONDS, STREAM_CAP_BYTES
+        probe_argv,
+        PROBE_TIMEOUT_SECONDS,
+        STREAM_CAP_BYTES,
+        destination / "build",
     )
     if file_identity(compiler) != compiler_identity:
         raise HarnessError("compiler changed before retained publication")
@@ -644,24 +855,7 @@ def retained_run(args: argparse.Namespace) -> None:
     for source_record, snapshot in zip(bindings, snapshot_paths):
         if file_identity(snapshot) != source_record["identity"]:
             raise HarnessError("source snapshot changed during build or run")
-    report_path = destination / "probe-output.json"
-    write_exclusive(report_path, stdout)
-    verify_output.verify(report_path, locator_snapshot, expectations_snapshot)
-    report = validate_exit_pair(verify_output.decode_json(stdout), exit_code)
-    complete = report["summary"]["completeness"] == "complete"
-    if complete:
-        if report["probe"]["source_revision"] != args.source_commit:
-            raise HarnessError("report source revision mismatch")
-        if report["probe"]["executable"] != executable_identity:
-            raise HarnessError("report executable identity mismatch")
-        if report["probe"]["expectations_sha256"] != expectations_identity["sha256"]:
-            raise HarnessError("report expectations identity mismatch")
-        if report["probe"]["private_locator_sha256"] != locator_identity["sha256"]:
-            raise HarnessError("report locator identity mismatch")
-    qualification_eligible = is_qualification_eligible(report, exit_code)
-
-    manifest = {
-        "bindings": {
+    manifest_bindings = {
             "build_command": build_binding,
             "compiler": compiler_identity,
             "compiler_ui": compiler_ui_identity,
@@ -671,47 +865,29 @@ def retained_run(args: argparse.Namespace) -> None:
             "probe_executable": executable_identity,
             "source_commit": args.source_commit,
             "sources": bindings,
-        },
-        "execution": {
-            "build_exit_code": build_exit,
-            "build_stderr": {
-                "byte_count": len(build_stderr),
-                "sha256": digest_bytes(build_stderr),
-            },
-            "build_stdout": {
-                "byte_count": len(build_stdout),
-                "sha256": digest_bytes(build_stdout),
-            },
-            "probe_exit_code": exit_code,
-            "probe_stderr": {
-                "byte_count": len(stderr),
-                "sha256": digest_bytes(stderr),
-            },
-            "probe_stdout": {
-                "byte_count": len(stdout),
-                "sha256": digest_bytes(stdout),
-            },
-            "stream_cap_bytes": STREAM_CAP_BYTES,
-            "timeout_seconds": PROBE_TIMEOUT_SECONDS,
-        },
-        "harness": {"id": HARNESS_ID, "version": HARNESS_VERSION},
-        "retained_artifacts": {"canonical_stdout": "probe-output.json"},
-        "schema_version": SCHEMA_VERSION,
-        "verification": {
-            "canonical_stdout": True,
-            "completeness": report["summary"]["completeness"],
-            "privacy_locator_enforced": True,
-            "qualification_eligible": qualification_eligible,
-            "result": "pass",
-            "safety_verdict": report["summary"]["safety_verdict"],
-        },
     }
-    manifest_bytes = canonical(manifest)
-    forbidden = verify_output.private_strings(locator_snapshot)
-    for string_value in verify_output.iter_strings(manifest):
-        if any(item.casefold() in string_value.casefold() for item in forbidden):
-            raise HarnessError("private locator string leaked into manifest")
-    write_exclusive(destination / "retained-run-v1.json", manifest_bytes)
+    destination_guard.verify()
+    finalize_retained_attempt(
+        destination,
+        stdout,
+        stderr,
+        exit_code,
+        locator_value,
+        locator_raw,
+        expectations_raw,
+        {
+            "source_revision": args.source_commit,
+            "executable": executable_identity,
+            "expectations_sha256": expectations_identity["sha256"],
+            "private_locator_sha256": locator_identity["sha256"],
+        },
+        manifest_bindings,
+        build_exit,
+        build_stdout,
+        build_stderr,
+    )
+    destination_guard.verify()
+    destination_guard.close()
     print("PASS")
 
 
@@ -724,6 +900,24 @@ def self_test() -> None:
         code, stdout, stderr = capture_bounded([str(success)], 2, 16)
         if (code, stdout, stderr) != (0, b"ok", b"err"):
             raise AssertionError("bounded capture success")
+        environment_probe = root / "environment-probe"
+        environment_probe.write_text(
+            "#!/usr/bin/python3\nimport os,sys\nsys.stdout.write(str(len(os.environ)))\n",
+            encoding="utf-8",
+        )
+        environment_probe.chmod(0o700)
+        code, stdout, stderr = capture_bounded([str(environment_probe)], 2, 16)
+        if code != 0 or stderr != b"" or stdout not in {b"0", b"1"}:
+            raise AssertionError("bounded capture environment")
+        oversized_identity = root / "oversized-identity.bin"
+        with oversized_identity.open("wb") as output:
+            output.truncate(STREAM_CAP_BYTES + 1)
+        try:
+            read_plain_bytes(oversized_identity)
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("identity pre-read byte limit")
         overflow = root / "overflow"
         overflow.write_text("#!/bin/sh\nprintf 12345\n", encoding="utf-8")
         overflow.chmod(0o700)
@@ -938,6 +1132,24 @@ def self_test() -> None:
             "tokens": {},
         }
         strict_cases.append((strict_minimal, 3))
+        report_binding_fixture = {
+            "source_revision": strict_full["probe"]["source_revision"],
+            "executable": strict_full["probe"]["executable"],
+            "expectations_sha256": strict_full["probe"]["expectations_sha256"],
+            "private_locator_sha256": strict_full["probe"]["private_locator_sha256"],
+        }
+        identity_fixture_value = {"byte_count": 1, "sha256": "7" * 64}
+        manifest_binding_fixture = {
+            "build_command": command_binding(["/bound/csc.exe"], ["compiler"]),
+            "compiler": identity_fixture_value,
+            "compiler_ui": identity_fixture_value,
+            "expectations": verify_output.bytes_identity(strict_expectations.read_bytes()),
+            "private_locator": verify_output.bytes_identity(strict_private.read_bytes()),
+            "probe_command": command_binding(["/bound/probe.exe"], ["probe"]),
+            "probe_executable": strict_full["probe"]["executable"],
+            "source_commit": strict_full["probe"]["source_revision"],
+            "sources": [{"id": "fixture.cs", "identity": identity_fixture_value}],
+        }
         for index, (report, exit_code) in enumerate(strict_cases):
             producer = root / f"strict-producer-{index}"
             payload = verify_output.canonical(report)
@@ -963,6 +1175,107 @@ def self_test() -> None:
                 raise AssertionError(
                     "qualification eligibility did not distinguish full from unsafe/incomplete"
                 )
+            retained = root / f"retained-{index}"
+            retained.mkdir(mode=0o700)
+            manifest = finalize_retained_attempt(
+                retained,
+                actual_stdout,
+                actual_stderr,
+                actual_exit,
+                private_value,
+                strict_private.read_bytes(),
+                strict_expectations.read_bytes(),
+                report_binding_fixture,
+                manifest_binding_fixture,
+                0,
+                b"build-out",
+                b"build-err",
+            )
+            if manifest["verification"]["qualification_eligible"] != (index == 0):
+                raise AssertionError("published qualification eligibility")
+            if (retained / "probe-output.json").read_bytes() != actual_stdout:
+                raise AssertionError("published canonical report")
+            retained_manifest = (retained / "retained-run-v1.json").read_bytes()
+            if retained_manifest != canonical(manifest):
+                raise AssertionError("published canonical manifest")
+            if manifest["execution"]["probe_stdout"] != verify_output.bytes_identity(actual_stdout):
+                raise AssertionError("published stdout identity")
+
+        wrong_exit = root / "retained-wrong-exit"
+        wrong_exit.mkdir(mode=0o700)
+        try:
+            finalize_retained_attempt(
+                wrong_exit,
+                verify_output.canonical(strict_full),
+                b"",
+                2,
+                private_value,
+                strict_private.read_bytes(),
+                strict_expectations.read_bytes(),
+                report_binding_fixture,
+                manifest_binding_fixture,
+                0,
+                b"",
+                b"",
+            )
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("wrong exit publication rejection")
+        if list(wrong_exit.iterdir()):
+            raise AssertionError("wrong exit published artifacts")
+
+        private_leak = root / "retained-private-leak"
+        private_leak.mkdir(mode=0o700)
+        leaking_bindings = dict(manifest_binding_fixture)
+        leaking_bindings["source_commit"] = private_value["clean_tree"]
+        try:
+            finalize_retained_attempt(
+                private_leak,
+                verify_output.canonical(strict_full),
+                b"",
+                0,
+                private_value,
+                strict_private.read_bytes(),
+                strict_expectations.read_bytes(),
+                report_binding_fixture,
+                leaking_bindings,
+                0,
+                b"",
+                b"",
+            )
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("private manifest leak rejection")
+        if list(private_leak.iterdir()):
+            raise AssertionError("private leak published artifacts")
+
+        no_replace = root / "retained-no-replace"
+        no_replace.mkdir(mode=0o700)
+        existing_report = no_replace / "probe-output.json"
+        existing_report.write_bytes(b"existing")
+        try:
+            finalize_retained_attempt(
+                no_replace,
+                verify_output.canonical(strict_full),
+                b"",
+                0,
+                private_value,
+                strict_private.read_bytes(),
+                strict_expectations.read_bytes(),
+                report_binding_fixture,
+                manifest_binding_fixture,
+                0,
+                b"",
+                b"",
+            )
+        except FileExistsError:
+            pass
+        else:
+            raise AssertionError("retained artifact no-replace")
+        if existing_report.read_bytes() != b"existing" or (no_replace / "retained-run-v1.json").exists():
+            raise AssertionError("retained no-replace preservation")
         repo = root / "repo"
         repo.mkdir()
         for relative in (*BOUND_PATHS, EXPECTATIONS_RELATIVE):
@@ -996,6 +1309,31 @@ def self_test() -> None:
             pathlib.PurePosixPath(item).name for item in BOUND_PATHS
         }:
             raise AssertionError("source binding fixture")
+        harness_fixture = repo / CONTROL_PATHS[1]
+        verifier_fixture = repo / CONTROL_PATHS[0]
+        validate_runtime_controls(
+            repo, source_records, harness_fixture, verifier_fixture
+        )
+        external_harness = root / "external-retained-run.py"
+        external_harness.write_bytes(harness_fixture.read_bytes())
+        try:
+            validate_runtime_controls(
+                repo, source_records, external_harness, verifier_fixture
+            )
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("external runtime control rejection")
+        external_verifier = root / "external-verify-output.py"
+        external_verifier.write_bytes(verifier_fixture.read_bytes())
+        try:
+            validate_runtime_controls(
+                repo, source_records, harness_fixture, external_verifier
+            )
+        except HarnessError:
+            pass
+        else:
+            raise AssertionError("external verifier rejection")
         expectations_path, expectations_bytes, expectations_identity = committed_expectations(
             repo, revision, repo / EXPECTATIONS_RELATIVE
         )
@@ -1040,9 +1378,11 @@ def self_test() -> None:
         protected.mkdir()
         protected_alias = root / "protected-alias"
         protected_alias.symlink_to(protected, target_is_directory=True)
-        retained = prepare_destination(root / "retained", repo, [protected.resolve()])
+        retained_guard = prepare_destination(root / "retained", repo, [protected.resolve()])
+        retained = retained_guard.path
         if stat.S_IMODE(retained.stat().st_mode) != 0o700:
             raise AssertionError("private retained mode")
+        retained_guard.verify()
         try:
             prepare_destination(retained, repo, [protected.resolve()])
         except HarnessError:
@@ -1066,6 +1406,7 @@ def self_test() -> None:
                     raise AssertionError("overlap rejection created destination")
             else:
                 raise AssertionError("destination overlap rejection")
+        retained_guard.close()
 
 
 def main() -> int:

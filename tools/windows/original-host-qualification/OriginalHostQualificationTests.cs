@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
@@ -28,6 +29,7 @@ namespace Cm0102.OriginalHostQualification
             Run("object-alias", TestObjectAlias);
             Run("outside-tree-hardlink", TestOutsideTreeHardlink);
             Run("unreadable-and-share-protected", TestUnreadableAndShareProtected);
+            Run("mid-read-mutation-and-share-denial", TestMidReadMutationAndShareDenial);
             Run("qualification-policies", TestQualificationPolicies);
             Run("actual-token-restoration", TestActualTokenRestoration);
             Run("clean-iso-identity-mismatch", TestCleanIsoIdentityMismatch);
@@ -288,6 +290,7 @@ namespace Cm0102.OriginalHostQualification
                 if (!CreateHardLinkW(alias, original, IntPtr.Zero))
                     throw new InvalidOperationException("create-synthetic-hardlink-" + Marshal.GetLastWin32Error());
                 Assert(!PathSafety.AreDistinctExistingObjects(new string[] { original, alias }));
+                Assert(!PathSafety.AreDistinctExistingObjects(new string[] { original }));
                 TreeManifest manifest = TreeManifest.Capture(root, false);
                 Assert(manifest.ObjectAliasCount == 1);
                 Assert(manifest.HardlinkCount == 2);
@@ -311,6 +314,7 @@ namespace Cm0102.OriginalHostQualification
                 Assert(manifest.ObjectAliasCount == 0);
                 Assert(manifest.HardlinkCount == 1);
                 Assert(!manifest.IsPlain(true));
+                Assert(!PathSafety.AreDistinctExistingObjects(new string[] { link }));
             }
             finally
             {
@@ -331,6 +335,39 @@ namespace Cm0102.OriginalHostQualification
                 using (VerifiedPath opened = PathSafety.OpenVerified(path, false, root, true))
                 using (FileStream reader = new FileStream(opened.Handle, FileAccess.Read, 4096, false))
                     AssertThrowsIo(delegate { using (FileStream writer = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read)) { } });
+            }
+            finally { Directory.Delete(root, true); }
+        }
+
+        private static void TestMidReadMutationAndShareDenial()
+        {
+            string root = NewTemporaryDirectory();
+            try
+            {
+                string path = Path.Combine(root, "changing.bin");
+                File.WriteAllText(path, new string('x', 128 * 1024), new UTF8Encoding(false));
+                bool shareDenied = false;
+                bool mutationDetected = false;
+                using (VerifiedPath opened = PathSafety.OpenVerified(path, false, root, true))
+                {
+                    try
+                    {
+                        FileSnapshot.Hash(opened, null, delegate(SafeFileHandle handle)
+                        {
+                            try
+                            {
+                                using (FileStream writer = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.Read)) { }
+                            }
+                            catch (IOException) { shareDenied = true; }
+                            NativeFileIdentity changed = NativeMethods.GetFileIdentity(handle);
+                            changed.LastWrite++;
+                            return changed;
+                        });
+                    }
+                    catch (IOException) { mutationDetected = true; }
+                }
+                Assert(shareDenied);
+                Assert(mutationDetected);
             }
             finally { Directory.Delete(root, true); }
         }
