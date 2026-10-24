@@ -1,6 +1,6 @@
 # Minimal original observation procedure
 
-Status: procedure and official inputs are qualified. Two later complete retained Windows host attempts are `pe-build-identity-normalized-stable`; acceptance of their exact comparator evidence remains under independent review. The game has never been launched. Safe synthetic-launcher implementation, fixture qualification, and original-process execution remain pending. See [host qualification status](../status/P02_ORIGINAL_HOST_QUALIFICATION.md).
+Status: procedure and official inputs are qualified. Two later complete retained Windows host attempts are `pe-build-identity-normalized-stable`; their exact comparator revision was independently reviewed with no findings and awaits merge before gate acceptance. The game has never been launched. Safe synthetic-launcher implementation, fixture qualification, and original-process execution remain pending. See [host qualification status](../status/P02_ORIGINAL_HOST_QUALIFICATION.md).
 
 1. Copy, never move, the supplied executable, installation data/assets, configuration, and save fixtures into a private read-only source area. Record source provenance without exposing private paths publicly.
 2. Compute SHA-256 for every required input before and after transfer. Identify executable version, language, patch state, PE image base/sections, data edition, configuration, locale, and host/VM identity. Reject or register mismatches; do not rename them as the baseline.
