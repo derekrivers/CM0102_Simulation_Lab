@@ -10,6 +10,7 @@ import os
 import pathlib
 import re
 import stat
+import subprocess
 import tempfile
 
 
@@ -17,6 +18,18 @@ MAX_SOURCE_BYTES = 256 * 1024
 FIXTURE_NAME = "SyntheticFixture.cs"
 TEST_NAME = "SyntheticFixtureTests.cs"
 PROFILE_NAME = "synthetic-launcher-fixture-v1.json"
+VERIFIER_NAME = "verify_fixture.py"
+
+FROZEN_IDENTITIES = {
+    FIXTURE_NAME: {
+        "byte_count": 20355,
+        "sha256": "d730bda0acc2cf89ab6e212f49620a2e42b00392a3976f1467c0931bce66ae1c",
+    },
+    TEST_NAME: {
+        "byte_count": 11742,
+        "sha256": "da970254f9455ff14e681de0c291235cf35298c3fc230b194f8ce778b7a83cf6",
+    },
+}
 
 ALLOWED_ENVIRONMENT_BLOCK = '''internal static readonly string[] AllowedEnvironmentNames = new string[]
         {
@@ -104,7 +117,9 @@ REQUIRED_FIXTURE_FRAGMENTS = (
     "new PaintBlock(80, 0, 80, 240, 224, 0, 224)",
     "new PaintBlock(160, 0, 80, 240, 0, 0, 0)",
     "new PaintBlock(240, 0, 80, 240, 224, 0, 224)",
-    "messageExtraInfo != (long)expectedNonce",
+    "messageExtraInfo < Int32.MinValue || messageExtraInfo > UInt32.MaxValue",
+    "uint observedNonce = unchecked((uint)messageExtraInfo);",
+    "observedNonce != expectedNonce",
 )
 
 REQUIRED_TEST_FRAGMENTS = (
@@ -125,6 +140,11 @@ REQUIRED_TEST_FRAGMENTS = (
     "FixtureProtocol.ExpectedInputY - 1",
     "nonce + 1",
     "0x110203040L",
+    "unchecked((int)0x80000000U), 0x80000000U",
+    "unchecked((int)0xF0203040U), 0xF0203040U",
+    "unchecked((int)0xFFFFFFFFU), 0xFFFFFFFFU",
+    "(long)UInt32.MaxValue + 1L, UInt32.MaxValue",
+    "(long)Int32.MinValue - 1L, 0x7FFFFFFFU",
     "AssertBlock(fault[3], 240, 224, 0, 224);",
     "foreach (int count in coverage) Assert(count == 1);",
 )
@@ -182,6 +202,21 @@ def identity(raw: bytes) -> dict[str, object]:
     return {"byte_count": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
+def require_frozen_identity(raw: bytes, name: str) -> None:
+    if identity(raw) != FROZEN_IDENTITIES[name]:
+        raise VerificationError(name + " differs from frozen reviewed identity")
+
+
+def require_no_symlink_components(path: pathlib.Path) -> None:
+    if not path.is_absolute():
+        raise VerificationError("path is not absolute")
+    current = pathlib.Path(path.anchor)
+    for part in path.parts[1:]:
+        current /= part
+        if stat.S_ISLNK(os.lstat(current).st_mode):
+            raise VerificationError("path contains symlink component")
+
+
 def read_source(path: pathlib.Path, expected_name: str) -> bytes:
     if path.name != expected_name or not path.is_absolute():
         raise VerificationError("source path or name")
@@ -229,6 +264,14 @@ def decode_source(raw: bytes, name: str) -> str:
 
 
 def verify_texts(fixture: str, tests: str) -> None:
+    if any(marker in fixture for marker in ("//", "/*", "*/")):
+        raise VerificationError("fixture comments are forbidden")
+    if any(marker in tests for marker in ("//", "/*", "*/")):
+        raise VerificationError("test comments are forbidden")
+    if re.search(r"\\(?:u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|x[0-9A-Fa-f]{1,4})", fixture + tests):
+        raise VerificationError("C# escaped identifiers are forbidden")
+    if re.search(r"\bEntryPoint\s*=", fixture, re.IGNORECASE):
+        raise VerificationError("DllImport EntryPoint alias")
     if fixture.count(ALLOWED_ENVIRONMENT_BLOCK) != 1:
         raise VerificationError("environment allowlist structure")
     for fragment in REQUIRED_FIXTURE_FRAGMENTS:
@@ -237,8 +280,9 @@ def verify_texts(fixture: str, tests: str) -> None:
     for fragment in REQUIRED_TEST_FRAGMENTS:
         if tests.count(fragment) != 1:
             raise VerificationError("test fragment: " + fragment)
+    compact_fixture = re.sub(r"\s+", "", fixture)
     for pattern, label in FORBIDDEN_PATTERNS:
-        if re.search(pattern, fixture, re.IGNORECASE):
+        if re.search(pattern, fixture, re.IGNORECASE) or re.search(pattern, compact_fixture, re.IGNORECASE):
             raise VerificationError("forbidden " + label)
     imports = re.findall(r"extern\s+[A-Za-z0-9_.<>\[\]]+\s+([A-Za-z0-9_]+)\s*\(", fixture)
     if len(imports) != len(ALLOWED_DLL_IMPORTS) or set(imports) != ALLOWED_DLL_IMPORTS:
@@ -257,25 +301,38 @@ def verify_texts(fixture: str, tests: str) -> None:
         raise VerificationError("window entrypoint")
     if len(re.findall(r"\bMain\s*\(", fixture)) != 1:
         raise VerificationError("fixture entrypoint count")
+    if tests.count("private static int Main()") != 1 or tests.count("return 0;") != 1:
+        raise VerificationError("test entrypoint structure")
     if fixture.count(": Form") != 1 or fixture.count("new SyntheticFixtureForm(") != 1:
         raise VerificationError("top-level form count")
     if "Main(string[]" in fixture or "Main(String[]" in fixture:
         raise VerificationError("fixture accepts arguments")
 
 
-def verify_paths(
-    fixture_path: pathlib.Path, tests_path: pathlib.Path, profile_path: pathlib.Path
-) -> dict[str, object]:
-    script_directory = pathlib.Path(__file__).resolve(strict=True).parent
-    expected_fixture = script_directory / FIXTURE_NAME
-    expected_tests = script_directory / TEST_NAME
-    expected_profile = script_directory.parents[2] / "config" / PROFILE_NAME
-    if fixture_path.resolve(strict=True) != expected_fixture or tests_path.resolve(strict=True) != expected_tests:
+def verify_local_paths(
+    repo_path: pathlib.Path,
+    fixture_path: pathlib.Path,
+    tests_path: pathlib.Path,
+    profile_path: pathlib.Path,
+) -> tuple[dict[str, object], dict[str, bytes]]:
+    expected_directory = repo_path / "tools" / "windows" / "synthetic-launcher-qualification"
+    expected_fixture = expected_directory / FIXTURE_NAME
+    expected_tests = expected_directory / TEST_NAME
+    expected_profile = repo_path / "config" / PROFILE_NAME
+    expected_verifier = expected_directory / VERIFIER_NAME
+    if pathlib.Path(__file__).absolute() != expected_verifier:
+        raise VerificationError("verifier is not the canonical repository file")
+    if fixture_path != expected_fixture or tests_path != expected_tests:
         raise VerificationError("sources are not canonical siblings")
-    if profile_path.resolve(strict=True) != expected_profile:
+    if profile_path != expected_profile:
         raise VerificationError("profile is not canonical repository file")
-    fixture_raw = read_source(fixture_path.absolute(), FIXTURE_NAME)
-    tests_raw = read_source(tests_path.absolute(), TEST_NAME)
+    for path in (repo_path, expected_directory, expected_fixture, expected_tests, expected_profile,
+                 expected_verifier):
+        require_no_symlink_components(path)
+    fixture_raw = read_source(fixture_path, FIXTURE_NAME)
+    tests_raw = read_source(tests_path, TEST_NAME)
+    require_frozen_identity(fixture_raw, FIXTURE_NAME)
+    require_frozen_identity(tests_raw, TEST_NAME)
     verify_texts(decode_source(fixture_raw, FIXTURE_NAME), decode_source(tests_raw, TEST_NAME))
     result = {
         "fixture": identity(fixture_raw),
@@ -283,9 +340,59 @@ def verify_paths(
         "schema_version": 1,
         "tests": identity(tests_raw),
     }
-    profile_raw = read_source(profile_path.absolute(), PROFILE_NAME)
+    profile_raw = read_source(profile_path, PROFILE_NAME)
     if profile_raw != canonical(result):
         raise VerificationError("committed profile differs from verified sources")
+    verifier_raw = read_source(expected_verifier, VERIFIER_NAME)
+    return result, {
+        "config/" + PROFILE_NAME: profile_raw,
+        "tools/windows/synthetic-launcher-qualification/" + FIXTURE_NAME: fixture_raw,
+        "tools/windows/synthetic-launcher-qualification/" + TEST_NAME: tests_raw,
+        "tools/windows/synthetic-launcher-qualification/" + VERIFIER_NAME: verifier_raw,
+    }
+
+
+def git(repo_path: pathlib.Path, arguments: list[str]) -> bytes:
+    completed = subprocess.run(
+        ["/usr/bin/git", "-C", os.fspath(repo_path), *arguments],
+        cwd="/",
+        env={
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "LANG": "C",
+            "LC_ALL": "C",
+        },
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=10,
+        check=False,
+    )
+    if completed.returncode != 0 or completed.stderr:
+        raise VerificationError("Git command failed")
+    if len(completed.stdout) > MAX_SOURCE_BYTES:
+        raise VerificationError("Git output exceeds byte limit")
+    return completed.stdout
+
+
+def verify_paths(
+    repo_path: pathlib.Path,
+    source_commit: str,
+    fixture_path: pathlib.Path,
+    tests_path: pathlib.Path,
+    profile_path: pathlib.Path,
+) -> dict[str, object]:
+    if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        raise VerificationError("source commit is not a full lowercase object ID")
+    result, committed_files = verify_local_paths(repo_path, fixture_path, tests_path, profile_path)
+    if git(repo_path, ["rev-parse", "--show-toplevel"]) != (os.fspath(repo_path) + "\n").encode("utf-8"):
+        raise VerificationError("repository root mismatch")
+    if git(repo_path, ["cat-file", "-t", source_commit]) != b"commit\n":
+        raise VerificationError("source object is not a commit")
+    for relative_path, local_raw in committed_files.items():
+        if git(repo_path, ["show", source_commit + ":" + relative_path]) != local_raw:
+            raise VerificationError("working file differs from source commit: " + relative_path)
+    result["source_commit"] = source_commit
     return result
 
 
@@ -298,11 +405,14 @@ def expect_rejected(fixture: str, tests: str, label: str) -> None:
 
 
 def self_test() -> None:
-    root = pathlib.Path(__file__).resolve(strict=True).parent
+    root = pathlib.Path(__file__).absolute().parent
+    repo = root.parents[2]
     fixture_raw = read_source(root / FIXTURE_NAME, FIXTURE_NAME)
     tests_raw = read_source(root / TEST_NAME, TEST_NAME)
     fixture = decode_source(fixture_raw, FIXTURE_NAME)
     tests = decode_source(tests_raw, TEST_NAME)
+    require_frozen_identity(fixture_raw, FIXTURE_NAME)
+    require_frozen_identity(tests_raw, TEST_NAME)
     verify_texts(fixture, tests)
 
     mutations = (
@@ -329,7 +439,29 @@ def self_test() -> None:
     expect_rejected(fixture + "\n// Console.WriteLine\n", tests, "console route")
     expect_rejected(fixture + "\n// Font\n", tests, "font route")
     expect_rejected(fixture + "\n// PostMessage\n", tests, "posted input route")
+    expect_rejected(fixture.replace("using System.Diagnostics;", "using System . Diagnostics;")
+                    if "using System.Diagnostics;" in fixture else fixture + "\nSystem . Diagnostics . Process . Start();\n",
+                    tests, "spaced process route")
+    expect_rejected(fixture + "\nSystem . IO . File . OpenRead(\"x\");\n", tests, "spaced filesystem route")
+    expect_rejected(fixture + "\nSystem . Net . WebClient client;\n", tests, "spaced network route")
+    expect_rejected(fixture + "\nSystem.Diagn\\u006fstics.Pr\\u006fcess.Start();\n", tests,
+                    "escaped process route")
+    expect_rejected(fixture.replace('[DllImport("kernel32.dll")]',
+                                    '[DllImport("kernel32.dll", EntryPoint = "WinExec")]', 1),
+                    tests, "DllImport alias")
     expect_rejected(fixture, tests.replace("MouseButtons.Right", "MouseButtons.Left", 1), "input negative")
+    expect_rejected(fixture, tests.replace("private static int Main()\n        {",
+                                           "private static int Main()\n        {\n            if (DateTime.Now.Ticks >= 0) return 0;", 1),
+                    "early test return")
+
+    altered_fixture = fixture_raw.replace(b"internal const int ClientWidth = 320;",
+                                          b"internal const int ClientWidth = 321;", 1)
+    try:
+        require_frozen_identity(altered_fixture, FIXTURE_NAME)
+    except VerificationError:
+        pass
+    else:
+        raise AssertionError("accepted regenerated-profile source identity")
 
     with tempfile.TemporaryDirectory() as directory:
         temporary = pathlib.Path(directory)
@@ -352,11 +484,18 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted symlinked source")
-    verify_paths(
-        root / FIXTURE_NAME,
-        root / TEST_NAME,
-        root.parents[2] / "config" / PROFILE_NAME,
-    )
+        real_parent = temporary / "real-parent"
+        real_parent.mkdir()
+        (real_parent / FIXTURE_NAME).write_bytes(fixture_raw)
+        alias_parent = temporary / "alias-parent"
+        alias_parent.symlink_to(real_parent, target_is_directory=True)
+        try:
+            require_no_symlink_components(alias_parent / FIXTURE_NAME)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted symlinked ancestor")
+    verify_local_paths(repo, root / FIXTURE_NAME, root / TEST_NAME, repo / "config" / PROFILE_NAME)
 
 
 def main() -> int:
@@ -367,13 +506,19 @@ def main() -> int:
     verify.add_argument("--fixture", required=True, type=pathlib.Path)
     verify.add_argument("--tests", required=True, type=pathlib.Path)
     verify.add_argument("--profile", required=True, type=pathlib.Path)
+    verify.add_argument("--repo", required=True, type=pathlib.Path)
+    verify.add_argument("--source-commit", required=True)
     arguments = parser.parse_args()
     if arguments.command == "self-test":
         self_test()
         print("PASS")
         return 0
     result = verify_paths(
-        arguments.fixture.absolute(), arguments.tests.absolute(), arguments.profile.absolute()
+        arguments.repo.absolute(),
+        arguments.source_commit,
+        arguments.fixture.absolute(),
+        arguments.tests.absolute(),
+        arguments.profile.absolute(),
     )
     print(canonical(result).decode("ascii"), end="")
     return 0

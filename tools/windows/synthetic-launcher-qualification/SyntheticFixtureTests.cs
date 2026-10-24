@@ -139,6 +139,21 @@ namespace Cm0102.SyntheticLauncherQualification
             Assert(InputPolicy.Apply(FixtureState.Ready, MouseButtons.Left,
                 FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY, 0x110203040L, nonce) ==
                 FixtureState.Fault);
+            Assert(InputPolicy.Apply(FixtureState.Ready, MouseButtons.Left,
+                FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY,
+                unchecked((int)0x80000000U), 0x80000000U) == FixtureState.Complete);
+            Assert(InputPolicy.Apply(FixtureState.Ready, MouseButtons.Left,
+                FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY,
+                unchecked((int)0xF0203040U), 0xF0203040U) == FixtureState.Complete);
+            Assert(InputPolicy.Apply(FixtureState.Ready, MouseButtons.Left,
+                FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY,
+                unchecked((int)0xFFFFFFFFU), 0xFFFFFFFFU) == FixtureState.Complete);
+            Assert(InputPolicy.Apply(FixtureState.Ready, MouseButtons.Left,
+                FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY,
+                (long)UInt32.MaxValue + 1L, UInt32.MaxValue) == FixtureState.Fault);
+            Assert(InputPolicy.Apply(FixtureState.Ready, MouseButtons.Left,
+                FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY,
+                (long)Int32.MinValue - 1L, 0x7FFFFFFFU) == FixtureState.Fault);
             Assert(InputPolicy.Apply(FixtureState.Complete, MouseButtons.Left,
                 FixtureProtocol.ExpectedInputX, FixtureProtocol.ExpectedInputY, nonce, nonce) ==
                 FixtureState.Fault);

@@ -233,9 +233,12 @@ namespace Cm0102.SyntheticLauncherQualification
             long messageExtraInfo, uint expectedNonce)
         {
             if (current != FixtureState.Ready) return FixtureState.Fault;
+            if (messageExtraInfo < Int32.MinValue || messageExtraInfo > UInt32.MaxValue)
+                return FixtureState.Fault;
+            uint observedNonce = unchecked((uint)messageExtraInfo);
             if (button != MouseButtons.Left || x != FixtureProtocol.ExpectedInputX ||
                 y != FixtureProtocol.ExpectedInputY ||
-                messageExtraInfo != (long)expectedNonce)
+                observedNonce != expectedNonce)
                 return FixtureState.Fault;
             return FixtureState.Complete;
         }

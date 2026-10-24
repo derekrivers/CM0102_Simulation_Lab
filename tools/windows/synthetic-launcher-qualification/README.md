@@ -62,14 +62,19 @@ Linux/static validation is:
 ```sh
 python3 tools/windows/synthetic-launcher-qualification/verify_fixture.py self-test
 python3 tools/windows/synthetic-launcher-qualification/verify_fixture.py verify \
-  --fixture tools/windows/synthetic-launcher-qualification/SyntheticFixture.cs \
-  --tests tools/windows/synthetic-launcher-qualification/SyntheticFixtureTests.cs \
-  --profile config/synthetic-launcher-fixture-v1.json
+  --repo "$PWD" \
+  --source-commit "$(git rev-parse HEAD)" \
+  --fixture "$PWD/tools/windows/synthetic-launcher-qualification/SyntheticFixture.cs" \
+  --tests "$PWD/tools/windows/synthetic-launcher-qualification/SyntheticFixtureTests.cs" \
+  --profile "$PWD/config/synthetic-launcher-fixture-v1.json"
 ```
 
 The canonical public profile binds the exact fixture and test sources as well
 as every environment, token, display, geometry, input, protocol, state and
-pixel constant. Verification rejects a stale or alternate profile.
+pixel constant. The verifier also freezes both source identities, rejects
+symlinked path components, and requires every input plus the verifier itself to
+equal its blob at the named full Git commit. Verification rejects a stale,
+regenerated, copied, aliased or alternate profile/source set.
 
 Passing these tests authorizes only independent review and later implementation
 of a synthetic-only controller. It does not authorize running the original
