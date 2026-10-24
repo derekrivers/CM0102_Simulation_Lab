@@ -31,7 +31,7 @@ NORMALIZED_WORKFLOW_IDENTITY = (
 
 # Filled only with exact reviewed bytes. The verifier itself is commit-bound below.
 FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
-    BASE_GUARD_PATH: (1163, "c208a8228da5bc1bb09f2538ea71ed7e1759c017cddb708bc38d96e6efd1e295"),
+    BASE_GUARD_PATH: (1181, "bdcbfbee204c36b5d985f921ed87b647620d3dba8b05d82706527a70cd4589b2"),
     SOURCE_PATH: (26943, "32d7890f04894956e5b72b055c8326947559e5d30f3108558420eea68ecebe6c"),
     TEST_PATH: (24400, "c726f5240a6ca0d4a9f7cce267ed25af64f1e2cc04784e67b8cf4b563710e8e5"),
     README_PATH: (3571, "416b96ccb4b6599936a4542a608c5346989b1b06ab8f6ae9b1c38bfaada0aa9f"),
@@ -472,6 +472,8 @@ def verify_policy(source: str, tests: str, readme: str, profile_raw: bytes, work
     for marker, expected_body in exact_state_types.items():
         if extract_block(compact, marker, marker) != expected_body:
             raise VerificationError("exact refusal state type " + marker)
+    require_count(compact, "privatestaticreadonlyobjectRefusalKey=newobject();", 1,
+        "exact refusal key")
     expected_bodies = {
         "privatestaticboolExactHash(stringvalue)":
             "if(value==null||value.Length!=64)returnfalse;"
@@ -807,6 +809,8 @@ def self_test() -> None:
         ("UiFixtureByteCount = 14336", "UiFixtureByteCount = 1"),
         ("ProcessMemoryLimitBytes = 268435456", "ProcessMemoryLimitBytes = 1"),
         ("Supervisor = 1", "Supervisor = 9"),
+        ("private static readonly object RefusalKey = new object();",
+            "private static readonly object RefusalKey = null;"),
         ("if (!FixedRuntimeBindingContract.IsScenario(scenarioId))",
             "if (!FixedRuntimeBindingContract.IsScenario(scenarioId) && "
             "!String.Equals(scenarioId, FixedRuntimeBindingContract.ProfileId, "

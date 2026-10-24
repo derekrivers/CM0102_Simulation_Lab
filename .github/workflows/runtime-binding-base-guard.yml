@@ -2,7 +2,7 @@ name: Runtime Binding Base Guard
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, edited]
 
 permissions:
   contents: read
@@ -21,15 +21,15 @@ jobs:
       env:
         BASH_ENV: /dev/null
         ENV: /dev/null
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
+        test "$BASE_REF" = main
         [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
         [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
         test "$GITHUB_SHA" = "$BASE_SHA"
         /usr/bin/git fetch --no-tags origin "$HEAD_SHA"
         test "$(/usr/bin/git cat-file -t "$BASE_SHA")" = commit
         test "$(/usr/bin/git cat-file -t "$HEAD_SHA")" = commit
-        /usr/bin/git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
-          .github/workflows/rust.yml \
-          .github/workflows/runtime-binding-base-guard.yml
+        /usr/bin/git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- .github/workflows
