@@ -146,6 +146,7 @@ def verify_authority_surface(text: str, label: str, tests: bool) -> tuple[str, l
         "System.Threading.ThreadStart",
     } if tests else set()
     source_without_strings = re.sub(r'"(?:[^"\\]|\\.)*"', '""', text)
+    source_without_strings = re.sub(r"\s*\.\s*", ".", source_without_strings)
     observed_system_members = set(re.findall(
         r"\bSystem(?:\.[A-Za-z_][A-Za-z0-9_]*)+", source_without_strings))
     if observed_system_members != allowed_system_members:
@@ -464,6 +465,9 @@ def self_test() -> None:
     for mutation in (
         "System.Threading.ThreadPool.GetAvailableThreads(out worker,out completion)",
         "System.Threading.ManualResetEventSlim value",
+        "System . Threading . ThreadPool value",
+        "System . Threading . ManualResetEventSlim value",
+        "System . Threading . ThreadStateException value",
     ):
         try:
             verify_authority_surface("using System;\n" + mutation + ";\n",
@@ -472,6 +476,17 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("accepted test System member mutation")
+    for mutation in (
+        "new System . Resources . ResourceWriter(path)",
+        "System . Runtime . Remoting . RemotingConfiguration . Configure(path,false)",
+    ):
+        try:
+            verify_authority_surface("using System;\n" + mutation + ";\n",
+                "spaced mutation", False)
+        except VerificationError:
+            pass
+        else:
+            raise AssertionError("accepted spaced System member mutation")
     disabled_assert = tests.replace(
         'if (!value) throw new InvalidOperationException("assertion-failed-" + assertions.ToString());',
         "if (!value) assertions++;")
