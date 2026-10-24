@@ -78,7 +78,8 @@ The harness commit-binds and snapshots the sources, profile, verifier, harness,
 qualified compiler and compiler companion; binds the absolute x86 Framework
 references including explicit `mscorlib.dll` under `/nostdlib+`, exact command
 roles and minimal environment; validates both outputs' PE32/i386 headers, CLI
-flags, every declared metadata table and index, exact mapped private-static-IL
+flags, every declared table and index in the accepted optimized `#~` metadata
+model while rejecting `#-` and pointer tables, exact mapped private-static-IL
 `int Main()` MethodDef and bounded method body, and subsystem; and runs only
 `SyntheticFixtureTests.exe` under bounded
 stream and time limits. Its canonical path-free manifest records explicitly
