@@ -134,3 +134,20 @@ contain structural counts/hashes only; raw projections and source records remain
 private. Profile is `<origin>-effective-plan-v1`; session is
 `<origin>-effective-session-v1`. Query response `effective_plan_result` is the
 last historical `EffectivePlanLookedUp` event or null, never an implicit lookup.
+
+## Rust integration checks
+
+Core revision `04dd3d7` adds explicit v5 state/history/save and dispatch, leaving
+all existing v1–v4 modules and serialized response fields unchanged. Six new
+behavioral tests compare original retained connected cases and exercise three-way
+retry conflicts, pure queries, no-write fallback revisions, repeats, atomic domain
+and fingerprint rejection, resealed history/state corruption, capacity and exact
+v1–v5 roundtrips/continuation. The private-world compile-fail boundary is tested.
+
+`cargo test -p cm-management -- --test-threads=1` passes 31 tests (27 behavioral,
+4 compile-fail); `cargo clippy -p cm-management --all-targets -- -D warnings`,
+`cargo build -p cm-management --bin management-corpus`, release WASM build and
+`cargo fmt --all --check` pass. The first test/build attempt passed without a
+runtime correction. These are targeted core checks; actual WASM/browser execution,
+workspace-wide checks, durable recovery and final independent review are separate
+integration gates and are not inferred from a WASM build.
