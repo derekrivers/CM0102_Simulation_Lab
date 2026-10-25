@@ -100,3 +100,9 @@ state, table length/word, malformed checkpoint, and wrong table identity.
 The implementation worker ran the supplied model selected by the coordinator;
 no unavailable model selection is claimed. Independent review of the final
 revision and integration checks remain coordinator responsibilities.
+
+Final fresh verification receipt: [PC-R1 execution](evidence/pc-r1-rng-2026-10-25.json).
+The default `cargo test -p cm-rng` also executes the complete shared corpus via
+`tests/original_corpus.rs`; the native/WASM example uses the same Rust harness.
+The runner explicitly checks the generated synthetic table's pinned SHA-256.
+GNU objdump used for contract inspection was Ubuntu Binutils 2.42.
