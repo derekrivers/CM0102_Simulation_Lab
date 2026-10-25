@@ -257,10 +257,10 @@ def generate(binary, capture, source, build_receipt=None):
     detect('ignore_option', fallback_cases if guard else [], lambda c: c.update(branch='registry_option_enabled'))
     detect('ignore_zero_guard', [c for c in registry_cases if c['option_two'] == 0] if not guard else [],
            lambda c: c.update(branch='ordinary_fallback'))
-    reversed_cases = copy.deepcopy(all_cases)
+    reversed_cases = copy.deepcopy(all_writes)
     reversed_cases[0], reversed_cases[1] = reversed_cases[1], reversed_cases[0]
     try:
-        verify_case(reversed_cases, all_cases)
+        verify_case(reversed_cases, all_writes)
     except ValueError:
         controls['reordered_effects'] = 1
     require(controls.get('reordered_effects') == 1, 'reordered stream undetected')
