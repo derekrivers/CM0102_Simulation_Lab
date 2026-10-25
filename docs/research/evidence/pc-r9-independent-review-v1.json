@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "reviewer_model": "GPT-6 Astra",
+  "reasoning_effort": "high",
+  "independent_of_observer_driver_and_report_authorship": true,
+  "reviewed_main_report_revision": "4fff2abe4a21cc8561e42072e8730269549b116a",
+  "pre_execution_source_approvals": [
+    {"revision": "5cb1e0bcf9002846427aaa505f6025befed09ff4", "independently_passed_controls": 8},
+    {"revision": "487b2a3e39f1cd1e1b02a3adef1a8b5a30cf4cc7", "independently_passed_controls": 9}
+  ],
+  "private_audit": {"bytes": 5679, "sha256": "72358c6f4cc0d3d90acfae7a7143c9ffbc2a4a16d6ab8ee1210a901fdcb8cb97"},
+  "independent_audit_source": {"bytes": 7011, "sha256": "2a70af3a6888d98a67011073d410c6008fec287ae7bbd8f6c5c77ccd65aa0bf4"},
+  "retained_initial_audit_source": {"bytes": 5143, "sha256": "a20ae9ad58379ddc678f60667a7420ac773fb8eb0dc581ec349b6965b136c755"},
+  "audit_correction": "Initial audit wrongly required contiguous retained sequence numbers after overflow. Shorter later records can fit after longer records were dropped. Corrected to strictly increasing retained sequences and exact footer accounting. Initial failed audit source retained; no game experiment was repeated or relabeled.",
+  "independent_checks": [
+    "Rehashed every artifact listed by both private receipts: 153 initial and 275 follow-up artifacts",
+    "Verified public-to-private receipt identity links and exact per-arm before/after seals",
+    "Rehashed actual baseline, R5 derivative, R5 build receipt and both observer libraries/build receipts",
+    "Matched executed observer and driver source identities to exact experimental Git revisions",
+    "Rehashed all 760 clean files and checked their current device/inode/size against each sealed inventory",
+    "Read raw trace headers, operation sequences and footers independently without importing the observer parser",
+    "Rehashed actual endpoint saves and raw captures against exact retained R5 identities",
+    "Reviewed main report claims and confirmed unsuccessful observer C/driver/tests are absent from the main candidate tree"
+  ],
+  "attempts": [
+    {
+      "revision": "5cb1e0bcf9002846427aaa505f6025befed09ff4",
+      "public_receipt_sha256": "e8d96ca7ddc993ae2fbb2866ed6f0364fe442ac853fd58953c9a45633433a175",
+      "endpoint_successes": 2,
+      "execution_count": 4,
+      "observed_arms": 2,
+      "observation_complete_arms": 0,
+      "observed_exit_codes": [124, 124],
+      "trace_bytes_each": 194,
+      "retained_operations_each": 2,
+      "footer_present": false,
+      "diagnosis": "Pinned original stack constructor re-exec triggers second exclusive trace creation"
+    },
+    {
+      "revision": "487b2a3e39f1cd1e1b02a3adef1a8b5a30cf4cc7",
+      "public_receipt_sha256": "71e473e1256e84d428c0fc74c918591481c10b2432ee76e17faffecbdf114944",
+      "endpoint_successes": 4,
+      "execution_count": 4,
+      "observed_arms": 2,
+      "observation_complete_arms": 0,
+      "exact_retained_endpoint_matches": 4,
+      "exact_retained_sparse_capture_matches": 3,
+      "trace_bytes_each": 16776967,
+      "attempted_operations_each": 67330,
+      "retained_records_each": 49362,
+      "dropped_records_each": 17968,
+      "trace_write_errors_each": 0,
+      "diagnosis": "Frozen 16 MiB trace cap exhausted; exact footer accounting confirms incomplete observation"
+    }
+  ],
+  "disposition": "approved truthful failed-result report; actual clean-tree file-use qualification remains unknown",
+  "separate_passed_scope": "Follow-up endpoint saves and declared captured ranges exactly match retained R5; this does not cure incomplete observation",
+  "limits": [
+    "No semantic use of every byte or read access to every mapped page proven",
+    "No full live-state or original Windows-process parity claimed",
+    "No atomic concurrent descriptor-lifetime qualification",
+    "No third campaign, cap increase, tolerance, mask or expected-output rewrite",
+    "Experimental observer implementation remains off the qualified main branch"
+  ]
+}
