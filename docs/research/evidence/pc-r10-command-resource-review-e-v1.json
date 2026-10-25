@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "reviewed_head": "f6b40528d668901eacb04ab50ec2d8fa333084ef",
+  "decision": "approved-resource-only-followup",
+  "qualifier_unchanged_from_approved": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+  "failure_attempt_artifact_seals_verified": 7,
+  "diagnosis_artifact_seals_verified": 8,
+  "independent_zero_game_reproduction": {
+    "one_gib": "same-native-allocation-failure-exit1",
+    "two_and_three_gib": "success-default-translator1073741824bytes",
+    "minimal_vmsize_kib": 1092036,
+    "game_inputs_loaded": false,
+    "instructions_executed": 0,
+    "retained_results": {
+      "bytes": 1006,
+      "sha256": "306dd3ffcee637381af934245cc6bd8b461c1f95d9a8985462df8c14db9d390f"
+    }
+  },
+  "followup_launcher": {
+    "bytes": 3355,
+    "sha256": "8a9a2c2541f2c74eafabd1f200275368bdab9015e804d71a5d12c1efb39b1919"
+  },
+  "limits": {
+    "maximum_original_calls": 15,
+    "wall_seconds": 90,
+    "cpu_seconds": 60,
+    "address_space_bytes": 3221225472,
+    "each_file_bytes": 16777216,
+    "each_console_bytes": 1048576
+  },
+  "conditions": [
+    "One exclusive followup only,lead heavy-slot allocation after D release",
+    "No original behavior,inputs,qualifier/comparisons/percall bounds changed",
+    "No production admission or original-process claim",
+    "First failed attempt remains retained; current failure is not original-behavior comparison"
+  ],
+  "method": "Exact source/delta and installed API inspection,private failure/control artifact rehash,independent small zero-game initialization controls; no game/emulator instructions by reviewer",
+  "private_audit": {
+    "bytes": 1588,
+    "sha256": "41f367be252cd8ad3ddfa88726034e6c78fd55ebdb3697b1e5e9e73902ab4e39"
+  }
+}
