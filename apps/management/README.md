@@ -14,7 +14,7 @@ cargo build -p cm-management --bin management-corpus
 cd apps/management
 npm ci
 npm run build
-python3 -m http.server 8766 --directory dist --bind 127.0.0.1
+npm run preview
 ```
 
 Open http://127.0.0.1:8766. Select a plan, apply it, export state, select another
@@ -30,9 +30,10 @@ and corrupt-import rejection. It writes receipts and a screenshot in ignored
 `docs/research/PC_R3_MANAGEMENT.md`.
 
 
-Use **Load reference clubs** when the private reviewed fixture is staged as
-`dist/reference-fixture.json`, or **Import club fixture** to select the recovered
-private JSON file. It is never packaged or committed by the build. The Rust
+Use **Load reference clubs** when `REFERENCE_FIXTURE=/private/fixture.json` is
+supplied to `npm run preview`, or **Import club fixture** to select the recovered
+private JSON file. The loopback-only preview serves it on demand; the private
+file stays outside the build directory and is never packaged or committed. The Rust
 loader checks its reviewed canonical fingerprint and structural domain before
 replacing the world. A separate synthetic-manager fixture is supplied for public
 regression checks; its labels and profile explicitly identify it as fictional.

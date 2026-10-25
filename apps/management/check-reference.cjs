@@ -14,7 +14,10 @@ module.exports=async function verifyReference(page,root,out,encodedFixture) {
  prefix.push(command('negative',rev,club,-1),command('upper',rev,club,total),command('missing',rev,fixture.club_count,0),command('stale',0,club,0));
  const tampered=structuredClone(fixture);tampered.clubs[0].manager_id=fixture.staff_count-16;
  prefix.push({action:'import_reference',fixture:JSON.stringify(tampered)},{action:'save'});
- const saved=native(prefix).at(-1).result;
+ const admitted=native(prefix);
+ assert.equal(admitted[0].ok,true,'reviewed reference fixture must be admitted');
+ assert.equal(admitted.slice(1,1+oracle.cases.length).every(result=>result.ok),true,'all qualified original command cases must execute');
+ const saved=admitted.at(-1).result;
  assert.equal(typeof saved,'string','reference fixture was not admitted');
  const next=command('continuation',rev,club,total-1);
  const operations=[...prefix,next,{action:'load',save:saved},prefix[1],next,next,{action:'load',save:'invalid'}];
