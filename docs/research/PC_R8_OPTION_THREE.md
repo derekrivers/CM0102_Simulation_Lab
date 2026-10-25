@@ -28,9 +28,9 @@ offsets, access width, field/region category, and ordered normalized effects.
 Never publish native pointers, record contents, names or instruction bytes.
 Controls discriminate loss of partial writes, wrong read width/field/PC,
 wrong instruction, missing selector write, and falsely marking censored return.
-Replay every case from the complete immutable checkpoint is included within the
-eight-call budget by comparing identical value-zero paths across admission modes;
-no claim of continuation for the unresolved value-one path.
+Every call starts from the complete immutable checkpoint. Identical value-zero
+paths across admission modes are an admission-invariance check; no deterministic
+continuation claim is made for either value.
 
 ## Static dependency inventory
 

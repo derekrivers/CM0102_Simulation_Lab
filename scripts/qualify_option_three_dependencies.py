@@ -3,6 +3,8 @@
 import argparse
 import copy
 import json
+import sys
+import unicorn
 from pathlib import Path
 import capstone
 from unicorn.x86_const import UC_X86_REG_EIP
@@ -76,6 +78,31 @@ class DependencyOracle(Oracle):
         super().write(uc, access, address, size, value, _)
 
 
+
+def verify_cases(cases, source):
+    require(len(cases) == 4, 'case denominator')
+    for index, case in enumerate(cases):
+        value, connected = index % 2, index >= 2
+        expected_writes = [{'registry_offset': 0x9b26, 'width': 1, 'value': value}]
+        if connected and value and source == 'fresh':
+            expected_writes.append({'registry_offset': 0x9a69, 'width': 1, 'value': 0})
+        require(case['ordered_partial_effects'] == expected_writes, 'effect mismatch')
+        require(case['return_and_abi_checked'] == (value == 0), 'ABI claim mismatch')
+        require(case['execution_status'] == ('censored' if value else 'succeeded'),
+                'execution claim mismatch')
+        if not value:
+            require(case['first_boundary'] is None, 'zero boundary mismatch')
+        else:
+            expected = {'kind': 'instruction' if connected else 'read',
+                'pc': '008968f0' if connected else '005fec2e',
+                'instruction': 'mov eax, dword ptr [esp + 4]' if connected else
+                               'mov eax, dword ptr [edx + 0x39]',
+                'region_category': 'unqualified-resolver-code' if connected else
+                                   'manager-club-field',
+                'access_width': None if connected else 4}
+            require(case['first_boundary'] == expected, 'boundary mismatch')
+
+
 def generate(binary, capture, source, build_receipt=None, attempts=None):
     attempts = [] if attempts is None else attempts
     raw = checked(binary, SPECIMEN)
@@ -139,22 +166,41 @@ def generate(binary, capture, source, build_receipt=None, attempts=None):
                 'rng_draws': 0 if abi else None})
         oracle.restore_state(checkpoint)
         oracle.full_state({})
-    strict = cases[1]
-    controls = {
-        'lost-initial-partial-write': strict['ordered_partial_effects'] != [],
-        'wrong-width': strict['first_boundary']['access_width'] != 1,
-        'wrong-pc': strict['first_boundary']['pc'] != '005fec19',
-        'wrong-region': strict['first_boundary']['region_category'] != 'registry-row',
-        'wrong-instruction': strict['first_boundary']['instruction'] != 'nop',
-        'false-completed-abi': strict['return_and_abi_checked'] is False,
-        'zero-branch-admission-invariance': all(cases[i][key] == cases[i+2][key]
-            for i in (0,) for key in ('ordered_partial_effects', 'return_and_abi_checked',
-                                      'ordered_admitted_reads', 'instruction_starts'))}
+    verify_cases(cases, source)
+    controls = {}
+    def reject_mutation(name, mutate):
+        candidate = copy.deepcopy(cases)
+        mutate(candidate)
+        try:
+            verify_cases(candidate, source)
+        except ValueError:
+            controls[name] = True
+        else:
+            raise ValueError('nondiscriminating control: '+name)
+    reject_mutation('lost-initial-partial-write',
+                    lambda c: c[1].update(ordered_partial_effects=[]))
+    for name, field, wrong in [('wrong-width', 'access_width', 1),
+        ('wrong-pc', 'pc', '005fec19'), ('wrong-region', 'region_category', 'registry-row'),
+        ('wrong-instruction', 'instruction', 'nop')]:
+        reject_mutation(name, lambda c, f=field, w=wrong: c[1]['first_boundary'].update({f: w}))
+    reject_mutation('false-completed-abi', lambda c: c[1].update(return_and_abi_checked=True))
+    reject_mutation('false-completed-execution', lambda c: c[1].update(execution_status='succeeded'))
     if source == 'fresh':
-        controls['lost-outer-selector-write'] = len(cases[3]['ordered_partial_effects']) == 2
-    require(all(controls.values()), 'nondiscriminating diagnostic control')
+        reject_mutation('lost-outer-selector-write',
+                        lambda c: c[3]['ordered_partial_effects'].pop())
+    require(all(cases[0][key] == cases[2][key] for key in
+        ('ordered_partial_effects', 'return_and_abi_checked', 'ordered_admitted_reads',
+         'instruction_starts')), 'zero branch admission invariance')
+    dependencies = ['qualify_option_three_dependencies.py', 'qualify_human_registry.py',
+        'qualify_human_registry_producer.py', 'qualify_fresh_human_registry.py',
+        'qualify_manager_bound_plan.py']
     return {'schema_version': 1, 'source': source, 'specimen_sha256': SPECIMEN,
-        'qualifier_sha256': digest(Path(__file__).read_bytes()),
+        'source_dependencies': {name: digest((Path(__file__).parent/name).read_bytes())
+                                for name in dependencies},
+        'upstream_lock_sha256': digest((Path(__file__).parent.parent/'config/upstream-lock.json').read_bytes()),
+        'tools': {name: digest(Path(path).read_bytes()) for name, path in
+                  [('python', sys.executable), ('capstone_module', capstone.__file__),
+                   ('unicorn_module', unicorn.__file__)]},
         'capture': identity, 'wrapper_sha256': digest(canonical(projected)),
         'emulator': 'unicorn 2.1.4', 'decoder': 'capstone 5.0.7',
         'calls': cases, 'defect_controls': controls,
