@@ -51,3 +51,8 @@ The heavy slot rotated through E build/browser acceptance, lead serial Rust gate
 E independently reviews the final integrated head excluding self-authored browser work, whose exact source/evidence is independently reviewed by C. C also reviews final browser inclusion and lead programme/delivery records. A reviewed C's structural inventory and D's actual artifacts; B reviewed A's inventory and D before execution. No author is the sole approver of their work. Final head/check/merge identities are recorded by delivery.
 
 Repository API inspection reported no active legacy main protection and an empty branch-rules response. No repository policy/settings were changed. The batch still requires all four frozen checks (`immutable-runtime-bootstrap`, `runtime-binding`, `build`, `controller-policy-windows`), a refreshed target, independent exact-head acceptance and an expected-head SHA merge guard. GitHub enforcement is not invented from historical delivery wording.
+
+
+## Accepted merge
+
+[PR #44](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/44) merged exact reviewed `97e1b2a68a6297ac3ee93b1b356c243bfafdf061` as `44b172835568434d03393a687d0de52e56bf8910` after both complementary final reviews and all four frozen checks. Actual merge parents/tree confirm refreshed target and accepted source. [The delivery record](evidence/pc-r10-r9b-delivery-v1.json) contains full check URLs, audit hashes and unchanged scope. The real squad/lineup/save/reopen milestone remains open; no experimental R9b code was promoted.

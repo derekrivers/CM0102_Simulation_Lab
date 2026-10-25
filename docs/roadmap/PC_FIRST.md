@@ -319,3 +319,6 @@ Base remained fetched main `33e415f712e315548ccec9c7f63afd6bc7b33266` with no in
 - R9b failed its actual observer-policy campaign: two observed SIGSYS exits, no completed traces/counters or endpoints. Only independently reviewed reports enter main; experimental source stays off main.
 
 The requested real squad, lineup change, save/reopen/continue milestone is not complete. Next work must resolve original member/unused-slot semantics, admit an exact projection independently, freeze compatible Rust state/save integration, then port the qualified command and execute its actual native/browser/recovery corpus. R9b diagnosis is independent and requires a new frozen experiment; no whole-game date, original Windows process or deployment follows.
+
+
+R10/R9b bounded delivery merged in [PR #44](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/44), merge `44b172835568434d03393a687d0de52e56bf8910`, reviewed head `97e1b2a`. Independent complementary exact-head reviews and all four frozen checks passed before the expected-head guarded merge. [Accepted identities and scope](../research/evidence/pc-r10-r9b-delivery-v1.json) preserve the qualified research, browser setup, failed R9b and still-open full squad/production journey gates.
