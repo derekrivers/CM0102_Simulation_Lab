@@ -79,7 +79,8 @@ static void leave(int e) {
     if (active && --depth==0 &&
         syscall(SYS_rt_sigprocmask,SIG_SETMASK,&previous_mask,NULL,sizeof previous_mask)) _exit(119);
     errno=e;
-}static struct identity inspect(int fd) {
+}
+static struct identity inspect(int fd) {
     struct identity id={0};
     if (fd<0) return id;
     char path[64];struct stat st;

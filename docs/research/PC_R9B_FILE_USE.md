@@ -82,7 +82,7 @@ Clean manifest validation forbids clean-path symlinks and checks all members.
 
 Source/tool freeze includes all four new Python/C source/control files, this
 contract, exact compiler executable/version/command, built library, Python, libc,
-loader and all dynamic runtime libraries of the R5 derivative. All are sealed
+loader and the ldd-reported transitive DT_NEEDED dependency set of the R5 derivative. This does not census modules loaded later through dlopen. All listed files are sealed
 before/after each arm together with source/tree, smoke, R5 receipt/observer and
 clean inputs. The official source boundary is unchanged; the new seccomp policy
 is a separate observer runtime intervention explicitly evaluated for endpoint
