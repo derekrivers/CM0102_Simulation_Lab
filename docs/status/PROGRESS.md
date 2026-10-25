@@ -102,7 +102,9 @@ failure controls pass, including closed-stream hang, incomplete extents, overlap
 output limits and invalid pointers. Coordinator reviewed observer/driver `e36b516`
 before execution, then independently verified the actual private/public artifacts,
 all seals and fresh oracle/build/capture link. Only the console privacy summary
-changed after execution; the executed source identity is retained explicitly.
+and one observer trailing-CRLF normalization changed after execution; exact
+executed source identities remain retained. Final review caught the formatting
+warning and the complete delivery diff passed after normalization.
 [PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36) records final
 review, CI and merge disposition; its branch refreshed after PR #35 and repeated
 the affected eight controls. Actual data opens were not independently observed;

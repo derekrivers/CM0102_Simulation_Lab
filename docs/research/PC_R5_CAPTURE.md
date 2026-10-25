@@ -114,7 +114,9 @@ which clean data files were opened. The explicit consumption gap remains
 noninterference and original instruction replay remain separate claims.
 
 The final delivery trims the driver's console summary to exclude the private
-artifact inventory. The executed driver remains the exact reviewed revision
+artifact inventory and normalizes one trailing CRLF in the observer source.
+Final diff review caught that formatting warning before merge; the complete
+delivery diff was rechecked after normalization. The executed driver remains the exact reviewed revision
 `e36b516`, whose file identity is in the receipt. Raw captures, saves,
 commands, logs, native pointers, record names, full input tables and build
 locators remain in the external private area. Public output contains structural
