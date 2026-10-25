@@ -13,7 +13,7 @@ module.exports=async function checkHuman(page,root,out,fixture){
  assert.match(await page.getByTestId('durability').textContent(),/Saved in this browser: revision 1/);
  const state=await page.evaluate(()=>window.managementRequest({action:'state'}));
  const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export state'}).click();
- const file=path.join(out,JSON.parse(fixture).origin+'-slice-v3.json');await(await downloadEvent).saveAs(file);
+ const file=path.join(out,JSON.parse(fixture).origin+'-'+receipt.fixture_sha256.slice(0,12)+'-slice-v3.json');await(await downloadEvent).saveAs(file);
  await page.getByLabel('Choose a research slot').selectOption('0');await page.getByRole('button',{name:'Apply slot',exact:true}).click();
  await page.getByRole('status').filter({hasText:'revision 2'}).waitFor();
  await page.getByLabel('Import state',{exact:true}).setInputFiles(file);await page.getByRole('status').filter({hasText:'revision 1'}).waitFor();

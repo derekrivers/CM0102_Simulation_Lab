@@ -5,7 +5,10 @@ const canonical=v=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Obje
 const digest=v=>createHash('sha256').update(JSON.stringify(canonical(v))).digest('hex');
 module.exports=async function verifyHuman(page,root,encodedFixture) {
  const fixture=JSON.parse(encodedFixture),session=fixture.origin+'-session-v1';
- const oracle=JSON.parse(fs.readFileSync(path.join(root,'docs/research/evidence/human-registry-oracle-v1.json')));
+ const freshOracle=JSON.parse(fs.readFileSync(path.join(root,'docs/research/evidence/fresh-human-registry-oracle-v1.json')));
+ const oracleName=digest(fixture)===freshOracle.private_fixture.sha256?'fresh-human-registry-oracle-v1.json':'human-registry-oracle-v1.json';
+ const oracleBytes=fs.readFileSync(path.join(root,'docs/research/evidence',oracleName));
+ const oracle=JSON.parse(oracleBytes);
  const command=(id,revision,slot)=>({action:'human_command',command:{session_id:session,command_id:id,expected_revision:revision,club_id:fixture.club_id,slot}});
  const native=ops=>{const p=spawnSync(path.join(root,'target/debug/management-corpus'),[],{input:JSON.stringify(ops),encoding:'utf8',maxBuffer:32*1024*1024});assert.equal(p.status,0,'native human runner failed');return JSON.parse(p.stdout);};
  const prefix=[{action:'import_human_reference',fixture:encodedFixture},...oracle.cases.map((c,i)=>command('human-'+i,i,c.option))];
@@ -36,7 +39,7 @@ module.exports=async function verifyHuman(page,root,encodedFixture) {
  assert.equal(expected.at(-1).result,saved,'v3 byte roundtrip');
  const actual=await page.evaluate(async ops=>{const results=[];for(const op of ops)results.push(await window.managementRequest(op));return results;},operations);
  assert.equal(digest(actual),digest(expected),'human native/browser complete equality');
- return {origin:fixture.origin,fixture_sha256:digest(fixture),operations:operations.length,
+ return {origin:fixture.origin,fixture_sha256:digest(fixture),oracle:oracleName,oracle_sha256:createHash('sha256').update(oracleBytes).digest('hex'),operations:operations.length,
   original_instruction_cases:oracle.cases.length,native_browser_equal:true,canonical_sha256:digest(actual),
   controls:['wrong slot/club/session/revision/capability','fixture tampering','v3 export/import/dedup/continuation','v1 byte roundtrip','corrupt import atomicity']};
 };

@@ -43,6 +43,7 @@ async function head(page){return page.evaluate(async()=>{
   if(process.env.REFERENCE_FIXTURE)fixtures.push(fs.readFileSync(process.env.REFERENCE_FIXTURE,'utf8'));
   fixtures.push(fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-human-registry.json'),'utf8'));
   if(process.env.HUMAN_REFERENCE_FIXTURE)fixtures.push(fs.readFileSync(process.env.HUMAN_REFERENCE_FIXTURE,'utf8'));
+  if(process.env.FRESH_HUMAN_REFERENCE_FIXTURE)fixtures.push(fs.readFileSync(process.env.FRESH_HUMAN_REFERENCE_FIXTURE,'utf8'));
   for(const fixture of fixtures){
    const initial=fixture?{action:JSON.parse(fixture).registry_row_sha256?'import_human_reference':'import_reference',fixture}:{action:'reset'};
    const first=await request(page,initial);assert.equal(first.ok,true);
@@ -63,6 +64,8 @@ async function head(page){return page.evaluate(async()=>{
   const before=await head(page),state=(await request(page,{action:'state'})).state;
   const bad=await request(page,{action:'load',save:'unsupported'});assert.equal(bad.ok,false);equal(bad.state,state,'bad import memory');equal(await head(page),before,'bad import storage');
   controls.push('invalid import preserves memory and committed bytes');
+
+  const freshControls=process.env.FRESH_HUMAN_REFERENCE_FIXTURE&&process.env.HUMAN_REFERENCE_FIXTURE?await require('./check-fresh-storage.cjs')({page,context,url,request,ready,head,editHead,command,native,equal,setInjection:value=>{injection=value;}}):null;
 
   for(const change of ['corrupt','unsupported','identity']){
    const reset=await request(page,{action:'reset'}),a=command(reset.state,'fallback-a-'+change,1),one=await request(page,a);
@@ -141,6 +144,7 @@ async function head(page){return page.evaluate(async()=>{
   controls.push('transient initial-open failure followed by another tab session change cannot rebind a publication retry');
 
   const receipt={schema_version:1,browser_version:context.browser().version(),profiles:results,controls,limitations:['SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage','Chromium CDP quota override reported quota=1 but admitted tested IndexedDB writes; actual disk exhaustion was not qualified','origin-local browser transaction guarantees; no physical-media/power-loss claim','raw private saves and profile remain only in ignored local test output'],wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm'))};
+  receipt.fresh_admission=freshControls;
   fs.writeFileSync(path.join(out,'storage-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
  }finally{await context.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});

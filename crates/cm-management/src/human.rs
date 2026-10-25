@@ -5,6 +5,9 @@ use serde::{Deserialize, Serialize};
 
 pub const PRIVATE_FIXTURE_SHA256: &str =
     "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d";
+// Independently reviewed R5 projection; separate from retained-state identity.
+pub const FRESH_PRIVATE_FIXTURE_SHA256: &str =
+    "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2";
 pub const SYNTHETIC_FIXTURE_SHA256: &str =
     "c51b2e88302b512340454ce969c079c376b9ea3563ce777335556e6a449f5603";
 const SPECIMEN: &str = "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86";
@@ -64,7 +67,9 @@ impl HumanRegistryFixture {
         }
         let fingerprint = self.fingerprint()?;
         let admitted = match self.origin.as_str() {
-            "captured-bosman-human-registry" => fingerprint == PRIVATE_FIXTURE_SHA256,
+            "captured-bosman-human-registry" => {
+                fingerprint == PRIVATE_FIXTURE_SHA256 || fingerprint == FRESH_PRIVATE_FIXTURE_SHA256
+            }
             "synthetic-human-regression" => fingerprint == SYNTHETIC_FIXTURE_SHA256,
             _ => false,
         };

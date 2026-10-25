@@ -72,3 +72,9 @@ frozen CI checks. Review found and verified a retry-token rebinding fix: after a
 initial storage-open failure, a tab cannot adopt another tab's newly published
 session token on a late publication retry. The browser regression compares the
 entire retained head. The additive R4 v3 profile uses this same host contract.
+
+The [fresh human admission](PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission)
+adds another exact fixture to the same v3 profile. Its six-fixture actual-browser
+recovery receipt preserves the previous five results and adds fresh corruption/
+abort recovery and retained/fresh import races with identical profile/session
+names. Storage schemas, worker logic and save formats are unchanged.
