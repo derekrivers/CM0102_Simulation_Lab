@@ -25,16 +25,16 @@ fn original_corpus_row_and_selection_equality() {
         assert_eq!(event.new_plan as i32, plan);
         for row in 0..4 {
             assert_eq!(
-                world.clubs[row].selected_plan,
+                world.clubs()[row].selected_plan,
                 if row == club as usize {
                     plan as u16
                 } else {
-                    before.clubs[row].selected_plan
+                    before.clubs()[row].selected_plan
                 }
             );
         }
-        assert_eq!(world.players, before.players);
-        assert_eq!(world.plans, before.plans);
+        assert_eq!(world.players(), before.players());
+        assert_eq!(world.plans(), before.plans());
         assert_eq!(
             case["ordered_writes"],
             serde_json::json!([{"offset":club*0x91,"width":2,"value":plan}])

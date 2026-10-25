@@ -17,7 +17,7 @@ function App(){
   async function send(operation:any){
     setBusy(true);
     try{const result=await request(operation); if(result.state){setState(result.state);setPlan(String(result.state.clubs[0].selected_plan));}
-      setStatus(result.ok?'State committed · revision '+result.state.revision:'Rejected: '+result.error);return result;
+      setStatus(result.ok?'State ready · revision '+result.state.revision:operation.action==='load'?'Rejected: invalid or unsupported state file. Your current state is unchanged.':'Rejected: '+result.error);return result;
     }catch(error){setStatus('Worker unavailable: '+String(error));return null;}finally{setBusy(false);}
   }
   useEffect(()=>{void send({action:'state'});},[]);

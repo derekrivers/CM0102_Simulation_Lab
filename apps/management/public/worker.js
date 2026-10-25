@@ -7,7 +7,8 @@ self.onmessage = ({data:{id,operation}}) => {
       const wasm=await ready;
       const input=new TextEncoder().encode(JSON.stringify(operation));
       if(input.length>1048576) throw new Error('Request too large');
-      new Uint8Array(wasm.memory.buffer,wasm.input_ptr(),input.length).set(input);
+      const inputPointer=wasm.input_ptr(); // Initial buffer allocation can grow memory.
+      new Uint8Array(wasm.memory.buffer,inputPointer,input.length).set(input);
       const length=wasm.request(input.length);
       // Acquire a fresh memory view after execution, which may grow memory.
       const output=new Uint8Array(wasm.memory.buffer,wasm.output_ptr(),length).slice();

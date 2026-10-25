@@ -53,19 +53,54 @@ pub struct Record {
     pub command: Command,
     pub result: Event,
 }
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+/// A validated slice world. State can only change through admitted commands.
+/// ```compile_fail
+/// let mut world = cm_management::World::default();
+/// world.revision = u32::MAX;
+/// ```
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 pub struct World {
-    pub schema_version: u32,
-    pub profile: String,
-    pub fixture_sha256: String,
-    pub session_id: String,
-    pub revision: u32,
-    pub clubs: Vec<Club>,
-    pub players: Vec<Player>,
-    pub plans: Vec<Plan>,
-    pub events: Vec<Event>,
-    pub records: Vec<Record>,
+    schema_version: u32,
+    profile: String,
+    fixture_sha256: String,
+    session_id: String,
+    revision: u32,
+    clubs: Vec<Club>,
+    players: Vec<Player>,
+    plans: Vec<Plan>,
+    events: Vec<Event>,
+    records: Vec<Record>,
+}
+// Untrusted data has a separate private type; World has no Deserialize escape hatch.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LoadedWorld {
+    schema_version: u32,
+    profile: String,
+    fixture_sha256: String,
+    session_id: String,
+    revision: u32,
+    clubs: Vec<Club>,
+    players: Vec<Player>,
+    plans: Vec<Plan>,
+    events: Vec<Event>,
+    records: Vec<Record>,
+}
+impl World {
+    fn from_unchecked(data: LoadedWorld) -> Self {
+        Self {
+            schema_version: data.schema_version,
+            profile: data.profile,
+            fixture_sha256: data.fixture_sha256,
+            session_id: data.session_id,
+            revision: data.revision,
+            clubs: data.clubs,
+            players: data.players,
+            plans: data.plans,
+            events: data.events,
+            records: data.records,
+        }
+    }
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -132,6 +167,16 @@ impl Default for World {
 }
 
 impl World {
+    pub fn clubs(&self) -> &[Club] {
+        &self.clubs
+    }
+    pub fn players(&self) -> &[Player] {
+        &self.players
+    }
+    pub fn plans(&self) -> &[Plan] {
+        &self.plans
+    }
+
     pub fn apply(&mut self, command: Command) -> Result<Event, String> {
         if command.session_id != self.session_id {
             return Err("wrong-session".into());
@@ -212,8 +257,9 @@ impl World {
         {
             return Err("save-integrity".into());
         }
-        let candidate: World =
+        let loaded: LoadedWorld =
             serde_json::from_str(&save.payload).map_err(|_| "invalid-save-payload")?;
+        let candidate = World::from_unchecked(loaded);
         if candidate.records.len() > MAX_COMMANDS {
             return Err("command-capacity".into());
         }
