@@ -5,6 +5,45 @@ controls; it does not claim completed campaigns. The exact source/protocol
 identities and independent review dispositions are retained in the accompanying
 `evidence/lab005-007-*.json` records.
 
+## Operational preparation completed, execution waiting
+
+The independently reviewed operational revision is
+`70def1244f01bf917aa112ee9e98d5922b864489`. A clean detached native checkout at
+`/home/derek/cm0102-lab005-006` retains that revision for both pilots and replay.
+The separate private root `/home/derek/.local/share/cm0102-lab005-006` contains
+`lab005-frozen.json`, `lab006-frozen.json` and their independently authored
+`lab005-operational-review.json` / `lab006-operational-review.json` receipts.
+Seventeen LAB-005 pins and fifty-four LAB-006 pins were independently verified.
+Each profile has 536 MiB physically reserved for its pilot, one selected replay,
+bounded infrastructure recovery and explicit disk headroom: 1,072 MiB total.
+There is no candidate campaign database, job or physical attempt yet.
+
+The [operational review record](evidence/lab005-006-operational-review-v1.json)
+binds the exact source, actual manifest hashes, allocated blocks and private
+receipt digests. Its approval is conditional on separate LL1 acceptance; it is
+not permission to execute while qualification remains incomplete. The lead's
+seven existing workload tests passed in the native checkout, in addition to the
+implementation's nine admission, eight candidate and twenty-one isolated core
+tests. The reviewer independently repeated the nine admission and eight candidate
+tests and verified that the actual interim qualification receipt rejects.
+
+The [qualification audit](LL1_QUALIFICATION_ACCEPTANCE_V1.md) found all ninety
+input/tool/source pins and forty-eight long-run artifact entries intact, with
+all four attempt publications verified. The latest lead preservation check at
+16:07:18 London still found qualification running at 4,232.938 monotonic seconds;
+both execution checkouts remained clean. No selected qualification replay or
+final acceptance has occurred. The existing daily 16:00 London follow-up now
+coordinates qualification closure, sequential LAB-005/006 pilots and replay,
+independent raw-evidence acceptance and PR #48 delivery. It stays quiet while
+there is no actionable change. The persistent worker remains the execution engine.
+
+Do not advance the native execution checkout to later evidence-only PR commits.
+After actual qualification acceptance, follow the
+[operational procedure](LAB_005_006_OPERATIONAL_V1.md) to admit each frozen
+manifest and use the separate Windows launcher/holder. Keep PR #48 draft until
+the remaining empirical and repository delivery gates pass. LAB-007's 120 cases
+remain unstarted; the admission decision awaits accepted LAB-005/006 findings.
+
 | Campaign | Implemented | Execution release | Real pilot / replay / raw acceptance |
 | --- | --- | --- | --- |
 | LAB-005 | Two separate decoders, full ordered slot/staff/player accounting, controls, exact private comparison and sanitized reports | Blocked | Not run / not run / pending |

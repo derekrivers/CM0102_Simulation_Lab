@@ -4,6 +4,34 @@ Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FI
 
 ## Demonstrated evidence
 
+### LAB-005/006 operational admission reviewed; execution waiting — 25 October 2026
+
+Operational source `70def1244f01bf917aa112ee9e98d5922b864489` now has independent
+conditional pilot approval. Both actual manifests are frozen in separate native
+WSL state, with seventeen/fifty-four source/input/tool pins independently checked
+and 536 MiB physically reserved per profile for pilot/replay/recovery. The clean
+native execution checkout stays fixed at this source revision. No pilot job,
+attempt, resource measurement, scientific finding or selected replay is claimed.
+
+Validation passed: nine admission, eight candidate, twenty-one isolated core and
+seven workload tests; independent review repeated the admission/candidate suites
+and rejected the actual incomplete qualification receipt. The implementer also
+cross-reviewed the independent interim qualification audit. Source review and
+materialized-manifest evidence are recorded in the
+[operational review](../research/evidence/lab005-006-operational-review-v1.json)
+and [delivery handoff](../research/LAB_005_007_DELIVERY_V1.md).
+
+The existing qualification remains running on unchanged clean `42a3138`, with
+all ninety pins, forty-eight retained artifact entries and four publications
+verified by the interim audit. Actual eligible horizon completion, post-horizon
+RNG replay and independent final acceptance remain mandatory before slot release.
+The earliest horizon is 26 October 2026 at 14:56:45 London time. Its final decision
+must be passed, failed or censored; today's status is incomplete. The existing
+16:00 London follow-up is coordinated in the current admission chat. PR #48 stays
+draft pending sequential pilots/replay, resource and raw-evidence acceptance,
+target-branch refresh, exact revision review and repository checks. LAB-007 remains
+unadmitted until accepted LAB-005/006 findings justify the frozen extension.
+
 ### LAB-005/006 candidate development; LAB-007 blocked — 25 October 2026
 
 Work is isolated on `codex/lab-005-007-bounded` in `lab-005-007-dev`.
