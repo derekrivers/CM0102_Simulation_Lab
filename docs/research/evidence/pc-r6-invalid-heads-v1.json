@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "browser_version": "148.0.7778.96",
+  "invalid_heads": [
+    {
+      "case": "malformed-head",
+      "actual_persistent_head": true,
+      "visible_failure": true,
+      "private_head_retained": true,
+      "failed_recovery_preserves_memory": true,
+      "accepted_command_and_retry_preserve_memory": true,
+      "newer_publication_fenced": true,
+      "explicit_recovery_restores_publication": true
+    },
+    {
+      "case": "both-invalid",
+      "actual_persistent_head": true,
+      "visible_failure": true,
+      "private_head_retained": true,
+      "failed_recovery_preserves_memory": true,
+      "accepted_command_and_retry_preserve_memory": true,
+      "newer_publication_fenced": true,
+      "explicit_recovery_restores_publication": true
+    }
+  ],
+  "wasm_sha256": "5526af2d0711c1e3a68b22f0c612691a5a0747d0e6f3ef85ccd932d7b02193c8",
+  "scope": "invalid persistent heads only; full storage acceptance not run"
+}

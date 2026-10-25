@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "acceptance_start_head": "18944b5c8acd937ede36e34bfed08f1fdd22497f",
+  "acceptance_completion_head": "4fff2abe4a21cc8561e42072e8730269549b116a",
+  "production_core_source_revision": "04dd3d74353b25edf4b1c6c3548f39890ea70a03",
+  "browser_source_revision": "c3ce097e1f223c5c132c1690bb3ea595a8b40fc2",
+  "source_unchanged_during_gates": true,
+  "rust_test_count": 86,
+  "rust_serial_test_threads": 1,
+  "browser_operations": 552,
+  "legacy_browser_operations_unchanged": 375,
+  "persistent_storage_profiles": 12,
+  "legacy_storage_profiles_unchanged": 9,
+  "browser_receipt": {
+    "bytes": 10279,
+    "sha256": "16598ed52a58d46758ff187564c7357f1d265405f8af790c6023ea2a2b557bc5"
+  },
+  "storage_receipt": {
+    "bytes": 11206,
+    "sha256": "e489316ab205df2041bc968786fafc78ae8b6f7b181b8bc0925f49246519c777"
+  },
+  "native_corpus": {
+    "bytes": 13347040,
+    "sha256": "3c2beac6ff128d8f3f353e764ca7bf4f172003da99ffb6e934f01d7afe920cbb"
+  },
+  "wasm": {
+    "bytes": 738416,
+    "sha256": "50c8d50d4a24869e6fc9980c357ef5cef113c3ccbbab0c21a7e3829dd511a0ee"
+  },
+  "typescript_and_browser_build": {
+    "result": "passed",
+    "elapsed_seconds": 1.61,
+    "source_revision": "d1ad91161e5c3d095f44ebbbfeb14fce8059ba63",
+    "commands": [
+      "npm run typecheck",
+      "npm run build"
+    ]
+  },
+  "wasm_build_provenance": "Built and checked on exact core revision 04dd3d74353b25edf4b1c6c3548f39890ea70a03; copied with exact source/artifact hash verification; executed in full actual Chromium corpus and storage suites.",
+  "tools": {
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "node": "v22.22.2"
+  },
+  "chromium_version": "148.0.7778.96",
+  "stages": [
+    {
+      "stage": "fmt",
+      "command": "cargo fmt --all --check",
+      "elapsed_seconds": 0.24,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "stage": "rust-tests",
+      "command": "cargo test --workspace -- --test-threads=1",
+      "elapsed_seconds": 49.1,
+      "result": "failed",
+      "retained_log": {
+        "bytes": 10662,
+        "sha256": "960040f13e93eda1e83cb81ac8de16008ed92730e16413c6bde8cfc0ec69cc44"
+      }
+    },
+    {
+      "stage": "process-contract-retry",
+      "command": "cargo test -p lab-cli --test process_contract -- --test-threads=1",
+      "elapsed_seconds": 9.4,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 1207,
+        "sha256": "42d3be8f3734fa7add4fed610fb9d0cd41a9fd55e25361186251c7fb30c022a2"
+      }
+    },
+    {
+      "stage": "rust-tests-retry",
+      "command": "cargo test --workspace -- --test-threads=1",
+      "elapsed_seconds": 31.81,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 10062,
+        "sha256": "6eaa69edfcf1877fe9232aa58934f2b06f6ce6b953da26279b26e74f83cc7ec3"
+      }
+    },
+    {
+      "stage": "clippy",
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "elapsed_seconds": 3.19,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 747,
+        "sha256": "633b2d07344710a97434a2dd7c83b1a52ff921b9ea8e26dc07305b61fbf69088"
+      }
+    },
+    {
+      "stage": "native-build",
+      "command": "cargo build --workspace",
+      "elapsed_seconds": 0.1,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 72,
+        "sha256": "99f71393b9903dca098310bb446022a4bdee195ea9996f351a787195555210a6"
+      }
+    },
+    {
+      "stage": "browser",
+      "command": "node check-browser.cjs",
+      "elapsed_seconds": 18.21,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 8474,
+        "sha256": "b92c35b7d902a0dc880aa786905f10a2da24a03b1f12bf41dd53edc8d10efa9e"
+      }
+    },
+    {
+      "stage": "storage",
+      "command": "node check-storage.cjs",
+      "elapsed_seconds": 19.01,
+      "result": "passed",
+      "retained_log": {
+        "bytes": 9740,
+        "sha256": "e0fca1bf6e3f9e636fd66c3e74b9dd661dcc57e563551417aaa4adb01a57b299"
+      }
+    }
+  ],
+  "retained_failures": [
+    {
+      "stage": "initial serial workspace test",
+      "test": "timeout_kills_a_descendant_that_escaped_the_process_group",
+      "failure": "unchanged elapsed <5 seconds supervisor assertion",
+      "disposition": "15 isolated process-contract tests then full 86 serial tests passed; no threshold/source/policy change"
+    }
+  ],
+  "limits": [
+    "No original Windows process or deployment",
+    "Storage denial/quota remain API injections; abort/corruption/fencing use actual persistent Chromium",
+    "No physical power-loss/storage exhaustion qualification"
+  ]
+}

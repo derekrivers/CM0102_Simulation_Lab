@@ -1,0 +1,33 @@
+{
+  "reviewed_revision": "271fe65",
+  "execution_source": "878a068",
+  "reviewer": "R7 independent research worker; no R8 authorship",
+  "raw_extraction": "standalone stdlib; no repository parser imports",
+  "results": {
+    "retained": {
+      "mapping_empty_entries_independently_verified": 16,
+      "expansion_receipt_sha256": "fd6ee4de7299e17badb1b4f12ba4650d26f5ffe25203a17a2d250eada4b65aec",
+      "boundary_receipt_sha256": "04a20da3250238a1b7e2d2664d4c28d855c2889f634a17870d341afe85bd2f23",
+      "expanded_calls": 4,
+      "censored_boundary_calls_preserved": 2,
+      "source_dependency_hashes_match": true,
+      "all_ordered_effects_independently_reconstructed": true
+    },
+    "fresh": {
+      "mapping_empty_entries_independently_verified": 16,
+      "expansion_receipt_sha256": "e7b50a6658469e240e2c46868f390728018f6ddc88c81840b092cfcac927d74d",
+      "boundary_receipt_sha256": "97e036f3c8405949e00c9ea9deb506d7bff92581464341f94d2a2bb88719838a",
+      "expanded_calls": 4,
+      "censored_boundary_calls_preserved": 2,
+      "source_dependency_hashes_match": true,
+      "all_ordered_effects_independently_reconstructed": true
+    }
+  },
+  "callsite_targets_independently_checked": 13,
+  "disposition": "approved bounded initialized empty-mapping research; no production admission",
+  "limits": [
+    "No new emulator campaign during review",
+    "Full-state/ABI execution statements supported by reviewed harness and sealed receipts, not independent emulator reproduction",
+    "Nonempty mapping and downstream plan/staff paths unqualified"
+  ]
+}

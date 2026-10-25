@@ -199,3 +199,63 @@ These three accepted bounded increments do not complete the simulator, P02/P04 w
 This change removes duplicate bootstrap/implementation plans and the superseded planning review from the current tree, records their Git history, and makes one PC plan authoritative. It corrects the stale Explorer-token-duplication instruction, separates demonstrated results from plans, and adds the pinned Reversal reproduction receipt. Existing Rust/C#/Python source, input locks, private data and frozen CI/launcher contracts are preserved.
 
 Cleanup verification, independent review and merge disposition are tracked in [PR #31](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/31), based on `196d064a0bd8e9ecc152595f8bb438d879b159bc`. The PR records the exact reviewed head, CI runs and final merge identity. Local documentation checks resolved all 155 relative links and verified the receipt against the pinned Reversal artifact hashes; existing source/config/workflows have no diff. A passing cleanup does not mean the runner gaps are fixed, the local Rust toolchain is installed, or implementation has restarted. No whole-game phase is closed by this reset.
+
+
+## R7/R8/R9 bounded batch - 25 October 2026
+
+Base was fetched main 12a35b3863528edba15e4dccd687ea1d90a8e44f; no intervening
+commits were present. The [current batch ownership/routing](../roadmap/PC_FIRST.md#r7r8r9-bounded-batch---25-october-2026)
+records actual worker models and the single heavy slot. Token/cost totals are
+unavailable. Private inputs, historical controls and detached review were preserved.
+
+R7's two original campaigns passed 33 calls each over retained/fresh initialized
+inputs, with ordered reads/writes, complete captured state/image, exact ABI/EAX,
+no additional RNG, checkpoint continuation and discriminating defects. The lead
+independently reconstructed both new 911-byte canonical projections without
+importing repository parsers, preserving previously admitted inner/wrapper
+identities and hashing the full mapping row and both distinct ordinary banks.
+A separate synthetic projection remains explicitly labeled. The additive v5
+operation is explicit and returns ordinary_bank versus human_registry with the
+supported branch; rendering is pure. Lookup, direct slot and option2 share one
+revision/event/retry history. v1-v4 remain unchanged without migration.
+Evidence: [R7 contract/admission/original receipts](../research/PC_R7_EFFECTIVE_PLAN.md).
+
+R8 preserved all eight initial probes, including four censored nonzero calls and
+their initial +9b26 partial write (plus the fresh connected selector write).
+A separately reviewed eight-call expansion genuinely returns for both captures'
+sixteen-empty-mapping branch: 33 retained or 34 fresh ordered nonzero writes,
+full captured/image and ABI checks, repeated values, zero preservation, full
+checkpoint continuation and eight mutated controls. Independent Astra review of
+exact final 5d8d029 reconstructed raw empty mappings and effects; no independent
+emulator rerun was claimed. No production option3 command/UI or nonempty mapping
+admission follows. Evidence: [R8 research and independent audit](../research/PC_R8_OPTION_THREE.md).
+
+R9 truthfully delivers a failed-experiment result. Two immutable four-arm attempts
+retain every startup/overflow failure. The first observed images exited 124 at the
+original constructor's legitimate stack re-exec. An independently reviewed defer
+fix preserved original startup and completed all four follow-up executions in a
+343.66-second seal interval. All follow-up saves and three sparse captures exactly
+match R5; each observed trace nevertheless dropped 17,968 of 67,330 attempted events.
+Observation completeness failed, so actual clean-tree file-use remains unknown;
+original/Bosman comparison is not-run. The unsuccessful code stays off main on
+its separately pushed experimental branch. Main contains the reviewed contract,
+two sanitized failed receipts and independent audit only.
+Evidence: [R9 result, source revisions and blocker](../research/PC_R9_FILE_USE.md).
+
+Final integrated checks pass 86 Rust tests with --test-threads=1, formatting,
+workspace Clippy with denied warnings, native build, release WASM, strict
+TypeScript/build, 552 native/Chromium operations and twelve persistent profiles.
+Old 375 operation results and nine stored profile results remain exact; both
+malformed-head and current-plus-previous-invalid persistent cases pass failure,
+retention, accepted-memory/retry and publication fencing checks. Actual v5
+close/reopen, mixed retries, corrupt fallback, real transaction abort and
+retained/fresh session/tab fencing pass. Endpoint equality and API-injected
+storage errors retain their established scope limits.
+
+One initial full serial Rust run failed an unchanged five-second supervisor
+timing assertion. The failure is retained; isolated process_contract 15 tests
+passed in 9.40s, then all 86 serial workspace tests passed in 31.81s without source
+or threshold changes. Core/native/WASM and source independent reviews passed.
+CI, pins and the existing producer qualifier/receipts are unchanged. The final
+exact-head review and protected merge disposition will be recorded with the
+delivery PR; no whole-game completion, original process or deployment is claimed.

@@ -5,7 +5,8 @@ projections. The default squad and all plan labels are fictional. A reviewed pri
 additionally admits three actual ordinary-club/nonhuman-manager records and
 qualified first/second bank resolution. A separately admitted human profile supports
 direct registry slot selection. A separate v4 profile adds a qualified fixed
-registry option-2 byte producer. Other human-manager workflows remain unavailable. This is not a
+registry option-2 byte producer. An additive v5 profile connects those commands
+with an explicit effective-plan lookup. Other human-manager workflows remain unavailable. This is not a
 reproduction of an original UI handler, a full tactics engine or a playable game.
 
 From the repository root, with the pinned toolchain:
@@ -100,6 +101,24 @@ The public synthetic v4 fixture always runs in both check suites. Set
 reviewed retained/fresh wrappers to include both real profiles, original producer
 and mixed-command corpora, browser process recovery and publication fencing.
 These paths are test inputs; private files remain outside the build output.
+
+For connected lookup, import an independently admitted schema-3 effective-plan
+fixture. **Look up effective plan** explicitly runs the qualified operation and
+displays its actual tagged location and supported branch. Ordinary fallback leaves
+the human selection unchanged; a registry branch selects the requested human
+slot. **Last explicit lookup** is historical, labeled with its revision; changing
+another control or inspecting state does not rerun the lookup. All three commands
+share Rust revision/retry history and explicit v5 saves. Earlier v1–v4 formats
+remain supported without migration. See `docs/research/PC_R7_EFFECTIVE_PLAN.md`.
+
+The synthetic v5 fixture always runs in both acceptance suites. Set
+`EFFECTIVE_REFERENCE_FIXTURE` and `FRESH_EFFECTIVE_REFERENCE_FIXTURE` to the
+independently admitted retained/fresh schema-3 projections to include original
+connected cases, tagged UI results, process recovery and lookup writer fencing.
+The complete suite retains all earlier fixtures. `STORAGE_INVALID_HEADS_ONLY=1
+npm run check:storage` runs just the actual persistent malformed-head and
+two-invalid-checkpoint regressions; its receipt explicitly excludes full-suite
+acceptance.
 
 Set `REFERENCE_FIXTURE` to the recovered private fixture path when running
 `npm run check` to execute the real-record native/browser corpus too. Test logs

@@ -1,0 +1,5028 @@
+{
+  "schema_version": 1,
+  "source": "fresh",
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "capture": {
+    "source_capture_sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40",
+    "build_receipt_sha256": "4c7b536403fb545303de05350bebb262126382cea65025b843da1c55a43c0bf5"
+  },
+  "wrapper_sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+  "source_dependencies": {
+    "qualify_option_three_empty_mapping.py": "3429750cdcdeae4c6fbe7c2bf75c97e1ebbfa84600d6ba612e9b204070e1493d",
+    "qualify_option_three_dependencies.py": "ac0bb646255625fa5c6f73a155c9d09f1d2496ac3fbcd571a49857c5cc88ca50",
+    "qualify_human_registry.py": "c26600217794ebaf39759fe0408b7d51bfef2a10f612c82fbe7b62676ffa3a39",
+    "qualify_human_registry_producer.py": "7d7071079182aac8c5d06f5e55eedb3ef0d89b1e68a0fa79bf161282a20acc5b",
+    "qualify_fresh_human_registry.py": "f4eb18bf72a1621e38c8bf05fcabe5fc6005ddf52f92136f952dc23869080ecd",
+    "qualify_manager_bound_plan.py": "3fd127ff7aa71b3f16f78daabcd7977d0dbcb4b8bdcd6815bf2312413b5b18d2"
+  },
+  "upstream_lock_sha256": "887ad560eb21bee7f3a6c1c4c87c80d91331190ae60854e7bd9dfd616bba1d75",
+  "tools": {
+    "python": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "capstone_module": "6f8a27fe069aa89a46974e189b5365d56eb5e02c2fd581d2fbfad7fbba51549f",
+    "unicorn_module": "9ad32123bca674cf205c308fd4d0d2a4db877c9dc2afac4feab7c84c8cf7043b"
+  },
+  "emulator": "unicorn 2.1.4",
+  "decoder": "capstone 5.0.7",
+  "domain": "exact initialized ordinary human binding; sixteen mapping entries equal -1",
+  "cases": [
+    {
+      "value": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 1
+        },
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        },
+        {
+          "registry_offset": 39720,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39724,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39728,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39732,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39736,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39740,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39744,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39748,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39752,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39756,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39760,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39764,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39768,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39772,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39776,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39780,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39784,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39788,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39792,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39796,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39800,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39804,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39808,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39812,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39816,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39820,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39824,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39828,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39832,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39836,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39840,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39844,
+          "width": 4,
+          "value": 4294967295
+        }
+      ],
+      "ordered_write_pcs": [
+        "005fec19",
+        "005fbf83",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7"
+      ],
+      "ordered_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 1
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_0",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_1",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_2",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_3",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_4",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_5",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_6",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_7",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_8",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_9",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_10",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_11",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_12",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_13",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_14",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_15",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": [
+        "0053b900",
+        "0053b904",
+        "0053b90a",
+        "0053b90c",
+        "0053b97a",
+        "0053b980",
+        "0053b981",
+        "0053b983",
+        "0053b986",
+        "0053b98c",
+        "0053b98e",
+        "0053b990",
+        "0053b992",
+        "0053b993",
+        "0053b996",
+        "0053b998",
+        "0053b99e",
+        "005409b0",
+        "005409b4",
+        "005409ba",
+        "005409bc",
+        "00540a2a",
+        "00540a30",
+        "00540a36",
+        "00540a37",
+        "00540a39",
+        "00540a3b",
+        "00540a3d",
+        "00540a3f",
+        "00540a40",
+        "00540a43",
+        "00540a45",
+        "00540a4b",
+        "005fbd00",
+        "005fbd04",
+        "005fbd0a",
+        "005fbd0b",
+        "005fbd0d",
+        "005fbd0f",
+        "005fbd57",
+        "005fbd59",
+        "005fbd5e",
+        "005fbd60",
+        "005fbd63",
+        "005fbd65",
+        "005fbd68",
+        "005fbd69",
+        "005fbd6b",
+        "005fbd6d",
+        "005fbd70",
+        "005fbd72",
+        "005fbd75",
+        "005fbd77",
+        "005fbd79",
+        "005fbd7c",
+        "005fbd7e",
+        "005fbd81",
+        "005fbd84",
+        "005fbd8c",
+        "005fbd8e",
+        "005fbd91",
+        "005fbd94",
+        "005fbd97",
+        "005fbd9a",
+        "005fbd9d",
+        "005fbd9e",
+        "005fbda0",
+        "005fbda6",
+        "005fbe20",
+        "005fbe24",
+        "005fbe2a",
+        "005fbe2c",
+        "005fbe2d",
+        "005fbe2e",
+        "005fbe2f",
+        "005fbe30",
+        "005fbe32",
+        "005fbe4f",
+        "005fbe56",
+        "005fbe58",
+        "005fbe5d",
+        "005fbe5f",
+        "005fbe65",
+        "005fbe67",
+        "005fbe6a",
+        "005fbe70",
+        "005fbe73",
+        "005fbe74",
+        "005fbe76",
+        "005fbe7c",
+        "005fbe7e",
+        "005fbe80",
+        "005fbe81",
+        "005fbe86",
+        "005fbe89",
+        "005fbe8b",
+        "005fbeb9",
+        "005fbec0",
+        "005fbec2",
+        "005fbf01",
+        "005fbf03",
+        "005fbf05",
+        "005fbf06",
+        "005fbf0b",
+        "005fbf0e",
+        "005fbf10",
+        "005fbf3e",
+        "005fbf41",
+        "005fbf43",
+        "005fbf46",
+        "005fbf6e",
+        "005fbf70",
+        "005fbf72",
+        "005fbf74",
+        "005fbf77",
+        "005fbf79",
+        "005fbf7a",
+        "005fbf7b",
+        "005fbf7c",
+        "005fbf7f",
+        "005fbf80",
+        "005fbf83",
+        "005fbf8b",
+        "005fbf91",
+        "005fd210",
+        "005fd214",
+        "005fd21a",
+        "005fd21c",
+        "005fd2a5",
+        "005fd2a7",
+        "005fd2ac",
+        "005fd2ae",
+        "005fd2b1",
+        "005fd2b3",
+        "005fd2b6",
+        "005fd2b7",
+        "005fd2b9",
+        "005fd2bb",
+        "005fd2be",
+        "005fd2c1",
+        "005fd2c3",
+        "005fd2c5",
+        "005fd2c8",
+        "005fd2ca",
+        "005fd2cd",
+        "005fd2d0",
+        "005fd2d2",
+        "005fd2d9",
+        "005fd2df",
+        "005feb60",
+        "005feb64",
+        "005feb6a",
+        "005feb6b",
+        "005feb6c",
+        "005feb6d",
+        "005feb6f",
+        "005feb70",
+        "005feb72",
+        "005feb74",
+        "005febce",
+        "005febd0",
+        "005febd6",
+        "005febd8",
+        "005febdb",
+        "005febe1",
+        "005febe4",
+        "005febe5",
+        "005febe7",
+        "005febed",
+        "005febf0",
+        "005febf2",
+        "005febf5",
+        "005febf7",
+        "005febf9",
+        "005febfc",
+        "005febfe",
+        "005fec05",
+        "005fec08",
+        "005fec0b",
+        "005fec12",
+        "005fec15",
+        "005fec17",
+        "005fec19",
+        "005fec20",
+        "005fec26",
+        "005fec28",
+        "005fec2e",
+        "005fec31",
+        "005fec33",
+        "005fec39",
+        "005fec3f",
+        "005fec41",
+        "005fec42",
+        "005fec47",
+        "005fec49",
+        "005fec4d",
+        "005fec51",
+        "005fec58",
+        "005fec5c",
+        "005fec5e",
+        "005fec5f",
+        "005fec62",
+        "005fec68",
+        "005fec69",
+        "005fec6e",
+        "005fec70",
+        "005fec72",
+        "005fecab",
+        "005fecae",
+        "005fecb5",
+        "005fecb7",
+        "005fecbe",
+        "005fecc0",
+        "005fecc3",
+        "005fecc6",
+        "005fecca",
+        "005feccc",
+        "005feccd",
+        "005fecce",
+        "005feccf",
+        "005fecd0",
+        "005fecd6",
+        "00600a50",
+        "00600a56",
+        "00600a57",
+        "00600a58",
+        "00600a59",
+        "00600a5a",
+        "00600a61",
+        "00600a63",
+        "00600a65",
+        "00600a6b",
+        "00600a72",
+        "00600a79",
+        "00600a7b",
+        "00600a7d",
+        "00600a83",
+        "00600a89",
+        "00600a8b",
+        "00600a91",
+        "00600a93",
+        "00600a99",
+        "00600a9e",
+        "00600aa0",
+        "00600aa3",
+        "00600aa5",
+        "00600aab",
+        "00600ab2",
+        "00600b83",
+        "00600b84",
+        "00600b89",
+        "00600b8c",
+        "00600b8e",
+        "00600bbc",
+        "00600bbe",
+        "00600bc4",
+        "00600bcb",
+        "00600c78",
+        "00600c79",
+        "00600c7a",
+        "00600c7b",
+        "00600c80",
+        "00600c81",
+        "00600c87",
+        "00896660",
+        "00896666",
+        "00896667",
+        "00896668",
+        "0089666f",
+        "00896671",
+        "00896673",
+        "008966de",
+        "008966e0",
+        "008966e2",
+        "008966e4",
+        "008966e6",
+        "008966e7",
+        "008966ec",
+        "008966ef",
+        "008966f1",
+        "008966f3",
+        "008966f9",
+        "008966fa",
+        "00896700",
+        "00896705",
+        "00896707",
+        "00896721",
+        "00896727",
+        "0089672e",
+        "0089672f",
+        "00896730",
+        "00896731",
+        "00896737",
+        "0089673c",
+        "00896742",
+        "00896748",
+        "00896749",
+        "0089674e",
+        "0089674f",
+        "00896750",
+        "00896756",
+        "008968f0",
+        "008968f4",
+        "008968fa",
+        "008968fb",
+        "008968fc",
+        "008968fd",
+        "008968ff",
+        "00896901",
+        "00896902",
+        "00896904",
+        "00896939",
+        "00896940",
+        "00896942",
+        "00896948",
+        "0089694b",
+        "00896951",
+        "00896958",
+        "00896959",
+        "0089695a",
+        "0089695c",
+        "00896961",
+        "00896964",
+        "0089696a",
+        "00896972",
+        "00896978",
+        "0089697b",
+        "0089697e",
+        "00896980",
+        "00896983",
+        "00896985",
+        "00896989",
+        "0089698d",
+        "00896990",
+        "00896a7f",
+        "00896a80",
+        "00896a81",
+        "00896a82",
+        "00896a84",
+        "00896a85",
+        "00896a8b",
+        "008982b0",
+        "008982b6",
+        "008982b7",
+        "008982be",
+        "008982bf",
+        "008982c1",
+        "008982c3",
+        "008982c5",
+        "008982c7",
+        "008982c8",
+        "008982cd",
+        "008982d0",
+        "008982d2",
+        "008982d8",
+        "008982df",
+        "008982e1",
+        "008983e0",
+        "008983e2",
+        "008983e3",
+        "008983e4",
+        "008983ea"
+      ],
+      "return_and_abi_checked": true,
+      "complete_state_and_image_checked": true,
+      "rng_draws": 0
+    },
+    {
+      "value": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 1
+        },
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        },
+        {
+          "registry_offset": 39720,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39724,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39728,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39732,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39736,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39740,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39744,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39748,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39752,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39756,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39760,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39764,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39768,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39772,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39776,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39780,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39784,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39788,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39792,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39796,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39800,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39804,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39808,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39812,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39816,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39820,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39824,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39828,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39832,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39836,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39840,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39844,
+          "width": 4,
+          "value": 4294967295
+        }
+      ],
+      "ordered_write_pcs": [
+        "005fec19",
+        "005fbf83",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7"
+      ],
+      "ordered_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 1
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_0",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_1",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_2",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_3",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_4",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_5",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_6",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_7",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_8",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_9",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_10",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_11",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_12",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_13",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_14",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_15",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": [
+        "0053b900",
+        "0053b904",
+        "0053b90a",
+        "0053b90c",
+        "0053b97a",
+        "0053b980",
+        "0053b981",
+        "0053b983",
+        "0053b986",
+        "0053b98c",
+        "0053b98e",
+        "0053b990",
+        "0053b992",
+        "0053b993",
+        "0053b996",
+        "0053b998",
+        "0053b99e",
+        "005409b0",
+        "005409b4",
+        "005409ba",
+        "005409bc",
+        "00540a2a",
+        "00540a30",
+        "00540a36",
+        "00540a37",
+        "00540a39",
+        "00540a3b",
+        "00540a3d",
+        "00540a3f",
+        "00540a40",
+        "00540a43",
+        "00540a45",
+        "00540a4b",
+        "005fbd00",
+        "005fbd04",
+        "005fbd0a",
+        "005fbd0b",
+        "005fbd0d",
+        "005fbd0f",
+        "005fbd57",
+        "005fbd59",
+        "005fbd5e",
+        "005fbd60",
+        "005fbd63",
+        "005fbd65",
+        "005fbd68",
+        "005fbd69",
+        "005fbd6b",
+        "005fbd6d",
+        "005fbd70",
+        "005fbd72",
+        "005fbd75",
+        "005fbd77",
+        "005fbd79",
+        "005fbd7c",
+        "005fbd7e",
+        "005fbd81",
+        "005fbd84",
+        "005fbd8c",
+        "005fbd8e",
+        "005fbd91",
+        "005fbd94",
+        "005fbd97",
+        "005fbd9a",
+        "005fbd9d",
+        "005fbd9e",
+        "005fbda0",
+        "005fbda6",
+        "005fbe20",
+        "005fbe24",
+        "005fbe2a",
+        "005fbe2c",
+        "005fbe2d",
+        "005fbe2e",
+        "005fbe2f",
+        "005fbe30",
+        "005fbe32",
+        "005fbe4f",
+        "005fbe56",
+        "005fbe58",
+        "005fbe5d",
+        "005fbe5f",
+        "005fbe65",
+        "005fbe67",
+        "005fbe6a",
+        "005fbe70",
+        "005fbe73",
+        "005fbe74",
+        "005fbe76",
+        "005fbe7c",
+        "005fbe7e",
+        "005fbe80",
+        "005fbe81",
+        "005fbe86",
+        "005fbe89",
+        "005fbe8b",
+        "005fbeb9",
+        "005fbec0",
+        "005fbec2",
+        "005fbf01",
+        "005fbf03",
+        "005fbf05",
+        "005fbf06",
+        "005fbf0b",
+        "005fbf0e",
+        "005fbf10",
+        "005fbf3e",
+        "005fbf41",
+        "005fbf43",
+        "005fbf46",
+        "005fbf6e",
+        "005fbf70",
+        "005fbf72",
+        "005fbf74",
+        "005fbf77",
+        "005fbf79",
+        "005fbf7a",
+        "005fbf7b",
+        "005fbf7c",
+        "005fbf7f",
+        "005fbf80",
+        "005fbf83",
+        "005fbf8b",
+        "005fbf91",
+        "005fd210",
+        "005fd214",
+        "005fd21a",
+        "005fd21c",
+        "005fd2a5",
+        "005fd2a7",
+        "005fd2ac",
+        "005fd2ae",
+        "005fd2b1",
+        "005fd2b3",
+        "005fd2b6",
+        "005fd2b7",
+        "005fd2b9",
+        "005fd2bb",
+        "005fd2be",
+        "005fd2c1",
+        "005fd2c3",
+        "005fd2c5",
+        "005fd2c8",
+        "005fd2ca",
+        "005fd2cd",
+        "005fd2d0",
+        "005fd2d2",
+        "005fd2d9",
+        "005fd2df",
+        "005feb60",
+        "005feb64",
+        "005feb6a",
+        "005feb6b",
+        "005feb6c",
+        "005feb6d",
+        "005feb6f",
+        "005feb70",
+        "005feb72",
+        "005feb74",
+        "005febce",
+        "005febd0",
+        "005febd6",
+        "005febd8",
+        "005febdb",
+        "005febe1",
+        "005febe4",
+        "005febe5",
+        "005febe7",
+        "005febed",
+        "005febf0",
+        "005febf2",
+        "005febf5",
+        "005febf7",
+        "005febf9",
+        "005febfc",
+        "005febfe",
+        "005fec05",
+        "005fec08",
+        "005fec0b",
+        "005fec12",
+        "005fec15",
+        "005fec17",
+        "005fec19",
+        "005fec20",
+        "005fec26",
+        "005fec28",
+        "005fec2e",
+        "005fec31",
+        "005fec33",
+        "005fec39",
+        "005fec3f",
+        "005fec41",
+        "005fec42",
+        "005fec47",
+        "005fec49",
+        "005fec4d",
+        "005fec51",
+        "005fec58",
+        "005fec5c",
+        "005fec5e",
+        "005fec5f",
+        "005fec62",
+        "005fec68",
+        "005fec69",
+        "005fec6e",
+        "005fec70",
+        "005fec72",
+        "005fecab",
+        "005fecae",
+        "005fecb5",
+        "005fecb7",
+        "005fecbe",
+        "005fecc0",
+        "005fecc3",
+        "005fecc6",
+        "005fecca",
+        "005feccc",
+        "005feccd",
+        "005fecce",
+        "005feccf",
+        "005fecd0",
+        "005fecd6",
+        "00600a50",
+        "00600a56",
+        "00600a57",
+        "00600a58",
+        "00600a59",
+        "00600a5a",
+        "00600a61",
+        "00600a63",
+        "00600a65",
+        "00600a6b",
+        "00600a72",
+        "00600a79",
+        "00600a7b",
+        "00600a7d",
+        "00600a83",
+        "00600a89",
+        "00600a8b",
+        "00600a91",
+        "00600a93",
+        "00600a99",
+        "00600a9e",
+        "00600aa0",
+        "00600aa3",
+        "00600aa5",
+        "00600aab",
+        "00600ab2",
+        "00600b83",
+        "00600b84",
+        "00600b89",
+        "00600b8c",
+        "00600b8e",
+        "00600bbc",
+        "00600bbe",
+        "00600bc4",
+        "00600bcb",
+        "00600c78",
+        "00600c79",
+        "00600c7a",
+        "00600c7b",
+        "00600c80",
+        "00600c81",
+        "00600c87",
+        "00896660",
+        "00896666",
+        "00896667",
+        "00896668",
+        "0089666f",
+        "00896671",
+        "00896673",
+        "008966de",
+        "008966e0",
+        "008966e2",
+        "008966e4",
+        "008966e6",
+        "008966e7",
+        "008966ec",
+        "008966ef",
+        "008966f1",
+        "008966f3",
+        "008966f9",
+        "008966fa",
+        "00896700",
+        "00896705",
+        "00896707",
+        "00896721",
+        "00896727",
+        "0089672e",
+        "0089672f",
+        "00896730",
+        "00896731",
+        "00896737",
+        "0089673c",
+        "00896742",
+        "00896748",
+        "00896749",
+        "0089674e",
+        "0089674f",
+        "00896750",
+        "00896756",
+        "008968f0",
+        "008968f4",
+        "008968fa",
+        "008968fb",
+        "008968fc",
+        "008968fd",
+        "008968ff",
+        "00896901",
+        "00896902",
+        "00896904",
+        "00896939",
+        "00896940",
+        "00896942",
+        "00896948",
+        "0089694b",
+        "00896951",
+        "00896958",
+        "00896959",
+        "0089695a",
+        "0089695c",
+        "00896961",
+        "00896964",
+        "0089696a",
+        "00896972",
+        "00896978",
+        "0089697b",
+        "0089697e",
+        "00896980",
+        "00896983",
+        "00896985",
+        "00896989",
+        "0089698d",
+        "00896990",
+        "00896a7f",
+        "00896a80",
+        "00896a81",
+        "00896a82",
+        "00896a84",
+        "00896a85",
+        "00896a8b",
+        "008982b0",
+        "008982b6",
+        "008982b7",
+        "008982be",
+        "008982bf",
+        "008982c1",
+        "008982c3",
+        "008982c5",
+        "008982c7",
+        "008982c8",
+        "008982cd",
+        "008982d0",
+        "008982d2",
+        "008982d8",
+        "008982df",
+        "008982e1",
+        "008983e0",
+        "008983e2",
+        "008983e3",
+        "008983e4",
+        "008983ea"
+      ],
+      "return_and_abi_checked": true,
+      "complete_state_and_image_checked": true,
+      "rng_draws": 0
+    },
+    {
+      "value": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "ordered_write_pcs": [
+        "005fec19"
+      ],
+      "ordered_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": [
+        "005feb60",
+        "005feb64",
+        "005feb6a",
+        "005feb6b",
+        "005feb6c",
+        "005feb6d",
+        "005feb6f",
+        "005feb70",
+        "005feb72",
+        "005feb74",
+        "005febce",
+        "005febd0",
+        "005febd6",
+        "005febd8",
+        "005febdb",
+        "005febe1",
+        "005febe4",
+        "005febe5",
+        "005febe7",
+        "005febed",
+        "005febf0",
+        "005febf2",
+        "005febf5",
+        "005febf7",
+        "005febf9",
+        "005febfc",
+        "005febfe",
+        "005fec05",
+        "005fec08",
+        "005fec0b",
+        "005fec12",
+        "005fec15",
+        "005fec17",
+        "005fec19",
+        "005fec20",
+        "005fec26",
+        "005fec28",
+        "005fed35",
+        "005fed36",
+        "005fed37",
+        "005fed38",
+        "005fed39",
+        "005fed3f"
+      ],
+      "return_and_abi_checked": true,
+      "complete_state_and_image_checked": true,
+      "rng_draws": 0
+    },
+    {
+      "value": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 1
+        },
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        },
+        {
+          "registry_offset": 39720,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39724,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39728,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39732,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39736,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39740,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39744,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39748,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39752,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39756,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39760,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39764,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39768,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39772,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39776,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39780,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39784,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39788,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39792,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39796,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39800,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39804,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39808,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39812,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39816,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39820,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39824,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39828,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39832,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39836,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39840,
+          "width": 4,
+          "value": 4294967295
+        },
+        {
+          "registry_offset": 39844,
+          "width": 4,
+          "value": 4294967295
+        }
+      ],
+      "ordered_write_pcs": [
+        "005fec19",
+        "005fbf83",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7",
+        "005fecae",
+        "005fecb7"
+      ],
+      "ordered_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 1
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_0",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_1",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_2",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_3",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_4",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_5",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_6",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_7",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_8",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_9",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_10",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_11",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_12",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_13",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_14",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "empty_mapping_slot_15",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": [
+        "0053b900",
+        "0053b904",
+        "0053b90a",
+        "0053b90c",
+        "0053b97a",
+        "0053b980",
+        "0053b981",
+        "0053b983",
+        "0053b986",
+        "0053b98c",
+        "0053b98e",
+        "0053b990",
+        "0053b992",
+        "0053b993",
+        "0053b996",
+        "0053b998",
+        "0053b99e",
+        "005409b0",
+        "005409b4",
+        "005409ba",
+        "005409bc",
+        "00540a2a",
+        "00540a30",
+        "00540a36",
+        "00540a37",
+        "00540a39",
+        "00540a3b",
+        "00540a3d",
+        "00540a3f",
+        "00540a40",
+        "00540a43",
+        "00540a45",
+        "00540a4b",
+        "005fbd00",
+        "005fbd04",
+        "005fbd0a",
+        "005fbd0b",
+        "005fbd0d",
+        "005fbd0f",
+        "005fbd57",
+        "005fbd59",
+        "005fbd5e",
+        "005fbd60",
+        "005fbd63",
+        "005fbd65",
+        "005fbd68",
+        "005fbd69",
+        "005fbd6b",
+        "005fbd6d",
+        "005fbd70",
+        "005fbd72",
+        "005fbd75",
+        "005fbd77",
+        "005fbd79",
+        "005fbd7c",
+        "005fbd7e",
+        "005fbd81",
+        "005fbd84",
+        "005fbd8c",
+        "005fbd8e",
+        "005fbd91",
+        "005fbd94",
+        "005fbd97",
+        "005fbd9a",
+        "005fbd9d",
+        "005fbd9e",
+        "005fbda0",
+        "005fbda6",
+        "005fbe20",
+        "005fbe24",
+        "005fbe2a",
+        "005fbe2c",
+        "005fbe2d",
+        "005fbe2e",
+        "005fbe2f",
+        "005fbe30",
+        "005fbe32",
+        "005fbe4f",
+        "005fbe56",
+        "005fbe58",
+        "005fbe5d",
+        "005fbe5f",
+        "005fbe65",
+        "005fbe67",
+        "005fbe6a",
+        "005fbe70",
+        "005fbe73",
+        "005fbe74",
+        "005fbe76",
+        "005fbe7c",
+        "005fbe7e",
+        "005fbe80",
+        "005fbe81",
+        "005fbe86",
+        "005fbe89",
+        "005fbe8b",
+        "005fbeb9",
+        "005fbec0",
+        "005fbec2",
+        "005fbf01",
+        "005fbf03",
+        "005fbf05",
+        "005fbf06",
+        "005fbf0b",
+        "005fbf0e",
+        "005fbf10",
+        "005fbf3e",
+        "005fbf41",
+        "005fbf43",
+        "005fbf46",
+        "005fbf6e",
+        "005fbf70",
+        "005fbf72",
+        "005fbf74",
+        "005fbf77",
+        "005fbf79",
+        "005fbf7a",
+        "005fbf7b",
+        "005fbf7c",
+        "005fbf7f",
+        "005fbf80",
+        "005fbf83",
+        "005fbf8b",
+        "005fbf91",
+        "005fd210",
+        "005fd214",
+        "005fd21a",
+        "005fd21c",
+        "005fd2a5",
+        "005fd2a7",
+        "005fd2ac",
+        "005fd2ae",
+        "005fd2b1",
+        "005fd2b3",
+        "005fd2b6",
+        "005fd2b7",
+        "005fd2b9",
+        "005fd2bb",
+        "005fd2be",
+        "005fd2c1",
+        "005fd2c3",
+        "005fd2c5",
+        "005fd2c8",
+        "005fd2ca",
+        "005fd2cd",
+        "005fd2d0",
+        "005fd2d2",
+        "005fd2d9",
+        "005fd2df",
+        "005feb60",
+        "005feb64",
+        "005feb6a",
+        "005feb6b",
+        "005feb6c",
+        "005feb6d",
+        "005feb6f",
+        "005feb70",
+        "005feb72",
+        "005feb74",
+        "005febce",
+        "005febd0",
+        "005febd6",
+        "005febd8",
+        "005febdb",
+        "005febe1",
+        "005febe4",
+        "005febe5",
+        "005febe7",
+        "005febed",
+        "005febf0",
+        "005febf2",
+        "005febf5",
+        "005febf7",
+        "005febf9",
+        "005febfc",
+        "005febfe",
+        "005fec05",
+        "005fec08",
+        "005fec0b",
+        "005fec12",
+        "005fec15",
+        "005fec17",
+        "005fec19",
+        "005fec20",
+        "005fec26",
+        "005fec28",
+        "005fec2e",
+        "005fec31",
+        "005fec33",
+        "005fec39",
+        "005fec3f",
+        "005fec41",
+        "005fec42",
+        "005fec47",
+        "005fec49",
+        "005fec4d",
+        "005fec51",
+        "005fec58",
+        "005fec5c",
+        "005fec5e",
+        "005fec5f",
+        "005fec62",
+        "005fec68",
+        "005fec69",
+        "005fec6e",
+        "005fec70",
+        "005fec72",
+        "005fecab",
+        "005fecae",
+        "005fecb5",
+        "005fecb7",
+        "005fecbe",
+        "005fecc0",
+        "005fecc3",
+        "005fecc6",
+        "005fecca",
+        "005feccc",
+        "005feccd",
+        "005fecce",
+        "005feccf",
+        "005fecd0",
+        "005fecd6",
+        "00600a50",
+        "00600a56",
+        "00600a57",
+        "00600a58",
+        "00600a59",
+        "00600a5a",
+        "00600a61",
+        "00600a63",
+        "00600a65",
+        "00600a6b",
+        "00600a72",
+        "00600a79",
+        "00600a7b",
+        "00600a7d",
+        "00600a83",
+        "00600a89",
+        "00600a8b",
+        "00600a91",
+        "00600a93",
+        "00600a99",
+        "00600a9e",
+        "00600aa0",
+        "00600aa3",
+        "00600aa5",
+        "00600aab",
+        "00600ab2",
+        "00600b83",
+        "00600b84",
+        "00600b89",
+        "00600b8c",
+        "00600b8e",
+        "00600bbc",
+        "00600bbe",
+        "00600bc4",
+        "00600bcb",
+        "00600c78",
+        "00600c79",
+        "00600c7a",
+        "00600c7b",
+        "00600c80",
+        "00600c81",
+        "00600c87",
+        "00896660",
+        "00896666",
+        "00896667",
+        "00896668",
+        "0089666f",
+        "00896671",
+        "00896673",
+        "008966de",
+        "008966e0",
+        "008966e2",
+        "008966e4",
+        "008966e6",
+        "008966e7",
+        "008966ec",
+        "008966ef",
+        "008966f1",
+        "008966f3",
+        "008966f9",
+        "008966fa",
+        "00896700",
+        "00896705",
+        "00896707",
+        "00896721",
+        "00896727",
+        "0089672e",
+        "0089672f",
+        "00896730",
+        "00896731",
+        "00896737",
+        "0089673c",
+        "00896742",
+        "00896748",
+        "00896749",
+        "0089674e",
+        "0089674f",
+        "00896750",
+        "00896756",
+        "008968f0",
+        "008968f4",
+        "008968fa",
+        "008968fb",
+        "008968fc",
+        "008968fd",
+        "008968ff",
+        "00896901",
+        "00896902",
+        "00896904",
+        "00896939",
+        "00896940",
+        "00896942",
+        "00896948",
+        "0089694b",
+        "00896951",
+        "00896958",
+        "00896959",
+        "0089695a",
+        "0089695c",
+        "00896961",
+        "00896964",
+        "0089696a",
+        "00896972",
+        "00896978",
+        "0089697b",
+        "0089697e",
+        "00896980",
+        "00896983",
+        "00896985",
+        "00896989",
+        "0089698d",
+        "00896990",
+        "00896a7f",
+        "00896a80",
+        "00896a81",
+        "00896a82",
+        "00896a84",
+        "00896a85",
+        "00896a8b",
+        "008982b0",
+        "008982b6",
+        "008982b7",
+        "008982be",
+        "008982bf",
+        "008982c1",
+        "008982c3",
+        "008982c5",
+        "008982c7",
+        "008982c8",
+        "008982cd",
+        "008982d0",
+        "008982d2",
+        "008982d8",
+        "008982df",
+        "008982e1",
+        "008983e0",
+        "008983e2",
+        "008983e3",
+        "008983e4",
+        "008983ea"
+      ],
+      "return_and_abi_checked": true,
+      "complete_state_and_image_checked": true,
+      "rng_draws": 0
+    }
+  ],
+  "defect_controls": {
+    "omit-initial-write": true,
+    "omit-loop-write": true,
+    "wrong-loop-width": true,
+    "wrong-loop-value": true,
+    "wrong-loop-offset": true,
+    "reorder-loop-writes": true,
+    "extra-rng": true,
+    "unchecked-ABI": true
+  },
+  "successful_calls": 4,
+  "full_nonzero_entry_to_return": true,
+  "checkpoint_continuation": "full captured state and ordered results equal",
+  "production_admission": "none",
+  "rng_draws_per_call": 0,
+  "limits": {
+    "instruction_count": 3000,
+    "emulator_microseconds": 100000
+  },
+  "limitations": [
+    "Nonempty mapping and staff-linked lifetime paths unqualified",
+    "No constructor/appointment/original-process/UI/save/match claim",
+    "Fresh checks all declared sparse regions, not complete runtime memory"
+  ]
+}

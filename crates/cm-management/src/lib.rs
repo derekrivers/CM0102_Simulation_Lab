@@ -2,9 +2,11 @@
 //! No original UI, formation contents or saved-game compatibility is claimed.
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+pub mod effective;
 pub mod human;
 pub mod reference;
 pub mod registry;
+use effective::{EffectiveAction, EffectiveFixture, EffectiveWorld};
 use human::{HumanCommand, HumanRegistryFixture, HumanWorld};
 use reference::{ReferenceFixture, resolve_plan};
 use registry::{RegistryAction, RegistryFixture, RegistryOptionCommand, RegistryWorld};
@@ -352,6 +354,8 @@ pub enum Operation {
     ImportHumanReference { fixture: String },
     HumanCommand { command: HumanCommand },
     ImportRegistryReference { fixture: String },
+    ImportEffectiveReference { fixture: String },
+    EffectivePlanCommand { command: HumanCommand },
     RegistryOptionCommand { command: RegistryOptionCommand },
 }
 
@@ -360,6 +364,7 @@ pub struct Engine {
     world: World,
     human: Option<HumanWorld>,
     registry: Option<RegistryWorld>,
+    effective: Option<EffectiveWorld>,
 }
 impl Engine {
     pub fn request(&mut self, bytes: &[u8]) -> serde_json::Value {
@@ -373,11 +378,12 @@ impl Engine {
                 self.world = World::default();
                 self.human = None;
                 self.registry = None;
+                self.effective = None;
                 Ok(serde_json::Value::Null)
             }
             Operation::State {} => Ok(serde_json::Value::Null),
             Operation::Command { command } => {
-                if self.human.is_some() || self.registry.is_some() {
+                if self.human.is_some() || self.registry.is_some() || self.effective.is_some() {
                     Err("unsupported-command".into())
                 } else {
                     self.world
@@ -386,7 +392,11 @@ impl Engine {
                 }
             }
             Operation::HumanCommand { command } => {
-                if let Some(world) = &mut self.registry {
+                if let Some(world) = &mut self.effective {
+                    world
+                        .apply(EffectiveAction::HumanCommand(command))
+                        .map(|e| serde_json::to_value(e).expect("event"))
+                } else if let Some(world) = &mut self.registry {
                     world
                         .apply(RegistryAction::HumanCommand(command))
                         .map(|e| serde_json::to_value(e).expect("event"))
@@ -398,13 +408,28 @@ impl Engine {
                         .map(|e| serde_json::to_value(e).expect("event"))
                 }
             }
-            Operation::RegistryOptionCommand { command } => self
-                .registry
+            Operation::RegistryOptionCommand { command } => {
+                if let Some(world) = &mut self.effective {
+                    world
+                        .apply(EffectiveAction::RegistryOptionCommand(command))
+                        .map(|e| serde_json::to_value(e).expect("event"))
+                } else {
+                    self.registry
+                        .as_mut()
+                        .ok_or_else(|| "unsupported-command".to_string())?
+                        .apply(RegistryAction::RegistryOptionCommand(command))
+                        .map(|e| serde_json::to_value(e).expect("event"))
+                }
+            }
+            Operation::EffectivePlanCommand { command } => self
+                .effective
                 .as_mut()
                 .ok_or_else(|| "unsupported-command".to_string())?
-                .apply(RegistryAction::RegistryOptionCommand(command))
+                .apply(EffectiveAction::EffectivePlanCommand(command))
                 .map(|e| serde_json::to_value(e).expect("event")),
-            Operation::Save {} => if let Some(world) = &self.registry {
+            Operation::Save {} => if let Some(world) = &self.effective {
+                world.save()
+            } else if let Some(world) = &self.registry {
                 world.save()
             } else {
                 self.human
@@ -415,9 +440,17 @@ impl Engine {
             Operation::Load { save } => {
                 let envelope: Save =
                     serde_json::from_str(&save).map_err(|_| "invalid-save-envelope".to_string())?;
-                if envelope.schema_version == 4 {
+                if envelope.schema_version == 5 {
+                    EffectiveWorld::load(&save).map(|world| {
+                        self.effective = Some(world);
+                        self.human = None;
+                        self.registry = None;
+                        serde_json::Value::Null
+                    })
+                } else if envelope.schema_version == 4 {
                     RegistryWorld::load(&save).map(|world| {
                         self.registry = Some(world);
+                        self.effective = None;
                         self.human = None;
                         serde_json::Value::Null
                     })
@@ -425,6 +458,7 @@ impl Engine {
                     HumanWorld::load(&save).map(|world| {
                         self.human = Some(world);
                         self.registry = None;
+                        self.effective = None;
                         serde_json::Value::Null
                     })
                 } else {
@@ -432,6 +466,7 @@ impl Engine {
                         self.world = world;
                         self.human = None;
                         self.registry = None;
+                        self.effective = None;
                         serde_json::Value::Null
                     })
                 }
@@ -442,6 +477,7 @@ impl Engine {
                     self.world = world;
                     self.human = None;
                     self.registry = None;
+                    self.effective = None;
                     serde_json::Value::Null
                 }),
             Operation::ImportHumanReference { fixture } => HumanRegistryFixture::parse(&fixture)
@@ -449,16 +485,34 @@ impl Engine {
                 .map(|world| {
                     self.human = Some(world);
                     self.registry = None;
+                    self.effective = None;
+                    serde_json::Value::Null
+                }),
+            Operation::ImportEffectiveReference { fixture } => EffectiveFixture::parse(&fixture)
+                .and_then(EffectiveWorld::from_fixture)
+                .map(|world| {
+                    self.effective = Some(world);
+                    self.human = None;
+                    self.registry = None;
                     serde_json::Value::Null
                 }),
             Operation::ImportRegistryReference { fixture } => RegistryFixture::parse(&fixture)
                 .and_then(RegistryWorld::from_fixture)
                 .map(|world| {
                     self.registry = Some(world);
+                    self.effective = None;
                     self.human = None;
                     serde_json::Value::Null
                 }),
         });
+        if let Some(world) = &self.effective {
+            return match result {
+                Ok(value) => serde_json::json!({"ok":true,"result":value,"state":world,
+                    "plan_locations":[],"human_slot_location":world.location(),"effective_plan_result":world.last_lookup()}),
+                Err(error) => serde_json::json!({"ok":false,"error":error,"state":world,
+                    "plan_locations":[],"human_slot_location":world.location(),"effective_plan_result":world.last_lookup()}),
+            };
+        }
         if let Some(world) = &self.registry {
             return match result {
                 Ok(value) => {
