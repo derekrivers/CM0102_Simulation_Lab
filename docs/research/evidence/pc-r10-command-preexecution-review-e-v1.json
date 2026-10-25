@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "reviewer": "E independent worker; authored neither B qualifier nor static inspector",
+  "reviewed_head": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+  "decision": "approved-for-frozen-preexecution-only",
+  "method": [
+    "Exact source/dependency/contract inspection; inherited Oracle mapping/read/write/ABI/full-state audit",
+    "Independent pinned PE section extraction and eight exact range/decode/hash comparisons without repository parser imports",
+    "Independent pinned image/heap extraction of reciprocal human binding, player table and two deterministic candidate record identities without repository parser imports"
+  ],
+  "original_instructions_executed_by_reviewer": 0,
+  "production_admission": "none",
+  "source_seals": {
+    "scripts/qualify_pc_r10_command.py": {
+      "bytes": 16528,
+      "sha256": "7788a09dc60eca4ca5d650067491135022785c4f46181db25c858a58cd91f26d"
+    },
+    "scripts/pc_r10_command_static.py": {
+      "bytes": 7134,
+      "sha256": "378b9eac183f59900b24755837703b3360f12e24bbb54a7e6664fd2c1ede4546"
+    },
+    "scripts/qualify_human_registry.py": {
+      "bytes": 19560,
+      "sha256": "c26600217794ebaf39759fe0408b7d51bfef2a10f612c82fbe7b62676ffa3a39"
+    },
+    "scripts/qualify_manager_bound_plan.py": {
+      "bytes": 16592,
+      "sha256": "3fd127ff7aa71b3f16f78daabcd7977d0dbcb4b8bdcd6815bf2312413b5b18d2"
+    },
+    "docs/research/PC_R10_COMMAND.md": {
+      "bytes": 11176,
+      "sha256": "5ac55c0eb4f9ff58bb66bc6e9ff14d9521587b97d8fbe2ebd24b8233432c204c"
+    },
+    "docs/research/evidence/pc-r10-command-static-v1.json": {
+      "bytes": 3528,
+      "sha256": "4eefbac5af8a420338bf5ec643a30400d6325a629191769fa26f332ed106b052"
+    }
+  },
+  "private_preparation_seals": {
+    "static-range-extraction-prep.json": {
+      "bytes": 1688,
+      "sha256": "a20a4cb9c9640c7b383d15c86cce457d2df08df69f989981942ed92bfda5c5ef"
+    },
+    "raw-candidate-admission-prep.json": {
+      "bytes": 712,
+      "sha256": "7cbba7b772398c39749d42a7dbc40d5099f7d17ad926cdd6e5df82dc41bf0fd8"
+    }
+  },
+  "raw_candidates_verified": {
+    "player_count": 7214,
+    "complete_player_table_bytes": 504980,
+    "reciprocal_candidates": 43,
+    "invalid_list_entries_retained": 2,
+    "reciprocal_mismatches_retained": 5,
+    "chosen_record_count": 2,
+    "cache_count_zero": true,
+    "twenty_initial_mapping_dwords_empty": true
+  },
+  "resolved_findings": [
+    {
+      "finding": "Vacuous host-domain loop asserted unchanged state without exercising a validator",
+      "resolution": "Removed; host rejection explicitly not tested, twelve actual defective observation models remain"
+    },
+    {
+      "finding": "Code hook initially admitted arbitrary starts within broad ranges",
+      "resolution": "Complete frozen linear instruction start/size admission now checked"
+    }
+  ],
+  "execution_conditions": [
+    "Lead allocates single heavy slot",
+    "Frozen outer90second wall/60CPUsecond/1GiB address-space/16MiB output/1MiB console limits enforced",
+    "One exclusive retained-only campaign,11successful+4censored calls maximum; no unreviewed retry"
+  ],
+  "scope": [
+    "Two deterministic actual reciprocal member candidates,slotzero,rowmodezero,cachezero",
+    "Complete retained heap and loaded official image,exact ABI/EAX,ordered effects,admitted reads/starts and checkpoint continuation",
+    "Unsupported originals remain censored; no original diagnostic rejection claim",
+    "No fresh table,other slots,cache invalidation,duplicates/swaps,original UI/process/save or whole-game admission"
+  ],
+  "private_audit": {
+    "bytes": 3570,
+    "sha256": "970bf713cf09c1cc28dbb4353f10042aa8871f4ae4a7ccb15fd3402e70f514be"
+  }
+}
