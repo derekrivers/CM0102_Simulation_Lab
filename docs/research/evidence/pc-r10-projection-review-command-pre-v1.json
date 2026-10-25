@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "reviewed_head": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+  "previous_reviewed_head": "792c2b4b3322f50b4e5a9cc117d929a34cd5eaf0",
+  "result": "approved-for-one-frozen-retained-only-research-campaign-with-lead-resource-envelope",
+  "reviewer": "lane C; no B qualifier/static inspector authorship",
+  "open_source_findings": [],
+  "independent_selection": {
+    "method": "Pinned raw image/heap direct standard-library extraction before importing B candidates solely for exact result comparison; no B producer parser used for extraction",
+    "private_source": "pc-r10-c-review-command-source.py",
+    "private_source_sha256": "5d43297c419afaa03670f6e820de3612cebb3ede7e0edd3be7a5ef6adf76a103",
+    "private_audit": "pc-r10-c-review-command-20261025-a1/records.json",
+    "private_audit_sha256": "adb610a252ac7288b44257912b459d1fd78c4da4848310fb6282a3d1c9afe62a",
+    "selected_records": [
+      {"staff_sha256": "127ebfbe222a9ab3cabe85ea4748779629e1ae94aeac6836f7822de757eba2b0", "player_sha256": "bca100da7b8a97f3aeb5b1bbbe481c9982e08014ddf190484cbac5cc1d9c7125"},
+      {"staff_sha256": "f05f6e4eba17c86384bd57b0feeda52b9cb57cffc524f7f23c886b14da433bb6", "player_sha256": "147a21f1d10ba2ab3bea401f562ec5329c1eb9f96bf527a91c8506d36c8b0ede"}
+    ],
+    "producer_comparison": "exact same two lowest sorted reciprocal real staff IDs and record hashes; candidates code unchanged at final reviewed head",
+    "full_player_table_bytes": 504980,
+    "full_player_table_sha256": "110e34f05248a78c5e63f0755b7c28af6f9e7de5f29deba4d0e223c8731c140d",
+    "cache_zero_and_twenty_empty_mapping": true,
+    "anomalous_seven_list_entries": "preserved and excluded from chosen two, not repaired or called qualified complete squad"
+  },
+  "source_checks": [
+    "Original PE independently hash-verified; two player count/base/ID/70-byte-loop and link-construction excerpts independently decoded directly with Capstone, range hashes equal static receipt",
+    "Five exact original routine ranges and five CALL edges; final frozen linear instruction start/size admission reviewed",
+    "Exact field/width non-stack reads; zero-cache slot-zero DWORD write and exact original write PC; complete retained heap and loaded official image invariant after each call",
+    "Inherited oracle checks exact EAX, RET16/RET12 stack cleanup and callee-saved registers; bounded 3000 instructions/100ms per call",
+    "Eleven supported calls, four censored original probes, repeated full-checkpoint suffix and twelve exercised defective-model controls reviewed",
+    "Final head removes unexercised host-domain claim and says no production validator exists"
+  ],
+  "initialized_lifetime_boundary": "Real complete staff110/player70 extents, aligned IDs, actual reciprocal binding, original player-link construction and readback nonnull test justify attempting this immutable initialized domain. Campaign must still establish all complete bytes/link values remain invariant across exact sequences and no unadmitted allocation/free/other call executes. Pointer presence alone is not qualification.",
+  "execution_condition": "Lead applies frozen outer 90-second wall,60-second CPU,1GiB address-space,16MiB per-file,1MiB console envelope with exclusive retained attempt paths; qualifier itself implements per-call emulator limits only",
+  "exclusions": [
+    "No original instructions executed by this review and no post-execution qualification inferred",
+    "No production fixture admission, mutable-world semantics, full squad or player lifecycle claim",
+    "C authored related raw inventory; lead independently covers shared initialized-lifetime gate and must not use this receipt as sole admission"
+  ]
+}

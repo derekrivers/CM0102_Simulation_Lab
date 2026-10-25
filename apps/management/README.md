@@ -125,3 +125,13 @@ Set `REFERENCE_FIXTURE` to the recovered private fixture path when running
 contain only hashes and summaries. Captured-name screenshots and exported state
 remain in ignored local test output. Capture provenance and exclusions are in
 `docs/research/PC_R3_CAPTURE_INPUT.md` and `MANAGER_BOUND_PLAN.md`.
+
+For on-demand connected setup, configure `EFFECTIVE_REFERENCE_FIXTURE` when
+starting the loopback preview and choose **Load connected human reference**.
+Rust admits the complete existing v5 fixture; the private file stays outside
+`dist`. Both human and ordinary screens offer this explicit setup action. The
+human screen labels its origin and states that squad records and lineup changes
+are unavailable. This convenience does not add a real squad or lineup action.
+`node check-browser-journey.cjs` is the additive actual-browser setup/save/reopen
+check; retain the complete existing browser/storage suites as separate gates.
+See `docs/research/PC_R10_BROWSER_JOURNEY.md` for the frozen boundary.

@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "decision": "approved-truthful-failed-result-report-only",
+  "reviewed_report_revision": "7445c3ae593ae21a7705fd25bb1e98230eef8324",
+  "executed_experimental_revision": "1007f45fc5f6267ee283ffc804754d39cf8c9f9a",
+  "reviewer": "lane A; GPT-6.1 Sol medium; authored neither R9b observer, driver, contract nor result",
+  "reviewed_files": [
+    {
+      "path": "docs/research/PC_R9B_FILE_USE.md",
+      "bytes": 12095,
+      "sha256": "2cf416a1094773a26e8e50579be4f2a5d2913946b71d17a8047f87c70a359238"
+    },
+    {
+      "path": "docs/research/evidence/pc-r9b-attempt1-failed-policy-v1.json",
+      "bytes": 5539,
+      "sha256": "370a539b1061d685bc66475fc1106eb4c3772f250d3462e21ca76f4c840daa93"
+    }
+  ],
+  "source_code_promotion_approved": false,
+  "actual_artifact_verification": {
+    "sealed_private_artifacts_rehashed": 155,
+    "actual_clean_manifest_members_rehashed_and_device_inode_checked": 760,
+    "actual_ldd_reported_runtime_dependencies_rehashed": 49,
+    "executed_git_and_archived_source_files_verified": 5,
+    "chronological_stable_per_arm_seals_verified": 8,
+    "campaign_before_after_interval_seconds": 368.100230688,
+    "actual_compiler_python_host_route_smoke_baseline_derivative_observer_build_receipts_checked": true,
+    "held_executable_hashes_seed_fixed_clock_fourteen_day_script_checked": true,
+    "before_after_manifest_and_official_pe_identities_checked": true,
+    "private_receipt": {
+      "bytes": 21735,
+      "sha256": "62ac0159b1650851758e8538633eabea2597424476d55f42d6db8f37572414b9"
+    }
+  },
+  "observed_outcome": {
+    "successful_executions": 2,
+    "attempted_executions": 4,
+    "complete_observations": 0,
+    "attempted_observations": 2,
+    "enabled_arm_exit_codes": [
+      -31,
+      -31
+    ],
+    "enabled_trace_bytes_each": 55,
+    "enabled_trace_sha256_each": "3ac738bbbcbb6da661af58288b1d7c3f29141747d61eb02f159ae2f0b450da21",
+    "trace_contents": "exact header plus policy line; no aggregate rows or footer",
+    "aggregate_operation_byte_and_error_counters": "unknown; no completed destructor aggregate flush/footer",
+    "specific_forbidden_syscall": "unknown; SIGSYS alone does not identify it",
+    "enabled_endpoint_saves_and_sparse_captures": "absent",
+    "baseline_disabled_and_retained_r5_saves": "complete bytes independently equal",
+    "disabled_and_both_retained_r5_captures": "complete bytes independently equal"
+  },
+  "qualified_claim_boundary": {
+    "execution": "failed campaign; successful baseline/disabled subset only",
+    "completeness": "failed",
+    "four_arm_endpoint_and_captured_range_noninterference": "not qualified because enabled outputs absent; no claim of observed byte divergence",
+    "clean_tree_file_use_provenance": "unknown",
+    "original_bosman_comparison": "not-run",
+    "original_windows_process_launched": false,
+    "mapped_page_access_semantic_use_full_live_state_equality": "not qualified"
+  },
+  "independent_method": "Standard-library artifact/hash/seal audit and raw trace inspection importing no producer parser. Both actual streams contain only two lines, so no actual aggregate counters or footer are available to verify. Complete subset save/capture bytes compared directly. No Bosman/emulator/build rerun.",
+  "pre_execution_review_verified": {
+    "bytes": 2181,
+    "sha256": "e938e56b8d0b4f979138064f37fb76eb5712a3bd302e97e8faac661cfed418e4",
+    "scope": "B exact-source review and eleven repeated mechanism controls; A did not rerun these controls"
+  },
+  "resolved_report_finding": {
+    "before": "destructor not reached asserted from incomplete trace",
+    "after": "unknown; no completed destructor aggregate flush/footer",
+    "resolution_revision": "38c4763e56798eb9d310733543b6858e351680ad"
+  },
+  "private_review_artifacts": [
+    {
+      "role": "artifact-audit.json",
+      "bytes": 2046,
+      "sha256": "f7096549af7e46f0681b6ae876e5f7ae58e762153675217c1a57fe247abd01a2"
+    },
+    {
+      "role": "audit-draft.py",
+      "bytes": 6461,
+      "sha256": "1194331b2436a44be453c7bce722374082d6bdccede27509f8c64894614d0b03"
+    },
+    {
+      "role": "audit.py",
+      "bytes": 8966,
+      "sha256": "24367ff56443a7f255096f4c5713a1425333d73b3ba073d0bab853ec36ce85b7"
+    },
+    {
+      "role": "extra-audit-sealed.json",
+      "bytes": 3979,
+      "sha256": "8345c4dd86caa99dfa31f90b2641b16925eed4f30562cef012cffde626cfa57f"
+    },
+    {
+      "role": "extra-audit.json",
+      "bytes": 4310,
+      "sha256": "7de19b08d4b76b315e29a94217f922e5865e43e194b47f14cd7f6fbf35946603"
+    },
+    {
+      "role": "extra-audit.py",
+      "bytes": 4451,
+      "sha256": "16c2d3009a79718dec52d29be1922f797c0bc6f6473bcad976f818509d40aa8e"
+    },
+    {
+      "role": "frozen-source-audit.json",
+      "bytes": 1215,
+      "sha256": "606ba362a355bb8925f6253054556f4cd7dd820a57b677c86233807273c28787"
+    }
+  ],
+  "limitations": [
+    "All R9/R9b unsuccessful observer/driver/control code remains experimental off main",
+    "No new experiment or policy relaxation authorized",
+    "The forty-nine-library inventory covers ldd-reported transitive DT_NEEDED dependencies, not later dlopen modules",
+    "Initial independent freeze audit used an incorrect flattened locator and failed before output; corrected full-relative-path check passed, with note retained",
+    "Small read-only audit checks were repeated once from a saved source to bind their precise source identity; no game campaign repeated"
+  ]
+}

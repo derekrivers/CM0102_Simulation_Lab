@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "reviewed_revision": "c44a03f10b5381ea66e370c1841a293e72b37a7f",
+  "reviewer": "lane A; GPT-6.1 Sol medium",
+  "decision": "approved-structural-inventory-only",
+  "files": [
+    {
+      "path": "scripts/pc_r10_projection_inventory.py",
+      "sha256": "7c42169d6adc241d1fdee3618d85a750ac84532af65b2fcd316285666db4e740"
+    },
+    {
+      "path": "scripts/pc_r10_projection_controls.py",
+      "sha256": "daa6dcb1e2712abb0117cc81c745c06f6e928d2efc914860db406f5fd0ef1a2b"
+    },
+    {
+      "path": "docs/research/PC_R10_PROJECTION.md",
+      "sha256": "adc49bc538a44397ecee46a355ec0d965c0844091518ac0c949fd5ce11a69924"
+    },
+    {
+      "path": "docs/research/evidence/pc-r10-projection-inventory-v1.json",
+      "sha256": "3497c08c32f6a4c6f34cd3db8e4a22d3b9ad7b51488bacd23b8b759ffd24e4a0"
+    }
+  ],
+  "verified": [
+    "Independent no-C-parser retained/fresh raw extraction agrees on forty-eight aligned candidate staff pointers, five club-link mismatches, nonnull links and all twenty empty standard mapping words",
+    "All six C inventory receipts and retained player extent receipt hashes agree with actual private artifacts",
+    "Independent standalone retained raw parser confirms full hypothesized player table 504980 bytes, SHA256 110e34f05248a78c5e63f0755b7c28af6f9e7de5f29deba4d0e223c8731c140d, zero ID/index mismatches and forty-eight full aligned matching-ID links",
+    "Executed a3 source59e5ea9be69efba75c577759c80fa614e3d4f50a5990d53e356634480792309e matches final7c42169d6adc241d1fdee3618d85a750ac84532af65b2fcd316285666db4e740 except trailing three CRLF sequences replaced with one LF",
+    "Five optimized-Python synthetic parser controls independently repeated and passed",
+    "Source/doc/receipt privacy and scope boundaries inspected"
+  ],
+  "resolved_findings": [
+    {
+      "finding": "a3 exact executed source and standalone player check source were not retained separately",
+      "resolution": "Private source.py recovered hash-identically; player-check.py logically recovered from tool transcript and hash-bound; explicit post-run-source provenance limitation retained in C evidence"
+    },
+    {
+      "finding": "Doc said no player records decoded despite IDs-only retained check",
+      "resolution": "Doc explicitly limits claim to IDs-only structural check and no gameplay attributes"
+    }
+  ],
+  "private_review_artifacts": [
+    {
+      "role": "corroborate.py",
+      "bytes": 1857,
+      "sha256": "a9198ab74fc6826b260d2e26a85b8a735eca5c932a9ea88a929f84b0c23db797"
+    },
+    {
+      "role": "raw-corroboration-sealed.json",
+      "bytes": 448,
+      "sha256": "04acdde769ec7465513d87b3b299a7b65d98355f22cfc0603148745d6d97ae8f"
+    },
+    {
+      "role": "raw-corroboration.json",
+      "bytes": 448,
+      "sha256": "04acdde769ec7465513d87b3b299a7b65d98355f22cfc0603148745d6d97ae8f"
+    }
+  ],
+  "exclusions": [
+    "A and C co-investigated aggregate structure; this is not sole admission of shared semantic claims",
+    "No real squad projection, membership semantics, linked-state lifetime, command qualification or fingerprint admission approved",
+    "No new capture, emulator, native build or browser acceptance executed in this review",
+    "Standalone C player-check source is post-run logical reconstruction, not a contemporaneous execution source seal; raw result independently corroborated"
+  ],
+  "original_windows_process_launched": false
+}

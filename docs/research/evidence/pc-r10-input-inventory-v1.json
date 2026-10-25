@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "status": "blocked-preexisting-nonempty-input",
+  "source_sha256": "9efcecf9ca96a517674526f524278217f5517a4d068b80309c0b4c7be5e7fcb7",
+  "searched_private_roots": 2,
+  "candidate_artifact_count": 10,
+  "sparse_artifacts": 6,
+  "distinct_sparse_sha256": [
+    "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40"
+  ],
+  "retained_snapshot_pairs": 2,
+  "second_pair_not_admitted": "heap matches pinned retained heap; image differs; no nonempty state inferred",
+  "inventory_results": [
+    {
+      "schema_version": 1,
+      "input_sha256": [
+        "ae11ce3ef6267ad55be6aa6387f676704b1bb8a6310507db6c5ccfe494d45c3a",
+        "30ee2baefad8f57f8760f30abc076586f2d13339bb1629f75346a5dcbc1357a0"
+      ],
+      "reciprocal_human_binding_count": 1,
+      "bindings": [
+        {
+          "candidate_club_membership_slots": 50,
+          "candidate_club_membership_null": 0,
+          "candidate_club_membership_minus_one": 0,
+          "candidate_club_membership_valid_staff_pointers": 48,
+          "candidate_club_membership_invalid_pointers": 2,
+          "candidate_club_membership_duplicate_ids": 0,
+          "candidate_member_nonnull_player_links": 48,
+          "candidate_member_id_mismatches": 0,
+          "candidate_member_club_mismatches": 5,
+          "candidate_member_ids_sha256": "7f1e06afe5e738470e8c303a5d484718a727bd4619e14fb8c0c1f8f1f3b86370",
+          "standard_mapping_entries": 20,
+          "standard_mapping_empty": 20,
+          "standard_mapping_nonempty": 0,
+          "nonnull_link_for_mapped_staff": 0,
+          "staff_same_club_pointer_and_nonnull_61": 43,
+          "associated_staff_id_sequence_sha256": "5d953b3afca1bf26a29d5793c1acff1525805581c1053ba1279d0fceeb063830",
+          "mapping_row_sha256": "26561a90d28e101b330f0d2f5f071d8c10319a3e72274c6239174cebf99d8021",
+          "registry_row_sha256": "5acfb13b37df041f03bf4a887abde1ac6f9ec4928709ab24112e545a2945f21a",
+          "context_cache_count": 0,
+          "guard": 1,
+          "option_two": 0,
+          "selected_slot": 0
+        }
+      ],
+      "ordinary_bank_counts": [
+        17,
+        28
+      ],
+      "nonempty_input_qualified": false,
+      "production_admission": "none",
+      "scope": "structural inventory only; +0x39/+0x61 association is not squad semantics or lifetime qualification",
+      "original_windows_process_launched": false,
+      "execution_status": "completed-structural-inventory",
+      "source_sha256": "9efcecf9ca96a517674526f524278217f5517a4d068b80309c0b4c7be5e7fcb7",
+      "input_kind": "retained"
+    },
+    {
+      "schema_version": 1,
+      "input_sha256": [
+        "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40"
+      ],
+      "reciprocal_human_binding_count": 1,
+      "bindings": [
+        {
+          "candidate_club_membership_slots": 50,
+          "candidate_club_membership_null": 0,
+          "candidate_club_membership_minus_one": 0,
+          "candidate_club_membership_valid_staff_pointers": 48,
+          "candidate_club_membership_invalid_pointers": 2,
+          "candidate_club_membership_duplicate_ids": 0,
+          "candidate_member_nonnull_player_links": 48,
+          "candidate_member_id_mismatches": 0,
+          "candidate_member_club_mismatches": 5,
+          "candidate_member_ids_sha256": "7f1e06afe5e738470e8c303a5d484718a727bd4619e14fb8c0c1f8f1f3b86370",
+          "standard_mapping_entries": 20,
+          "standard_mapping_empty": 20,
+          "standard_mapping_nonempty": 0,
+          "nonnull_link_for_mapped_staff": 0,
+          "staff_same_club_pointer_and_nonnull_61": 43,
+          "associated_staff_id_sequence_sha256": "5d953b3afca1bf26a29d5793c1acff1525805581c1053ba1279d0fceeb063830",
+          "mapping_row_sha256": "26561a90d28e101b330f0d2f5f071d8c10319a3e72274c6239174cebf99d8021",
+          "registry_row_sha256": "3b1c8d6007e6bbe0e9b13daf0edd20c9afb72b60ebf4d47cad092f1ac13e3ed5",
+          "context_cache_count": 0,
+          "guard": 0,
+          "option_two": 0,
+          "selected_slot": 0
+        }
+      ],
+      "ordinary_bank_counts": [
+        17,
+        28
+      ],
+      "nonempty_input_qualified": false,
+      "production_admission": "none",
+      "scope": "structural inventory only; +0x39/+0x61 association is not squad semantics or lifetime qualification",
+      "original_windows_process_launched": false,
+      "execution_status": "completed-structural-inventory",
+      "source_sha256": "9efcecf9ca96a517674526f524278217f5517a4d068b80309c0b4c7be5e7fcb7",
+      "input_kind": "sparse"
+    }
+  ],
+  "controls": {
+    "missing_input_rejected": true,
+    "failed_receipt_retained": true,
+    "existing_output_rejected_unchanged": true,
+    "source_compiles": true,
+    "wrong_image_identity_rejected": true
+  },
+  "private_audit_artifacts": [
+    {
+      "role": "artifact-inventory.json",
+      "bytes": 2139,
+      "sha256": "aa27bb8fb56c7f2bb07e846c8cd6d3e3f6008fe7ab3de9c35cf2cbbc542ca2bf"
+    },
+    {
+      "role": "controls.json",
+      "bytes": 186,
+      "sha256": "5afb0ee750cba2a665b6c25cc5b75313be4a1abb702e3d4f86ecb1447cfb6389"
+    },
+    {
+      "role": "executed-source.py",
+      "bytes": 8740,
+      "sha256": "ea2f26a55d5f60a580146f9e8f253dc08bb610b7d8e34e468e0e2287dc56aa23"
+    },
+    {
+      "role": "final-source.py",
+      "bytes": 9257,
+      "sha256": "9efcecf9ca96a517674526f524278217f5517a4d068b80309c0b4c7be5e7fcb7"
+    },
+    {
+      "role": "fresh.json",
+      "bytes": 1695,
+      "sha256": "a0e7b6cf1d973d746e07d920a20a4794e4b257f9a03e62560df1f94cfb90f038"
+    },
+    {
+      "role": "initial-failure.json",
+      "bytes": 217,
+      "sha256": "0206e12693932e5be6f63c5e183842f99cf543e900aa636c90f39d6e736df847"
+    },
+    {
+      "role": "initial-source.py",
+      "bytes": 8206,
+      "sha256": "113259051e40e83ec521f4f181315a700b04b6b82d19734322da7f9637bcba0a"
+    },
+    {
+      "role": "missing-input-control.json",
+      "bytes": 224,
+      "sha256": "cf5ee99be0fa8b0edf38ca9f33b165c49d62c811065940a2025c40506997a9d7"
+    },
+    {
+      "role": "retained-final.json",
+      "bytes": 1873,
+      "sha256": "30a55f76146a2bcde2192f6bca557743ab42e87b442b6ac456ec5eaf3455f39f"
+    },
+    {
+      "role": "retained-v2.json",
+      "bytes": 1817,
+      "sha256": "1ece54df156a4404fcc7570e0c7e5ea8f296f44bdaf52f742518131019c315f8"
+    },
+    {
+      "role": "retained.json",
+      "bytes": 1769,
+      "sha256": "103ae9963f33aa96e54e2c40e068166f5e619af8ccca5e400a8f053e6bc0e531"
+    },
+    {
+      "role": "second-failure.json",
+      "bytes": 218,
+      "sha256": "682d9da2e13b34d4db5dbc67b00d0893edeb00766a53dbc9d2f2b542b38b5b92"
+    },
+    {
+      "role": "second-source.py",
+      "bytes": 8370,
+      "sha256": "05c170d72730c54265498f3506336f944a0be985269e0b5fe985c04584ee76e0"
+    },
+    {
+      "role": "sparse-final.json",
+      "bytes": 1799,
+      "sha256": "757715fc42911e5e999808494b3ede326aae4370a4a551f114ec6f6c05dfed00"
+    },
+    {
+      "role": "sparse-v2.json",
+      "bytes": 1743,
+      "sha256": "568184b67783dc6eddba7e8f9c3e043ee6683d9a9b4697f4d839d364b04835b8"
+    },
+    {
+      "role": "third-source.py",
+      "bytes": 8549,
+      "sha256": "3654d0375aae90448f8145d6c88c18707a06a9de98819ceb790ebeca32e9e970"
+    },
+    {
+      "role": "wrong-image-identity-control.json",
+      "bytes": 223,
+      "sha256": "a2b04c46052aac9d2583ab2709bb03e6026a377ab6dca08a729adc9fd222b0ad"
+    }
+  ],
+  "independent_review": "pending",
+  "new_capture_executed": false,
+  "official_instruction_campaign_executed": false,
+  "original_windows_process_launched": false,
+  "production_admission": "none",
+  "limitations": [
+    "Only specified private roots and conventional image.bin/heap.bin/capture.bin artifact names inventoried",
+    "No preexisting nonempty reciprocal human lineup found in the admitted retained/fresh inputs",
+    "Club+0xd7 fifty-pointer hypothesis fails full structural checks; two invalid nonzero nonsentinel values and five club-link mismatches remain unexplained",
+    "Non-null player links do not establish live pointee extent or lifetime",
+    "Clean-tree consumption and original-process parity remain unknown",
+    "Original assignment into initially empty mapping is a separate potential command gate"
+  ],
+  "base_revision": "33e415f712e315548ccec9c7f63afd6bc7b33266",
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "upstream_pins": {
+    "reversal": "9b0d1a5fa5dd6c9dc8f4efc69e14bcd49c052345",
+    "fresh_bosman": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "retained_bosman": "f9583098d39c77ac6982a5aa9daec56d74454531"
+  },
+  "commands": [
+    "python3 scripts/pc_r10_input_inventory.py retained RETAINED_SNAPSHOT NEW_PRIVATE_RECEIPT",
+    "python3 scripts/pc_r10_input_inventory.py sparse R5_CAPTURE NEW_PRIVATE_RECEIPT"
+  ]
+}

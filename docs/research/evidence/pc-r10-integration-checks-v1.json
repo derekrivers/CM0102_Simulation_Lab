@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "checks": [
+    {
+      "name": "projection-controls",
+      "command": [
+        "python3",
+        "-O",
+        "scripts/pc_r10_projection_controls.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.2852,
+      "log_bytes": 103,
+      "log_sha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6"
+    },
+    {
+      "name": "journey-syntax",
+      "command": [
+        "node",
+        "--check",
+        "apps/management/check-browser-journey.cjs"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.0452,
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "preview-syntax",
+      "command": [
+        "node",
+        "--check",
+        "apps/management/preview.cjs"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.0284,
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.0077,
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-equality",
+      "reference": "5238951",
+      "paths": [
+        "apps/management"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "source-equality",
+      "reference": "83c700b",
+      "paths": [
+        "scripts/pc_r10_command_static.py",
+        "scripts/qualify_pc_r10_command.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "source-equality",
+      "reference": "c46ce2e",
+      "paths": [
+        "scripts/pc_r10_projection_inventory.py",
+        "scripts/pc_r10_projection_controls.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "source-equality",
+      "reference": "521273a",
+      "paths": [
+        "scripts/pc_r10_input_inventory.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "source-equality",
+      "reference": "33e415f",
+      "paths": [
+        "crates",
+        "Cargo.toml",
+        "Cargo.lock",
+        "config",
+        ".github",
+        "tools"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "python_syntax_files": 4,
+  "relative_links_checked": 91,
+  "changed_json_valid": true,
+  "unqualified_r9b_code_on_main": false,
+  "heavy_jobs_run": false
+}

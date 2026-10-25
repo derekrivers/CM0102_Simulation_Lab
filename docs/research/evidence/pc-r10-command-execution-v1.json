@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "executed_revision": "f6b40528d668901eacb04ab50ec2d8fa333084ef",
+  "qualifier_unchanged_from_reviewed_revision": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+  "execution_status": "succeeded",
+  "original_successful_calls": 11,
+  "original_censored_calls": 4,
+  "defect_models_rejected": 12,
+  "outer_elapsed_seconds": 13.849964520006324,
+  "inner_elapsed_seconds": 13.367529377006576,
+  "source_input_tool_seals_unchanged": true,
+  "limits": {
+    "wall_seconds": 90,
+    "cpu_seconds": 60,
+    "address_space_bytes": 3221225472,
+    "each_file_bytes": 16777216,
+    "each_console_bytes": 1048576
+  },
+  "private_artifacts": {
+    "before.json": {
+      "bytes": 2504,
+      "sha256": "349b50b5169eabe6e53c85c9044f1464c7947238fe1d75a554b64568566c72bd"
+    },
+    "stdout.log": {
+      "bytes": 111,
+      "sha256": "242eb31626a228701a6a80ede537379b9fe2da9272c40fc53255785de2fb37f1"
+    },
+    "launch.py": {
+      "bytes": 3355,
+      "sha256": "8a9a2c2541f2c74eafabd1f200275368bdab9015e804d71a5d12c1efb39b1919"
+    },
+    "receipt.json.timing.json": {
+      "bytes": 19933,
+      "sha256": "206a0fb64f872ee0b64c1adb7a2adbc4c2c8318e6383ec37199053cfea59895c"
+    },
+    "result.json": {
+      "bytes": 946,
+      "sha256": "4d02e19defefefbd5daf31d4654020711a7ef4471c20cbd00f625119523f3bd2"
+    },
+    "stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "receipt.json": {
+      "bytes": 54841,
+      "sha256": "504f4f1142597f4f8e451e15837383df2527a2afc921149e4f72d75a8fb8d877"
+    }
+  },
+  "prior_failed_attempt": {
+    "revision": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+    "original_calls": 0,
+    "record": "pc-r10-command-initialization-v1.json",
+    "retained_unchanged": true
+  },
+  "preexecution_review": {
+    "source": "E independent plus lead; C independently reconstructed selected records",
+    "resource_followup": "E independently reproduced zero-game initialization; lead separately approved 3 GiB follow-up"
+  },
+  "postexecution_review": "pending-independent-evidence-review",
+  "production_admission": "none",
+  "scope": "two exact retained initialized reciprocal candidate members; original slot-zero assignment/readback; no complete-squad/browser/save claim"
+}

@@ -1,0 +1,60 @@
+{
+  "source": "33e415f712e315548ccec9c7f63afd6bc7b33266",
+  "rust_source_unchanged": true,
+  "stages": [
+    {
+      "stage": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.691,
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "rust-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 37.555,
+      "log_bytes": 10772,
+      "log_sha256": "36032e2ece15cfeab58c713d1ba79f38a3ce9b3ef0150bf52c137bba9f7d7621"
+    },
+    {
+      "stage": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.846,
+      "log_bytes": 759,
+      "log_sha256": "8f7821c6be4562e39ba7880e6f5123eaa4b97098da6f8eaeea9dc4d90d3cfbe9"
+    }
+  ],
+  "schema_version": 1,
+  "rust_serial_tests": 86,
+  "private_attempt": "pc-r10-lead-validation-a1",
+  "current_rust_source_identical_to_tested_base": true,
+  "browser_validation": "pc-r10-browser-validation-v1.json",
+  "corrected_journey_validation": "pc-r10-browser-validation-v2.json",
+  "limits": [
+    "Core is unchanged; fresh native/WASM builds and new UI/actual Chromium checks are recorded by lane E.",
+    "Research scripts require their own affected controls/review; these Rust checks do not qualify them.",
+    "No original Windows process, deployment, original save or whole-game gate."
+  ]
+}

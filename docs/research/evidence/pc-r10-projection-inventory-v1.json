@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "status": "inventory-only-not-admitted",
+  "source_base": "33e415f712e315548ccec9c7f63afd6bc7b33266",
+  "script_sha256": "7c42169d6adc241d1fdee3618d85a750ac84532af65b2fcd316285666db4e740",
+  "controls_sha256": "daa6dcb1e2712abb0117cc81c745c06f6e928d2efc914860db406f5fd0ef1a2b",
+  "private_attempts": [
+    {
+      "id": "pc-r10-projection-inventory-20261025-a1",
+      "source_sha256": "38fe9f957697499a66a30840509d160fd9d59a15370488ff2ed26528bc3f4e9c",
+      "retained_receipt_sha256": "7edb3ec4b319cc3fc1694e2fcabd06581c0bf895e856e682499ed95f1c99fafc",
+      "fresh_receipt_sha256": "7b472f19ce51f204f9f502e7c9d1aca674ba57b5e6e238b2faa7c61c2bc74ed8",
+      "limitation": "No minus-one pointer counter; preserved unchanged"
+    },
+    {
+      "id": "pc-r10-projection-inventory-20261025-a2",
+      "retained_receipt_sha256": "5042389219a846406df17e92129b21dc943eb0bd0ee0c4a52b2fa474b1ef63f4",
+      "fresh_receipt_sha256": "eb415a4cbe250239888dfaa441e0b47d129666b36ad3e9a56f74891ab9c0b5da",
+      "counts_each": {
+        "slots": 50,
+        "aligned_staff_links": 48,
+        "outside_or_unaligned": 2,
+        "minus_one_pointer": 0,
+        "duplicate_pointer": 0,
+        "staff_id_mismatch": 0,
+        "club_link_mismatch": 5,
+        "reciprocal_player_candidates": 43,
+        "sixteen_mapping_minus_one": 16
+      },
+      "player_link_first_byte_coverage": {
+        "retained": 48,
+        "fresh": 0
+      }
+    },
+    {
+      "id": "pc-r10-projection-inventory-20261025-a3",
+      "retained_receipt_sha256": "ddd7895105cb4690cfcfc056f4a380ceb2912fe7ab984f629d697d1651878b3d",
+      "fresh_receipt_sha256": "8b977fbd5136f90f1849a8d7ed3d30e5dead3eb0538497b9e723557be4f769d1",
+      "mapping_slots": 20,
+      "empty_minus_one_each": 20,
+      "player_retained_receipt_sha256": "b8f2d636fbf107f62dcc8245b4e896e0b6618a22410452c9024f4b52591d9165",
+      "player_table_sha256": "110e34f05248a78c5e63f0755b7c28af6f9e7de5f29deba4d0e223c8731c140d",
+      "player_table_bytes": 504980,
+      "player_table_id_mismatch": 0,
+      "aligned_full_player_links": 48,
+      "player_check_scope": "Standalone standard-library structural check only; layout hypothesis, no lifetime/backlink qualification",
+      "executed_source_sha256": "59e5ea9be69efba75c577759c80fa614e3d4f50a5990d53e356634480792309e",
+      "retained_source": "pc-r10-projection-inventory-20261025-a3/source.py; recovered byte-exact executed file from final source plus three trailing CRLF sequences; SHA256 matches pre-normalization recorded identity",
+      "player_check_source": "pc-r10-projection-inventory-20261025-a3/player-check.py",
+      "player_check_source_sha256": "679848eae4bdf1f2f952d34012b7fde8adfc638dc3c4371af9df041564517a45",
+      "player_check_source_provenance": "Recovered verbatim logical Python stdin from executed tool transcript after run; not a contemporaneous pre-execution source seal; independent lane A raw parser corroborates result"
+    }
+  ],
+  "validation": {
+    "command": "python3 -O scripts/pc_r10_projection_controls.py",
+    "tests": 5,
+    "result": "passed",
+    "scope": "synthetic parser mechanics only"
+  },
+  "elapsed": "Tool reported first paired inventory command 0.680s; controls and second pair command 1.013s; no separate deterministic timing claim",
+  "production_admission": "none",
+  "original_execution": "not-run",
+  "limitations": [
+    "Independent admission still required",
+    "Candidate field semantics and linked-state lifetime not qualified",
+    "No member names, raw records, IDs or native pointers published",
+    "No new Rust/save/profile/allowlist changes"
+  ],
+  "final_source_change": "Executed a3 ends with three CRLF sequences after final code line; final script replaces those six bytes with one LF; all preceding bytes equal. Exact executed source retained privately. Final optimized controls repeated."
+}

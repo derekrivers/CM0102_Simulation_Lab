@@ -1,0 +1,46 @@
+{
+  "execution_head": "f6b40528d668901eacb04ab50ec2d8fa333084ef",
+  "result": "reviewed-qualified-retained-only-research",
+  "original_instructions_executed_by_reviewer": 0,
+  "private_artifacts_verified": 6,
+  "source_input_tool_seals_verified": 10,
+  "successful_calls": 11,
+  "censored_calls": 4,
+  "defect_models": 12,
+  "expected_heap_digests_independently_reconstructed": 3,
+  "ordered_reads_independently_checked": 145,
+  "every_instruction_start_and_call_checked": true,
+  "complete_checkpoint_suffix_receipt_equal": true,
+  "first_initialization_failure_retained": true,
+  "receipt": {
+    "bytes": 54841,
+    "sha256": "504f4f1142597f4f8e451e15837383df2527a2afc921149e4f72d75a8fb8d877"
+  },
+  "result_artifact": {
+    "bytes": 946,
+    "sha256": "4d02e19defefefbd5daf31d4654020711a7ef4471c20cbd00f625119523f3bd2"
+  },
+  "timing": {
+    "bytes": 19933,
+    "sha256": "206a0fb64f872ee0b64c1adb7a2adbc4c2c8318e6383ec37199053cfea59895c"
+  },
+  "outer_elapsed_seconds": 13.849964520006324,
+  "qualifier_fullheap_loadedimage_abi_assertions_reviewed": true,
+  "scope": "Two sorted real reciprocal members; original slot0 assignment/repetition/replacement/readback; retained initialized lifetime/cache0/rowmode0 only. No fresh/complete squad projection/production fingerprint/command/save/UI or original-process claim.",
+  "schema_version": 1,
+  "reviewed_final_head": "83c700b089d9bed86730ff7cba835eaba107efdb",
+  "decision": "approved-bounded-retained-research-no-actionable-findings",
+  "reviewer": "E; authored no B source or original execution receipt",
+  "private_audit": {
+    "bytes": 1324,
+    "sha256": "e4c6bd11e1e8c288cfdd9fa5c61cdebc592f5b3fdcdfd3488cd775dac3e1f9cf"
+  },
+  "independent_extraction_script": {
+    "bytes": 6516,
+    "sha256": "7e017d70465fe4420bf6e66584240bd359445b3c12d44d84f9a05ecc49e12e79"
+  },
+  "public_execution_record": {
+    "bytes": 2287,
+    "sha256": "0b4b5f659e78c46a7fe7d9aec7440501232484fe8cfcb781c2d4b3f34fd76ddf"
+  }
+}
