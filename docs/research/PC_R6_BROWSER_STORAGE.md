@@ -3,7 +3,7 @@
 The host stores the exact Rust slice-save string. Rust continues to own admission,
 rules, serialization, replay validation, events and command deduplication. This
 initial increment changed neither profile nor v1/v2 slice-save formats. Later
-v3/v4 profiles use the same host contract, as recorded below. IndexedDB is
+v3/v4/v5 profiles use the same host contract, as recorded below. IndexedDB is
 origin-local; clearing browser data removes it. Private fixtures stay in that
 browser and outside public build output. Manual export/import remains available.
 
@@ -113,3 +113,15 @@ check-storage.cjs`, with the existing fixture/Playwright/Chromium environment.
 Elapsed command time was 6.88 seconds; Chromium was 148.0.7778.96 and WASM hash
 remains `5526af2d0711c1e3a68b22f0c612691a5a0747d0e6f3ef85ccd932d7b02193c8`.
 This isolated run does not stand in for the full browser/storage acceptance run.
+
+The [integrated R7 storage receipt](evidence/pc-r7-storage-v1.json) subsequently
+passes the full suite across twelve fixtures, including those two invalid-head
+cases. All nine prior profile results and existing recovery controls remain
+exact. The three v5 fixtures add explicit lookup persistence, including the
+ordinary branch with no registry byte write, corrupt-current fallback, real
+transaction abort, exact native continuation/retry and retained/fresh session
+fencing. The [browser receipt](evidence/pc-r7-browser-v1.json) passes 552 operations
+while retaining all previous 375 canonical results. The
+[validation record](evidence/pc-r7-integrated-validation-v1.json) retains exact
+source/artifact identities, commands, timing and the initial supervisor-test
+timing failure followed by successful isolated and full serial reruns.
