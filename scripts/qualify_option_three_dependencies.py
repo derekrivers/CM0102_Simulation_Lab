@@ -76,7 +76,8 @@ class DependencyOracle(Oracle):
         super().write(uc, access, address, size, value, _)
 
 
-def generate(binary, capture, source, build_receipt=None):
+def generate(binary, capture, source, build_receipt=None, attempts=None):
+    attempts = [] if attempts is None else attempts
     raw = checked(binary, SPECIMEN)
     if source == 'retained':
         snapshot = Snapshot(capture)
@@ -100,6 +101,9 @@ def generate(binary, capture, source, build_receipt=None):
             oracle.ordered_reads = []
             oracle.starts = set()
             expected = (state['registry_index']*8547 & 0xffffff00) | 3
+            attempt = {'admission': 'connected-r4' if connected else 'strict-producer',
+                       'value': value, 'execution_status': 'started'}
+            attempts.append(attempt)
             try:
                 _, result = oracle.call(0x5feb60, [3, value, state['manager']],
                     state['registry'], [(state['row']+0x9b26, 1)] +
@@ -111,6 +115,12 @@ def generate(binary, capture, source, build_receipt=None):
             else:
                 require(value == 0, 'nonzero path escaped frozen boundary')
                 status, verdict, abi = 'succeeded', 'matched-bounded-effects', True
+            finally:
+                attempt.update(first_boundary=copy.deepcopy(oracle.boundary),
+                    ordered_partial_effects=copy.deepcopy(oracle.writes),
+                    ordered_admitted_reads=copy.deepcopy(oracle.ordered_reads),
+                    last_pc=f'{oracle.pc:08x}' if oracle.pc is not None else None)
+            attempt['execution_status'] = status
             expected_writes = [{'registry_offset': 0x9b26, 'width': 1, 'value': value}]
             if connected and value == 1 and source == 'fresh':
                 expected_writes.append({'registry_offset': 0x9a69, 'width': 1, 'value': 0})
@@ -168,11 +178,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # Reserve the new output before execution; failed attempts never disappear.
     with args.output.open('x', encoding='utf8') as output:
+        attempts = []
         try:
-            result = generate(args.binary, args.capture, args.source, args.build_receipt)
+            result = generate(args.binary, args.capture, args.source, args.build_receipt, attempts)
         except Exception as error:
             output.write(json.dumps({'execution_status': 'failed',
-                'error_type': type(error).__name__,
+                'error_type': type(error).__name__, 'attempts': attempts,
                 'comparison_verdict': 'not-comparable'})+'\n')
             raise
         output.write(json.dumps(result, indent=2)+'\n')
