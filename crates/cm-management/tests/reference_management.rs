@@ -1,6 +1,38 @@
 use cm_management::reference::{ReferenceFixture, resolve_plan};
 use cm_management::{Engine, World};
 
+#[test]
+fn rust_bank_resolution_matches_all_qualified_original_cases() {
+    let oracle: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../docs/research/evidence/manager-bound-plan-oracle-v1.json"
+    ))
+    .unwrap();
+    let mut engine = Engine::default();
+    import(&mut engine, FIXTURE);
+    for (revision, case) in oracle["cases"].as_array().unwrap().iter().enumerate() {
+        let label = case["club_label"].as_u64().unwrap() as usize;
+        let plan = case["plan_index"].as_i64().unwrap() as i32;
+        let result = request(
+            &mut engine,
+            command(
+                &format!("original-{revision}"),
+                revision as u32,
+                [10, 20, 30][label],
+                plan,
+            ),
+        );
+        assert_eq!(result["ok"], true);
+        assert_eq!(result["state"]["clubs"][label]["selected_plan"], plan);
+        assert_eq!(
+            result["plan_locations"][label]["location"],
+            serde_json::json!({
+                "bank":if case["lookup_bank"]==0 {"first"}else{"second"},
+                "index":case["lookup_bank_index"],"byte_offset":case["lookup_byte_offset"]
+            })
+        );
+    }
+}
+
 const FIXTURE: &str = include_str!("fixtures/synthetic-managers-v1.json");
 fn request(engine: &mut Engine, value: serde_json::Value) -> serde_json::Value {
     engine.request(&serde_json::to_vec(&value).unwrap())

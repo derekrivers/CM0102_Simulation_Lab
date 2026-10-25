@@ -14,7 +14,7 @@ image base `00400000`. The emulator loads the PE sections independently of the
 captured image. Only six named global data words and the actual captured heap
 are transplanted; captured machine code is never executed.
 
-Private input: `/home/derek/cm-proof/map-audit-capture/snapshot`. Image hash is
+The private retained snapshot stays outside Git. Image hash is
 `ae11ce3ef6267ad55be6aa6387f676704b1bb8a6310507db6c5ccfe494d45c3a`;
 heap hash is `30ee2baefad8f57f8760f30abc076586f2d13339bb1629f75346a5dcbc1357a0`.
 The source capture identity is
@@ -132,9 +132,9 @@ synthetic and separate from this real private-state receipt.
 Using Python 3.12 and Unicorn 2.1.4 in the private research environment:
 
 ```sh
-/home/derek/cm-proof/venv/bin/python scripts/qualify_manager_bound_plan.py \
-  /home/derek/.local/share/cm0102-simulation-lab/private-inputs/clean-3968-official/cm0102.exe \
-  /home/derek/cm-proof/map-audit-capture/snapshot \
+python3 scripts/qualify_manager_bound_plan.py \
+  /private/official/cm0102.exe \
+  /private/retained-capture/snapshot \
   /tmp/new-manager-bound-oracle.json
 ```
 

@@ -1,4 +1,4 @@
-//! Bounded synthetic-state tactical-plan selection; see PC_R3_MANAGEMENT.md.
+//! Bounded tactical-plan selection; see PC_R3_MANAGEMENT.md and MANAGER_BOUND_PLAN.md.
 //! No original UI, formation contents or saved-game compatibility is claimed.
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
