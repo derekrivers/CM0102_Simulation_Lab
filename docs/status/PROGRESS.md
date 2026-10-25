@@ -105,9 +105,13 @@ all seals and fresh oracle/build/capture link. Only the console privacy summary
 and one observer trailing-CRLF normalization changed after execution; exact
 executed source identities remain retained. Final review caught the formatting
 warning and the complete delivery diff passed after normalization.
-[PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36) records final
-review, CI and merge disposition; its branch refreshed after PR #35 and repeated
-the affected eight controls. Actual data opens were not independently observed;
+[PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36) merged as
+`c32436a5b6d4e76d70ca2b551af6dc56c61cbca3`. Exact final head
+`446f909951798f71e828ac225b374cd6a9ea669e` passed independent coordinator and
+Astra/high review, all four frozen checks and the affected eight controls after
+refreshing against the R4 merge. All three bounded increments are delivered;
+the active WSL checkout and clean Windows review mirror were refreshed to this
+merged implementation. Actual data opens were not independently observed;
 consumption remains unknown and comparison remains not-run. Endpoint equality
 does not claim whole-runtime noninterference. No original Windows process ran.
 

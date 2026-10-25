@@ -127,5 +127,6 @@ all four before/after seal intervals and output hashes, the executed driver's Gi
 blob identity, and the fresh original oracle's build/capture link. All checks
 passed. The branch refreshed onto the R4 merge and repeated the eight affected
 controls. Delivery [PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36)
-records independent exact-final-head review, all four frozen checks and merge
-disposition. This does not rerun or relabel the already sealed experiment.
+merged as `c32436a5b6d4e76d70ca2b551af6dc56c61cbca3`, after independent
+exact-final-head review of `446f909951798f71e828ac225b374cd6a9ea669e` and all
+four frozen checks. This does not rerun or relabel the already sealed experiment.

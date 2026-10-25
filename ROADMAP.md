@@ -11,7 +11,7 @@ Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workf
 | PC-R2: lab/reference recovery | Targeted recovery verified; wider qualification open | Working WSL toolchain, fresh bounded Bosman replay, scoped evidence ledger and necessary Windows qualification |
 | PC-R3: stateful management workflow | Bounded tactical-plan selection verified | An evidenced Rust command with rejection cases, browser interaction, native/browser equality and save/reload |
 | PC-R4: human tactical registry | Bounded delivery merged in PR #35 | Real reciprocal binding, connected original instructions, ordered selection-byte effect, native/browser equality and explicit v3 continuation |
-| PC-R5: fresh pinned capture | Four-arm execution/capture verified; PR #36 tracks delivery | Sealed current-platform derivative, exact repeated capture and endpoint saves; actual data-open consumption remains unknown |
+| PC-R5: fresh pinned capture | Bounded delivery merged in PR #36 | Sealed current-platform derivative, exact repeated capture and endpoint saves; actual data-open consumption remains unknown |
 | PC-R6: durable browser recovery | Existing-profile delivery merged in PR #34; human v3 integration verified | Exact Rust saves in IndexedDB, atomic replacement/fallback, failure reporting and session/tab fencing |
 
 The [active PC delivery contract](docs/roadmap/PC_FIRST.md) contains the task checklists, dependencies, exclusions and stop conditions. [Progress](docs/status/PROGRESS.md) records results. [Reversal integration](docs/research/REVERSAL.md) pins the reusable research and distinguishes official instruction emulation from a different GDI specimen's live evidence.
