@@ -1,0 +1,106 @@
+# Connected effective-plan lookup: frozen R7 qualification
+
+Status: proposed for independent review before execution. Existing v1–v4
+contracts and evidence are immutable. New production work requires this original
+qualification and independent admission of each exact new projection.
+
+## Supported state and interface
+
+Use only the official PE and existing retained/fresh captures already pinned by
+R4 and the option-2 producer. The initialized reciprocal ordinary-club/human
+manager binding, registry lifetime, guard DWORD, all mapping rows and all ordinary
+bank contents are immutable. Selected human slot and option-2 byte alone are
+mutable, exclusively through original commands. No code/guard patch or stub.
+
+Both raw captures contain all fallback dependencies: first and second banks have
+17 and 28 slots of 6,371 bytes; the human club mapping row is 145 bytes with signed
+16-bit selected plan 0. The full banks and mapping row are present in each. Actual
+fallback therefore returns first bank slot 0. Second-bank arithmetic exists in
+original code but is not dynamically qualified for these human inputs. Human
+registry slots remain a separate location type with 7,885-byte stride.
+
+Proposed fixture schema 3 is exactly `{schema_version:3,registry,ordinary}`.
+`registry` is the unchanged schema-2 wrapper and must pass existing inner and
+whole-wrapper admission. `ordinary` has exactly `first_bank_count`,
+`second_bank_count`, `selected_plan`, `mapping_row_sha256`, `first_bank_sha256`,
+`second_bank_sha256`. Hash the full 145-byte mapping row and complete banks;
+canonical sorted compact JSON defines the whole-projection fingerprint. The two
+real fingerprints require independent raw extraction and approval. These hashes
+are provenance, never substitutes for checking original complete captured memory.
+
+Proposed additive Rust world/save v5: `import_effective_reference` accepts a fixture
+string; `effective_plan_command` uses the existing session/command/revision/club
+envelope plus signed `slot` 0/1. Existing `human_command` and
+`registry_option_command` operate within the same v5 revision, event and command-ID
+history. One accepted command creates one event/revision even if its original
+branch writes nothing; exact retry returns the prior result with no new effects.
+Changed retries and invalid actions/imports/replays reject atomically. Preserve
+v1–v4 exact bytes/semantics; no migration. Rendering reads state without executing
+lookup. UI must explicitly invoke the command and show returned location kind
+and branch. Neutral names make no gameplay or match claim.
+
+`EffectivePlanLookedUp` contains requested slot, prior/current selected slot,
+option byte, branch, tagged returned location and ordered writes. Branches are
+`ordinary_fallback`, `registry_guard_zero`, `registry_option_enabled`. Location is
+`ordinary_bank` (bank first, index 0, byte_offset 0 for admitted real inputs) or
+`human_registry` (registry index, slot, byte_offset slot*7885). Lookup does not
+change the ordinary mapping. Direct selector continues to return its human slot
+independently of the later effective lookup result.
+
+## Original entry, reads, branches and effects
+
+`00896660`: ECX is actual captured context; stack arguments are actual nonnull
+ordinary club pointer and slot 0/1. Returns EAX location and removes 8 argument
+bytes; EBX/ESI/EDI/EBP preserved. Its admitted graph is `00600a50` classifier
+(called with club,1,1,0,0), `0053b900`, `005fd210` guard getter,
+`005fea50(2,manager)` option getter, `005fbe20` selector with `005409b0` and
+`0053b900` classifiers, and `005fbd00` resolver. The standalone producer remains
+`005feb60(2,value,manager)`, value 0/1, ret12; direct selector ret12, resolver ret4.
+Their incidental EAX values retain existing exact assertions.
+
+Non-stack reads use exact field and width admission: staff/club/nation global
+counts and registry object global (DWORD); actual club ID and manager pointer
++0xcf (DWORD); manager ID (DWORD); registry base/count (DWORD); row guard +0x9a01
+(DWORD); option +0x9b25 and selected slot +0x9a69 (BYTE); context mapping pointer
++0x601, first-bank count +0x5fd and bank pointer +0x5f9 (DWORD); human mapping
+selection (signed WORD). Context second bank pointer +0x5f1 is inventoried but
+not admitted in this real first-bank campaign. Raw plan contents are hashed and
+preserved, not decoded or read by lookup itself.
+
+Retained actual guard/option/slot is 1/0/0; fresh is 0/0/0. Guard zero takes
+registry path without reading option. Nonzero guard reads option: zero returns
+ordinary fallback without a non-stack write and leaves selected slot unchanged;
+one invokes the selector/resolver, writing exactly one BYTE +0x9a69 and returning
+that human slot. Repeated registry lookup still writes. Producer writes exactly
+one BYTE +0x9b25, preserving slot/guard; direct selector writes +0x9a69 preserving
+option/guard. All other captured bytes and complete loaded official image must
+match after every accepted call. No original RNG/system call is admitted.
+
+## Bounded experiment and acceptance
+
+One campaign per retained/fresh input, serial, at most 60 successful original
+calls per input, 3,000 instructions and 100ms emulator deadline per call. Full
+state comparison after each step, exact original instruction starts, every ordered
+non-stack read/write with instruction address, ABI/EAX checks and source/range
+hashes. A sequence covers both lookup options, repeats, producer enable/disable,
+direct selection before lookup, and mixed complete-captured-memory checkpoint
+continuation run twice. Returned pointer is normalized only after exact private
+EAX comparison. No expected output is rewritten from emulator output.
+
+Discriminating defects: wrong branch, guard ignored, option ignored, fallback
+selection mutation/write, omitted/repeated/wrong-width/wrong-row write, wrong
+human stride, wrong ordinary index, reordered mixed effects, extra RNG and
+producer/selector cross-mutation. Negative host values are pre-invocation
+validation, not original diagnostic parity. Original null-club and unsupported
+slot probes stop at their first unqualified boundary and retain ordered partial
+effects; never count a censored probe as qualified. Diagnostics expose original
+instruction address, field/region category, access width only; no pointer/raw
+name/byte dump. All attempts use exclusive private output paths.
+
+Independent review must approve exact source revision before heavy execution,
+independently extract the two canonical projections, then review original
+receipts and final Rust/browser implementation. Native/WASM equality, v1–v4
+compatibility, mixed retries, replay rejection, deterministic save continuation
+and actual durable browser recovery remain implementation acceptance, not claims
+of this qualifier. Full lifecycle, arbitrary managers/mappings/banks, other
+slots/options, original UI/process/save and match effects remain unsupported.
