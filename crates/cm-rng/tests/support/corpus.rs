@@ -113,11 +113,11 @@ fn run() -> Vec<u8> {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn corpus_run() -> usize {
-    OUTPUT.get_or_init(run).len()
+    bytes().len()
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn corpus_ptr() -> *const u8 {
-    OUTPUT.get_or_init(run).as_ptr()
+    bytes().as_ptr()
 }
 
 pub fn bytes() -> &'static [u8] {
