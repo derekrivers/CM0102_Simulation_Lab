@@ -23,7 +23,7 @@ incomplete capture. The first attempt is never retried in the same process.
 The private sparse format is little-endian `PCR5SP01`, then sixteen records
 `u32 virtual_address, u32 byte_count, bytes`, then `PCR5DONE`. It contains
 proprietary data and native pointers and must remain outside Git. The completion
-footer and host structural validator are both required. The selected human
+footer and host structural validator are both required. The validator independently checks exact global order, every derived extent, count caps and nonoverlapping ranges. The selected human
 manager must occupy a reserved staff row and have reciprocal club binding.
 The raw data is not an original save or general memory importer.
 
@@ -66,9 +66,9 @@ python3 scripts/pc_r5_capture.py run --source /private/pinned-bosman \
 PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pc_r5_capture.py
 ```
 
-Initial validation: six redistributable controls cover complete/truncated output,
+Initial validation: eight redistributable controls cover complete/truncated output,
 oversized lengths, unsupported pointers, missing reciprocal human binding,
-symlink identity, immutable directory reuse, bounded output and timeout.
+symlink identity, immutable directory reuse, bounded output, closed-stream hangs, missing extents, overlapping ranges, count caps and timeout.
 C11 warning-clean syntax validation passes against the pinned runtime headers.
 Build/run awaits independent exact-revision instrumentation review and the
 coordinator's heavy-slot allocation. No fresh capture has yet been claimed.

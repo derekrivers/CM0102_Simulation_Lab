@@ -18,10 +18,15 @@ def fixture():
                 (0xae23bc,sb),(0xde1d08,ctx),(0xb63c98,reg),(0xae2c90,1)]
     regions = [(addr,struct.pack("<I",value)) for addr,value in globals_]
     clubs, staff = bytearray(nc*581), bytearray(ns*110)
+    for i in range(nc):
+        struct.pack_into("<I",clubs,i*581,i)
     struct.pack_into("<I",clubs,0xcf,sb+110)
+    context = bytearray(0x605)
+    for off,value in [(0x5f9,0x700c0000),(0x5fd,1),(0x5f1,0x700d0000),(0x5f5,1),(0x601,0x700b0000)]:
+        struct.pack_into("<I",context,off,value)
     struct.pack_into("<I",staff,110,1)
     struct.pack_into("<I",staff,110+0x39,cb)
-    regions += [(cb,clubs),(sb,staff),(ctx,bytes(0x605)),
+    regions += [(cb,clubs),(sb,staff),(ctx,context),
                 (0x700b0000,bytes((nc+32)*0x91)),(0x700c0000,bytes(6371)),
                 (0x700d0000,bytes(6371)),(reg,struct.pack("<II",rows,16)),
                 (rows,bytes(16*0xa6ef))]
@@ -78,6 +83,40 @@ class Controls(unittest.TestCase):
         self.assertEqual(reason,"output-limit")
         self.assertEqual(len(streams[0]),1048576)
         self.assertNotEqual(code,0)
+    def test_missing_extent_count_and_overlap(self):
+        raw = fixture()
+        regions, pos = [], 8
+        while pos < len(raw)-8:
+            addr, size = struct.unpack_from("<II",raw,pos)
+            regions.append((addr,raw[pos+8:pos+8+size]))
+            pos += 8+size
+        def encode(items):
+            return b"PCR5SP01"+b"".join(struct.pack("<II",a,len(b))+b for a,b in items)+b"PCR5DONE"
+        bad = []
+        bad.append(regions[:13]+regions[14:])  # missing second bank
+        changed = list(regions)
+        changed[10] = (changed[10][0],changed[10][1][:-1])
+        bad.append(changed)
+        changed = list(regions)
+        context = bytearray(changed[10][1])
+        struct.pack_into("<I",context,0x5fd,0)
+        changed[10] = (changed[10][0],bytes(context))
+        bad.append(changed)
+        changed = list(regions)
+        changed[12] = (changed[13][0],changed[12][1])
+        bad.append(changed)
+        changed = list(regions)
+        changed[0] = (changed[0][0],struct.pack("<I",0xffffffff))
+        bad.append(changed)
+        for items in bad:
+            self.path.write_bytes(encode(items))
+            with self.assertRaises(ValueError):
+                m.parse_capture(self.path)
+    def test_closed_stream_hang(self):
+        code, _, reason, elapsed = self.child("import os,time; os.close(1); os.close(2); time.sleep(2)",.1)
+        self.assertEqual(reason,"timeout")
+        self.assertNotEqual(code,0)
+        self.assertLess(elapsed,1)
     def test_timeout(self):
         code, _, reason, _ = self.child("import time; time.sleep(2)",.1)
         self.assertEqual(reason,"timeout")

@@ -91,22 +91,24 @@ def build(a):
     link_cmd = list(argv)
     link_cmd[link_cmd.index("-o")+1] = str(a.output/"cm0102_observed")
     link_cmd += [str(a.output/"observer.o"), "-Wl,--wrap=f_005cde40"]
-    receipt = {"schema_version": 1, "source": source_identity(a.source),
+    receipt = {"sealed_unix_time_ns": time.time_ns(), "schema_version": 1, "source": source_identity(a.source),
                "source_patch": "none; separate linker observer",
                "headers": {h: identity(a.source/"src/recomp_rt"/h) for h in ["rt.h", "rt_host.h"]},
                "observer": identity(observer), "baseline": identity(a.build/"cm0102_recomp"),
                "build_inputs": inputs, "build_ninja": identity(a.build/"build.ninja"),
                "cmake_cache": identity(a.build/"CMakeCache.txt"),
-               "compiler": identity("/usr/bin/x86_64-linux-gnu-gcc-13"),
+               "compiler": identity(Path("/usr/bin/cc").resolve()),
+               "tool_files": {t: identity(Path(t).resolve()) for t in ["/usr/bin/cc","/usr/bin/ld","/usr/bin/ninja"]},
                "compile_command": compile_cmd, "link_command": link_cmd,
                "tools": {t: subprocess.check_output([t, "--version"], text=True).splitlines()[0]
                          for t in ["/usr/bin/cc", "/usr/bin/ld", "/usr/bin/ninja"]}}
     write(a.output/"build-before.json", receipt)
-    subprocess.run(compile_cmd, check=True)
-    subprocess.run(link_cmd, cwd=a.build, check=True)
+    subprocess.run(compile_cmd, check=True, timeout=60)
+    subprocess.run(link_cmd, cwd=a.build, check=True, timeout=120)
     if inputs != {x: identity(a.build/x) for x in objects}:
         raise ValueError("object drift")
     source_identity(a.source)
+    receipt["completed_unix_time_ns"] = time.time_ns()
     receipt["instrumented"] = identity(a.output/"cm0102_observed")
     receipt["object"] = identity(a.output/"observer.o")
     write(a.output/"build-receipt.json", receipt)
@@ -124,10 +126,15 @@ def parse_capture(p):
         pos += 8
         if not size or size > 8388608 or addr+size > 2**32 or pos+size > len(data)-8:
             raise ValueError("invalid range")
+        if any(addr < base+len(raw) and base < addr+size for base, raw in regions):
+            raise ValueError("overlapping/duplicate range")
         regions.append((addr, data[pos:pos+size]))
         pos += size
+    globals_ = [0xae235c,0xae2350,0xae2364,0xae23b4,0xae23bc,0xde1d08,0xb63c98,0xae2c90]
     if pos != len(data)-8 or len(regions) != 16:
         raise ValueError("capture range count")
+    if [(a,len(b)) for a,b in regions[:8]] != [(a,4) for a in globals_]:
+        raise ValueError("wrong global set")
     def read(addr, size):
         for start, raw in regions:
             if start <= addr and addr+size <= start+len(raw):
@@ -136,19 +143,36 @@ def parse_capture(p):
     def u32(addr):
         return struct.unpack("<I", read(addr, 4))[0]
     nc, ns, nations = u32(0xae235c), u32(0xae2364), u32(0xae2350)
-    cb, sb, reg = u32(0xae23b4), u32(0xae23bc), u32(0xb63c98)
+    if not 1 <= nc <= 10000 or not 16 <= ns <= 100000 or nations > nc//2:
+        raise ValueError("invalid dimensions")
+    cb, sb, ctx, reg = [u32(a) for a in globals_[3:7]]
+    if [(a,len(b)) for a,b in regions[8:11]] != [(cb,nc*581),(sb,ns*110),(ctx,0x605)]:
+        raise ValueError("wrong club/staff/context extent")
+    first,nf,second,nb,mapping = [u32(ctx+x) for x in [0x5f9,0x5fd,0x5f1,0x5f5,0x601]]
+    if not 1 <= nf <= 256 or not 1 <= nb <= 256:
+        raise ValueError("invalid bank counts")
+    if [(a,len(b)) for a,b in regions[11:15]] != [
+        (mapping,(nc+32)*0x91),(first,nf*6371),(second,nb*6371),(reg,8)]:
+        raise ValueError("wrong mapping/bank/registry extent")
     rows, nr = u32(reg), u32(reg+4)
+    if not 1 <= nr <= 16 or (regions[15][0],len(regions[15][1])) != (rows,nr*0xa6ef):
+        raise ValueError("wrong registry rows")
+    if any(not 0x70000000 <= a < a+len(b) <= 0xef000000 for a,b in regions[8:]):
+        raise ValueError("unsupported heap pointer")
     humans = []
     for i in range(nc-2*nations):
         club = cb+i*581
+        if u32(club) != i:
+            raise ValueError("club row identity")
         manager = u32(club+0xcf)
         if sb <= manager < sb+ns*110 and (manager-sb)%110 == 0:
             mid = u32(manager)
-            if mid >= ns-16 and mid == (manager-sb)//110 and u32(manager+0x39) == club:
+            if mid != (manager-sb)//110:
+                raise ValueError("manager row identity")
+            if mid >= ns-16 and u32(manager+0x39) == club:
                 humans.append({"club_address": club, "manager_address": manager, "manager_id": mid})
     if not humans or nr != 16:
         raise ValueError("no reciprocal human input")
-    read(rows, nr*0xa6ef)
     return {"range_count": len(regions), "bytes": sum(len(x) for _, x in regions),
             "human_bindings": humans, "registry_count": nr,
             "regions": [{"address": x, "bytes": len(y), "sha256": hashlib.sha256(y).hexdigest()}
@@ -170,7 +194,6 @@ def bounded(argv, env, cwd, timeout=240):
             if time.monotonic()-start > timeout:
                 reason = "timeout"
             if reason:
-                os.killpg(p.pid, signal.SIGKILL)
                 break
             for key, _ in sel.select(.1):
                 b = os.read(key.fd, 65536)
@@ -182,9 +205,28 @@ def bounded(argv, env, cwd, timeout=240):
                 buf.extend(b[:room])
                 if len(b) > room:
                     reason = "output-limit"
-        p.wait()
+        if reason is None:
+            try:
+                p.wait(timeout=max(.001, timeout-(time.monotonic()-start)))
+            except subprocess.TimeoutExpired:
+                reason = "timeout"
+        # Kill the group even when its leader already exited, containing any
+        # descendants retaining streams. This is not general subreaper fencing.
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        p.wait(timeout=5)
         sel.close()
         return p.returncode, [bytes(x) for x in buffers], reason, time.monotonic()-start
+def runtime_seal(a):
+    return {"inputs": clean_identity(a.game,a.manifest), "source": source_identity(a.source),
+            "observer": identity(Path(__file__).with_name("pc_r5_observer.c")),
+            "driver": identity(__file__), "baseline": identity(a.baseline),
+            "instrumented": identity(a.observed/"cm0102_observed"),
+            "build_receipt": identity(a.observed/"build-receipt.json"),
+            "tools": {x: identity(Path(x).resolve()) for x in
+                      [sys.executable,"/usr/bin/cc","/usr/bin/ld","/usr/bin/ninja"]}}
 def run(a):
     build_receipt = json.loads((a.observed/"build-receipt.json").read_bytes())
     exe = a.observed/"cm0102_observed"
@@ -217,6 +259,8 @@ def run(a):
                          "file_bytes": 64*1024**2, "each_output_bytes": 1048576},
               "clean_data_consumption_proven": "unknown",
               "consumption_limit": "Explicit --game locator; executable held open. Data opens not independently observed."}
+    initial_seal = runtime_seal(a)
+    before["runtime_seal"] = initial_seal
     write(a.output/"before.json", before)
     results = []
     for name, program, enabled in [("baseline", a.baseline, False),
@@ -232,6 +276,10 @@ def run(a):
                "RECOMP_SAVE_AFTER_DAYS": "14", "RECOMP_IDLE_COUNT": "1", "RECOMP_SCRIPT": script}
         if enabled:
             env["PC_R5_CAPTURE"] = str(work/"capture.bin")
+        arm_seal = runtime_seal(a)
+        write(work/"seal-before.json", {"sealed_unix_time_ns": time.time_ns(), "identity": arm_seal})
+        if arm_seal != initial_seal:
+            raise ValueError("pre-arm drift")
         with program.open("rb") as handle:
             # The exact same descriptor is hashed and executed.
             held = hashlib.file_digest(handle, "sha256").hexdigest()
@@ -260,11 +308,17 @@ def run(a):
                 record["capture_status"] = "complete"
             except (ValueError, OSError):
                 record["capture_status"] = "incomplete"
+        arm_after = runtime_seal(a)
+        write(work/"seal-after.json", {"sealed_unix_time_ns": time.time_ns(), "identity": arm_after})
+        record["identities_stable"] = arm_after == initial_seal
+        if not record["identities_stable"]:
+            record["execution_status"] = "failed"
+            record["reason"] = "identity-drift"
         write(work/"result.json", record)
         results.append(record)
     try:
         after = clean_identity(a.game, a.manifest)
-        stable = inputs == after and source_identity(a.source) == before["source"]
+        stable = inputs == after and runtime_seal(a) == initial_seal
     except (ValueError, OSError):
         stable = False
     write(a.output/"after.json", {"inputs_stable": stable, "sealed_unix_time_ns": time.time_ns()})
