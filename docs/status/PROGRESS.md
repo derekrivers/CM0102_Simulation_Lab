@@ -259,3 +259,25 @@ or threshold changes. Core/native/WASM and source independent reviews passed.
 CI, pins and the existing producer qualifier/receipts are unchanged. The final
 exact-head review and protected merge disposition will be recorded with the
 delivery PR; no whole-game completion, original process or deployment is claimed.
+
+
+### Protected delivery identity
+
+[PR #42](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/42) merged as
+abc8ea49f8b47ace0729c54d9fe3a745d7c27951. Final independent Sol/medium review
+approved exact 26e3bd93c29f1c4d082839faa8c2da3b788eb6bb with no actionable
+findings, excluding self-authored R8 already independently approved by Astra.
+The reviewer verified all final source/legacy/gate/artifact claims, 428 R9
+artifacts and 760 clean inputs. Private audit: 6,477 bytes, SHA-256
+c1e389f0517b897abd6e6f4f4cff7f688a826ad5921943ab14d6e9d2bf587b5d.
+
+All four required checks passed before merge: [Rust run 40194077493](https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40194077493)
+and [base guard run 40194077457](https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40194077457).
+A fresh fetch still had target 12a35b3; the accepted head was unchanged, and merge
+used an exact-head guard. The [machine-readable delivery record](../research/evidence/pc-r7-r9-delivery-v1.json)
+retains full head/base/merge identities, check URLs and review disposition.
+
+R7 implementation and R8's precise research are delivered. R9 delivery is the
+failed-result record only: actual file-use provenance remains unknown and the
+unsuccessful observer stays off main. No full-game/P02/P04 gate, original Windows
+process, deployment, wider mapping or production option3 admission is claimed.

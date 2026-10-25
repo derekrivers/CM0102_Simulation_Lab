@@ -13,7 +13,7 @@ Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workf
 | PC-R4: human tactical registry | Direct slots merged in PR #35, fresh admission through PR #38 and additional option-2 producer through PR #40 | Retained/fresh initialized bindings, original ordered byte effects, native/browser equality, explicit v3/v4 continuation and recovery |
 | PC-R5: fresh pinned capture | Bounded delivery merged in PR #36 | Sealed current-platform derivative, exact repeated capture and endpoint saves; actual data-open consumption remains unknown |
 | PC-R6: durable browser recovery | Existing profiles merged in PR #34; human v3/v4 integration verified | Exact Rust saves in IndexedDB, atomic replacement/fallback, failure reporting and session/tab fencing |
-| PC-R7: connected effective-plan lookup | Bounded implementation qualified; delivery record below | Exact retained/fresh initialized branches, explicit v5 operation and tagged return, native/Chromium equality and twelve-profile recovery |
+| PC-R7: connected effective-plan lookup | Delivered through PR #42, merge abc8ea49 | Exact retained/fresh initialized branches, explicit v5 operation and tagged return, native/Chromium equality and twelve-profile recovery |
 | PC-R8: option-3 dependencies | Exact empty-mapping research qualified; production unavailable | Preserved censored probes plus complete original path/ordered effects/continuation for both captures |
 | PC-R9: clean-tree file-use provenance | Two failed observation campaigns retained; consumption unknown | Follow-up endpoint/captured-range equality passed, trace completeness failed; unsuccessful observer remains off main |
 
