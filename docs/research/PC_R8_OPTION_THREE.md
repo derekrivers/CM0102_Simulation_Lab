@@ -69,7 +69,8 @@ otherwise a separately sealed capture increment. No whole-path date is promised.
 
 The initial frozen boundary campaign completed as recorded below. The separately
 reviewed empty-mapping expansion then qualified its precise initialized branch.
-Final independent source/evidence review remains required before delivery.
+Independent final source/evidence review approved research revision 271fe65;
+delivery disposition remains tracked by the coordinator.
 
 ## Separately frozen empty-mapping expansion
 
@@ -181,8 +182,8 @@ Affected checks: source compilation, JSON parsing, source dependency hash audit,
 relative evidence links, sanitized receipt inspection and `git diff --check` pass.
 No Rust/browser/build acceptance is claimed or needed for research-only new paths.
 Actual assigned investigator: GPT-6.1 Sol/medium; independent source reviewer:
-R7 investigator GPT-6 Astra/high. Token/cost totals are unavailable. Final exact
-research-revision review and delivery disposition are pending.
+R7 investigator GPT-6 Astra/high. Token/cost totals are unavailable. Final research review approved exact 271fe65;
+delivery disposition remains pending the authorized integration process.
 
 The follow-on boundary is precise: no required bytes are missing for the qualified
 empty-mapping branch. Nonempty mapping requires a separately frozen real-input
@@ -191,3 +192,21 @@ returned staff IDs and signed plan fields. Estimate one bounded design/review an
 new qualification campaign if actual inputs exist; otherwise a sealed capture
 increment. No production option3 or general option3 estimate follows from this
 research result.
+
+## Independent final research review
+
+The [independent audit](evidence/pc-r8-option3-independent-review-v1.json)
+SHA-256 `59f2dd21286c725a268d8905da289f6df7c0edbca65118ef0ab7935064cce447`
+approves exact research revision 271fe65 within this domain. A standalone stdlib
+parser, importing no repository capture/qualification code, independently verified
+the retained image/heap and fresh sparse identities, reciprocal binding and all
+sixteen actual mapping DWORDs equal -1 per input. The reviewer reconstructed all
+ordered effects, checked source seals, exact continuation cases, eight controls,
+all preserved censor diagnostics/effects and public privacy/claim boundaries.
+Thirteen original PC-to-callee targets were independently decoded from the pinned
+PE during pre-execution review. The reviewer authored neither R8 qualifier.
+
+No new emulator campaign ran during final review. Full-state/ABI execution claims
+are supported by independently reviewed source plus sealed execution receipts,
+not independent emulator reproduction. No production or nonempty-mapping
+admission is granted. The private original audit remains retained unchanged.
