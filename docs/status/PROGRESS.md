@@ -55,27 +55,51 @@ Bosman platform, original Windows process or full human-manager workflow.
 Private records, names and inputs stay out of Git. Research/review used Astra/high;
 bounded recovery used Sol/medium, with compact handoffs and one heavy local job.
 
+## PC-R4/R5/R6 delivery
+
+Work started from refreshed main `d769ce7` in separate WSL worktrees with two
+workers and one explicitly rotated heavy-job slot. [Ownership/dependencies](../roadmap/PC_FIRST.md)
+retain actual model routing; token/billing totals are unavailable.
+
+R6 current-profile storage merged in [PR #34](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/34),
+merge `3248e75b12a06919504c743c54dcedb1255af21f`. Independent Astra/high review
+of final head `762ed06` verified a failed-initial-recovery retry fencing fix.
+All four frozen checks passed. Atomic IndexedDB publication, previous-valid
+fallback, accepted-versus-durable reporting and session/tab fencing pass actual
+persistent Chromium recovery/failure controls. Quota/denial exceptions are API-
+injected; actual disk exhaustion and power-loss guarantees remain unqualified.
+
+R4 now implements direct human registry slot 0/1 selection over an exact reviewed
+real preinitialized reciprocal binding. The ordered effect is one `+0x9a69` byte
+write; the distinct slot stride is 7,885. Original instructions pass 21 calls/
+345 starts on retained complete state and 21/290 on fresh sparse state without
+stubbed callees. The retained outer getter's fallback and fresh registry branch
+remain distinct. Coordinator independently reproduced both receipts byte for
+byte. Full constructors/appointments, original UI and match effects stay outside
+scope. The fresh projected fingerprint is explicitly unadmitted.
+
+Integrated validation passes 70 Rust tests, five oracle controls, formatting,
+workspace Clippy/build, WASM and strict TypeScript checks. All 159 native/actual-
+Chromium operations match, including human v3 commands, effects, save/replay and
+deduplication; old 105 cases and v1/v2 compatibility remain unchanged. Browser
+persistence now recovers all five admitted profiles with exact native continuation.
+[R4 evidence](../research/PC_R4_HUMAN_REGISTRY.md) and
+[R6 storage](../research/PC_R6_BROWSER_STORAGE.md) retain receipts and limits.
+Independent final-head UI review/CI/merge are tracked in the R4 delivery PR.
+
+R5 separately executed the reviewed minimal observer: four bounded 14-day arms
+completed in 339.91 seconds with contemporary seals. All four endpoint saves
+match exactly, and two complete sparse human-state captures match byte for byte.
+Independent official-instruction replay passes on that captured read set. R5's
+tooling/receipt delivery remains separate; actual data opens were not independently
+observed and consumption remains unknown. No original Windows process ran.
+
 ## Remaining engineering
 
-PC-R4/R5/R6 execution started from refreshed main `d769ce7` in separate WSL
-worktrees. Two workers follow the recorded [ownership/dependency contract](../roadmap/PC_FIRST.md).
-R6 current-profile persistence is implemented with an atomic IndexedDB head,
-previous-valid recovery and stale-writer/session fencing. Actual persistent
-Chromium close/reopen matches native state/events/deduplication/continuation for
-all three existing profiles. Browser abort/corruption/interruption/race controls
-pass; quota/denial exceptions are fault-injected and actual disk exhaustion is
-unqualified. [Contract and receipt](../research/PC_R6_BROWSER_STORAGE.md) retain
-this distinction. Independent exact-head review/PR/merge are still pending.
-
-R4 found actual reciprocal human-manager registry state in retained private input;
-its evidence/command remains under qualification. R5's separate minimal observer
-passed independent source review after timeout and sparse-validation fixes;
-fresh bounded execution/capture remains pending. No original process ran.
-
-1. The real ordinary-club/nonhuman-manager path is now qualified. Next investigate the reserved human-manager registry path and its lifecycle before exposing human-manager controls or claiming original UI/match effects.
-2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched; this increment reused a retained private capture.
+1. Direct human registry selection is qualified for the pinned initialized binding. General registry construction/load/reuse, appointments, remaining slots and original UI/match effects remain unsupported. A next bounded increment may qualify one additional state producer or explicitly review fresh-fixture admission.
+2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched.
 3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
-4. Storage-failure recovery, cgroup/lease/resource fencing, durable orchestration and unattended campaigns remain unqualified.
+4. Browser checkpoint recovery is bounded and tested; cgroup/lease/resource fencing, durable orchestration, physical-storage exhaustion and unattended campaigns remain unqualified.
 5. Dormant launcher retirement requires a separately reviewed policy transition; frozen controls were not weakened.
 
 These three accepted bounded increments do not complete the simulator, P02/P04 whole-phase gates or unattended-operation qualification.

@@ -1,13 +1,14 @@
 // Local-only preview. Private fixtures are served on demand, never copied into dist.
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path');
-const root=path.join(__dirname,'dist'),fixture=process.env.REFERENCE_FIXTURE;
+const root=path.join(__dirname,'dist'),fixture=process.env.REFERENCE_FIXTURE,humanFixture=process.env.HUMAN_REFERENCE_FIXTURE;
 const assets=new Map([['/','index.html'],...['index.html','app.js','worker.js','storage.js','style.css','cm_management.wasm'].map(name=>['/'+name,name])]);
 const server=http.createServer((request,response)=>{
  try {
   let file;
-  if(request.url==='/reference-fixture.json'&&fixture){
-   if(!path.isAbsolute(fixture)||fs.statSync(fixture).size>65536)throw new Error('invalid fixture');
-   file=fixture;
+  const local=request.url==='/reference-fixture.json'?fixture:request.url==='/human-reference-fixture.json'?humanFixture:null;
+  if(local){
+   if(!path.isAbsolute(local)||fs.statSync(local).size>65536)throw new Error('invalid fixture');
+   file=local;
   } else if(assets.has(request.url))file=path.join(root,assets.get(request.url));
   else {response.writeHead(404).end();return;}
   response.setHeader('Cache-Control','no-store');
