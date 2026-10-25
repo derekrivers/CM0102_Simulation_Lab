@@ -88,8 +88,26 @@ previous R7 receipts: all 552 operations/twelve profile objects and earlier
 source/artifacts, commands, times and private log identities. Build times were
 not individually measured. Two shell CRLF transport failures occurred before
 runner execution; they are retained and do not count as executed acceptance
-failures. No acceptance runner failed or product correction was needed.
+failures. No acceptance runner failed. The independent-review correction below supersedes the initial helper import proof; product source required no correction.
 
 Independent exact-head review and delivery disposition are separate gates. The
 real squad/lineup milestone remains incomplete; future input/action/admission
 gates above remain required.
+
+### Independent-review correction
+
+C identified a vacuous wait in the new helper: its exported revision-2 import
+could match the already visible revision-2 status before asynchronous load. The
+initial v1 receipt remains retained and is insufficient proof of that import.
+Exact helper source `e8436b1` now changes and verifies memory at revision 3 before
+importing revision 2, then waits for revision 2 and compares the complete state.
+The affected helper passed all seven cases again in 15.37 command seconds
+(14.514 helper seconds), including synthetic/retained/fresh real process reopen
+and now discriminating export/import restoration. UI/preview/native/WASM/artifacts
+are unchanged, so prior complete 552-operation/twelve-profile acceptance remains
+applicable. No canonical expected result was changed.
+
+[Corrected journey receipt](evidence/pc-r10-browser-journey-v2.json) and
+[correction seals](evidence/pc-r10-browser-validation-v2.json) bind the exact
+source/log/artifacts and preserve the review finding. Independent final approval
+remains separate from this implementer's record.

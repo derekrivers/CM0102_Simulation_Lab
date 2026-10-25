@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "acceptance_source_revision": "e8436b1",
+  "supersedes_journey_validation_only": "pc-r10-browser-validation-v1.json",
+  "prior_record_retained": true,
+  "review_finding": "The v1 export/import check waited for revision 2 already visible before async import, allowing a query to precede load. Its export/import proof was incomplete.",
+  "correction": "After exporting revision 2, apply a command and confirm revision 3. Import the export, wait for revision 2, then compare full restored state.",
+  "product_source_changed": false,
+  "ui_preview_artifacts_unchanged": true,
+  "affected_command": "node check-browser-journey.cjs",
+  "result": "passed-seven-cases-including-synthetic-retained-fresh",
+  "command_elapsed_seconds": 15.37,
+  "helper_elapsed_seconds": 14.514,
+  "private_attempt": "pc-r10-browser-e8436b1-a2",
+  "log": {
+    "bytes": 1027,
+    "sha256": "ba3375940d235bdc2df914a326f8fac4b92171394c8b761d86d56980cc0b20e2"
+  },
+  "receipt": {
+    "bytes": 1279,
+    "sha256": "68bd25e5dece90fabf6967abd6e2fd5f0bd27c0f90cbdc1c90a33a4f8a244a1c"
+  },
+  "helper_source": {
+    "bytes": 8292,
+    "sha256": "df64e53bd4fda54173050153198eb7a6f1bdd0d16eb3452fd3777f6566973a82"
+  },
+  "app_js": {
+    "bytes": 240227,
+    "sha256": "4bcaadae50f72997de59d983cd1eec1752b8281f6f25fdd74958d46db9a62589"
+  },
+  "wasm": {
+    "bytes": 738416,
+    "sha256": "50c8d50d4a24869e6fc9980c357ef5cef113c3ccbbab0c21a7e3829dd511a0ee"
+  },
+  "native_corpus": {
+    "bytes": 13347040,
+    "sha256": "dd88318a2d756efb9c282527498f3208c88b8d42b9c8c5acc66531958c830f4d"
+  },
+  "legacy_browser_storage_acceptance": "Unchanged product source/artifacts; complete prior 552-operation and twelve-profile objects remain exactly equal under v1 validation, no new expected results.",
+  "new_state_or_real_lineup_claim": false
+}
