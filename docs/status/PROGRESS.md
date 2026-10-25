@@ -58,7 +58,7 @@ bounded recovery used Sol/medium, with compact handoffs and one heavy local job.
 ## Remaining engineering
 
 1. The real ordinary-club/nonhuman-manager path is now qualified. Next investigate the reserved human-manager registry path and its lifecycle before exposing human-manager controls or claiming original UI/match effects.
-2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched in this increment; no private capture was needed.
+2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched; this increment reused a retained private capture.
 3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
 4. Storage-failure recovery, cgroup/lease/resource fencing, durable orchestration and unattended campaigns remain unqualified.
 5. Dormant launcher retirement requires a separately reviewed policy transition; frozen controls were not weakened.
