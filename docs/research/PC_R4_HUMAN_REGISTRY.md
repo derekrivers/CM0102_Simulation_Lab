@@ -126,3 +126,38 @@ management-corpus`, `cargo build -p cm-management --target
 wasm32-unknown-unknown --release`, and `python -O scripts/test_human_registry.py`.
 One initial build command used nonexistent target `management-native`, failed
 without running it, and was corrected to the repository's `management-corpus`.
+
+## Fresh pinned-platform sparse replay
+
+The independently parsed R5 enabled capture contains sixteen sealed regions,
+3,849,184 bytes in its complete artifact, SHA-256
+`014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40`.
+Its instrumented platform is pinned Bosman
+`144ed82c248228c7769c6785899527eae5b33c3d`; the derivative binary hash and build
+receipt hash travel in the [fresh oracle receipt](evidence/fresh-human-registry-oracle-v1.json).
+Endpoint, A/A, instrumentation comparison and input-consumption limitations remain
+R5 campaign claims, separate from this original-instruction replay.
+
+The fresh real human record has guard `+0x9a01 == 0` and `+0x9b25 == 0`.
+Consequently the outer getter takes the registry path directly from captured
+state, unlike the older retained holiday-state fallback. Twenty-one original
+calls cover 290 instruction starts. All declared captured regions and the entire
+loaded official image remain unchanged except the precisely allowed bytes;
+uncaptured runtime memory is not claimed checked. Each executed non-stack read
+is within the explicit supported captured state. Seven defect models and
+checkpoint continuation pass; out-of-domain probes remain censored.
+
+The fresh oracle receipt SHA-256 is
+`39915e94bf65ca7c6586153dffa63b03160dc483119a58e8dc9e82fbc92fd911`.
+Its projected fixture fingerprint
+`15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2`
+is **not admitted** to Rust. Production remains bound to the separately reviewed
+retained private fixture; neither a capture nor an oracle grants itself new
+production authority. The updated shared oracle reproduced the retained receipt
+byte for byte. Five Python controls now include sparse completeness, identity
+and overlap checks. No R5 script import is required by the independent parser.
+
+Fresh reproduction: `python -O scripts/qualify_fresh_human_registry.py
+/private/official/cm0102.exe /private/enabled-a/capture.bin
+014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40
+/private/build-receipt.json /private/new-oracle.json`.

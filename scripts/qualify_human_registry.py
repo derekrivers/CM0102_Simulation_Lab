@@ -92,7 +92,20 @@ class Oracle:
         for i in range(count):
             _,rva,size,offset=struct.unpack_from('<IIII',raw,opt+os+40*i+8)
             uc.mem_write(IMAGE_BASE+rva,raw[offset:offset+size])
-        uc.mem_map(HEAP_BASE,(len(snapshot.heap)+4095)&~4095);uc.mem_write(HEAP_BASE,snapshot.heap)
+        self.segments = getattr(snapshot, 'segments', None)
+        if self.segments is None:
+            self.segments = [(HEAP_BASE, snapshot.heap)]
+        pages = []
+        for address, data in self.segments:
+            start, end = address & ~4095, (address + len(data) + 4095) & ~4095
+            if pages and start <= pages[-1][1]:
+                pages[-1] = (pages[-1][0], max(end, pages[-1][1]))
+            else:
+                pages.append((start, end))
+        for start, end in pages:
+            uc.mem_map(start, end-start)
+        for address, data in self.segments:
+            uc.mem_write(address, data)
         uc.mem_map(STACK,0x10000);uc.mem_map(STOP,0x1000)
         for a in GLOBALS:uc.mem_write(a,snapshot.read(a,4))
         self.initial_image=bytes(uc.mem_read(IMAGE_BASE,image_size))
@@ -147,10 +160,22 @@ class Oracle:
         self.calls.append(result)
         return value,result
 
+    def capture_state(self):
+        return [(address, bytes(self.uc.mem_read(address, len(data)))) for address,data in self.segments]
+
+    def restore_state(self, checkpoint):
+        for address, data in checkpoint:
+            self.uc.mem_write(address, data)
+
     def full_state(self,expected_changes):
-        expected=bytearray(self.snapshot.heap)
-        for offset,value in expected_changes.items():expected[self.state['row']-HEAP_BASE+offset]=value
-        require(bytes(self.uc.mem_read(HEAP_BASE,len(expected)))==expected,'unexpected complete heap mutation')
+        for address, original in self.segments:
+            expected=bytearray(original)
+            for offset,value in expected_changes.items():
+                target=self.state['row']+offset-address
+                if 0 <= target < len(expected):
+                    expected[target]=value
+            require(bytes(self.uc.mem_read(address,len(expected)))==expected,
+                    'unexpected captured state mutation')
         require(bytes(self.uc.mem_read(IMAGE_BASE,len(self.initial_image)))==self.initial_image,
                 'unexpected image/global mutation')
 
@@ -159,12 +184,14 @@ def compare_effects(observed,candidate):
     return observed==candidate
 
 
-def generate(binary,capture):
-    raw=checked(binary,SPECIMEN);snapshot=Snapshot(capture);s=locate(snapshot)
+def generate(binary,capture,snapshot_override=None,capture_identity=None):
+    raw=checked(binary,SPECIMEN)
+    snapshot=Snapshot(capture) if snapshot_override is None else snapshot_override
+    s=locate(snapshot)
     oracle=Oracle(raw,snapshot,s);row=s['row'];manager=s['manager'];club=s['club']
     initial=snapshot.read(row+0x9a69,1)[0]
-    require(snapshot.u32(row+0x9a01)==1 and snapshot.read(row+0x9b25,1)==b'\0',
-            'retained fallback state changed')
+    flag=snapshot.u32(row+0x9a01);option_flag=snapshot.read(row+0x9b25,1)[0]
+    require(flag in (0,1) and option_flag in (0,1), 'unsupported guard state')
     cases=[];all_writes=[]
     sequence=[0,1,1,0,1,0]
     before=initial
@@ -182,20 +209,24 @@ def generate(binary,capture):
         all_writes.extend(writes);before=option
     # Restart from a complete official post-command heap and continue the same
     # real state. This is an emulator checkpoint, not an original saved game.
-    checkpoint=bytes(oracle.uc.mem_read(HEAP_BASE,len(snapshot.heap)))
+    checkpoint=oracle.capture_state()
     _,continuation1=oracle.call(0x5fbe20,[1,club,manager],s['registry'],[(row+0x9a69,1)],s['registry_base'])
-    expected_heap=bytes(oracle.uc.mem_read(HEAP_BASE,len(snapshot.heap)))
-    oracle.uc.mem_write(HEAP_BASE,checkpoint)
+    expected_heap=oracle.capture_state()
+    oracle.restore_state(checkpoint)
     _,continuation2=oracle.call(0x5fbe20,[1,club,manager],s['registry'],[(row+0x9a69,1)],s['registry_base'])
-    require(continuation1==continuation2 and bytes(oracle.uc.mem_read(HEAP_BASE,len(snapshot.heap)))==expected_heap,
+    require(continuation1==continuation2 and oracle.capture_state()==expected_heap,
             'checkpoint continuation differs')
     oracle.full_state({0x9a69:1})
     # Actual captured outer getter follows holiday fallback; record that it
     # neither reads nor changes active registry selection in this state.
     k=s['bank_selection'];bank,index=(s['bank1'],k) if k<s['first'] else (s['bank2'],k-s['first'])
-    _,fallback=oracle.call(0x896660,[club,0],s['context'],expected=bank+index*6371)
-    require(not fallback['ordered_writes'],'fallback unexpectedly mutated')
-    oracle.full_state({0x9a69:1})
+    is_fallback = flag != 0 and option_flag == 0
+    _,fallback=oracle.call(0x896660,[club,0],s['context'],
+                          [] if is_fallback else [(row+0x9a69,1)],
+                          bank+index*6371 if is_fallback else row)
+    require(fallback['ordered_writes']==([] if is_fallback else
+            [{'registry_offset':0x9a69,'width':1,'value':0}]),'captured outer effect mismatch')
+    oracle.full_state({0x9a69:1 if is_fallback else 0})
     # Change the guard through its genuine original producer, never a patched
     # memory byte. Option 2 takes the bounded one-byte path; option 3 is excluded.
     _,producer=oracle.call(0x5feb60,[2,1,manager],s['registry'],[(row+0x9b25,1)],(s['registry_index']*8547 & 0xffffff00)|2)
@@ -209,7 +240,7 @@ def generate(binary,capture):
         oracle.full_state({0x9a69:option,0x9b25:1})
         connected.append({'option':option,'returned_slot':option,'byte_offset':option*SLOT_STRIDE,
                           'ordered_writes':result['ordered_writes'],'rng_draws':0})
-    _,restore=oracle.call(0x5feb60,[2,0,manager],s['registry'],[(row+0x9b25,1)],(s['registry_index']*8547 & 0xffffff00)|2)
+    _,restore=oracle.call(0x5feb60,[2,option_flag,manager],s['registry'],[(row+0x9b25,1)],(s['registry_index']*8547 & 0xffffff00)|2)
     oracle.full_state({0x9a69:0})
     # Direct wrong models: each defect compares against observed normalized
     # effects/locations; reorder is discriminated across the command stream.
@@ -238,7 +269,7 @@ def generate(binary,capture):
                                     'outside admitted state or write domain'})
         else:raise ValueError('unsupported probe unexpectedly returned')
     fixture={'schema_version':1,'origin':'captured-bosman-human-registry',
-             'source_capture_sha256':SOURCE_CAPTURE,'specimen_sha256':SPECIMEN,
+             'source_capture_sha256':SOURCE_CAPTURE if capture_identity is None else capture_identity['source_capture_sha256'],'specimen_sha256':SPECIMEN,
              'club_count':s['clubs'],'ordinary_club_limit':s['clubs']-2*s['nations'],
              'staff_count':s['staff'],'registry_count':s['registry_count'],
              'club_id':s['club_id'],'manager_id':s['manager_id'],
@@ -246,20 +277,20 @@ def generate(binary,capture):
              'registry_row_sha256':digest(snapshot.read(row,REGISTRY_STRIDE))}
     return {'schema_version':1,'specimen_sha256':SPECIMEN,'emulator':'unicorn '+unicorn.__version__,
             'method':'official entry-to-return instructions over actual retained runtime state; no stubbed callees',
-            'capture':{'source_capture_sha256':SOURCE_CAPTURE,'image_sha256':IMAGE_HASH,'heap_sha256':HEAP_HASH,
-                       'platform_revision':'f9583098d39c77ac6982a5aa9daec56d74454531'},
+            'capture':({'source_capture_sha256':SOURCE_CAPTURE,'image_sha256':IMAGE_HASH,'heap_sha256':HEAP_HASH,
+                       'platform_revision':'f9583098d39c77ac6982a5aa9daec56d74454531'} if capture_identity is None else capture_identity),
             'state':{'registry_count':s['registry_count'],'registry_stride':REGISTRY_STRIDE,
                      'tactical_slot_count':SLOT_COUNT,'tactical_slot_stride':SLOT_STRIDE,
                      'ordinary_reciprocal_human_bindings':1,'registry_row_sha256':fixture['registry_row_sha256'],
                      'club_record_sha256':digest(snapshot.read(club,581)),
                      'staff_record_sha256':digest(snapshot.read(manager,110)),
-                     'complete_heap_bytes':len(snapshot.heap)},
+                     'complete_heap_bytes':sum(len(data) for _,data in oracle.segments)},
             'private_fixture':{'sha256':digest(canonical(fixture)),'bytes':len(canonical(fixture))},
             'instruction_ranges':[{'start':f'{a:08x}','end_exclusive':f'{b:08x}',
                                    'sha256':digest(bytes(oracle.uc.mem_read(a,b-a)))} for a,b in RANGES],
             'successful_instruction_starts':successful_starts,'successful_calls':len(oracle.calls),
             'cases':cases,'checkpoint_continuation_equal':True,'captured_outer_lookup':{
-                'path':'ordinary-bank-fallback','registry_flag_9a01':1,'registry_flag_9b25':0,
+                'path':'ordinary-bank-fallback' if is_fallback else 'human-registry','registry_flag_9a01':flag,'registry_flag_9b25':option_flag,
                 'ordered_writes':fallback['ordered_writes']},
             'original_guard_producer':{'entry':'005feb60','option':2,'enable_writes':producer['ordered_writes'],
                                        'restore_writes':restore['ordered_writes']},

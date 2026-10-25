@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from qualify_human_registry import locate, checked, digest, GLOBALS, REGISTRY_STRIDE
+from qualify_fresh_human_registry import SparseSnapshot
 
 class Memory:
     def __init__(self):
@@ -50,5 +51,24 @@ class Controls(unittest.TestCase):
     def test_invalid_existing_slot_rejects(self):
         m=Memory();row=m.base+60000+15*REGISTRY_STRIDE;m.heap[row-m.base+0x9a69]=255
         with self.assertRaises(ValueError):locate(m)
+
+    def test_sparse_completeness_identity_and_region_overlap(self):
+        m=Memory();cb=m.globals[0xae23b4];sb=m.globals[0xae23bc]
+        ctx=m.globals[0xde1d08];reg=m.globals[0xb63c98]
+        regions=[(a,m.read(a,4)) for a in GLOBALS]+[(0xae2c90,bytes(4))]+[
+            (cb,m.read(cb,20*581)),(sb,m.read(sb,100*110)),(ctx,m.read(ctx,0x605)),
+            (m.u32(ctx+0x601),m.read(m.u32(ctx+0x601),52*0x91)),
+            (m.u32(ctx+0x5f9),m.read(m.u32(ctx+0x5f9),6371)),
+            (m.u32(ctx+0x5f1),m.read(m.u32(ctx+0x5f1),6371)),
+            (reg,m.read(reg,8)),(m.u32(reg),m.read(m.u32(reg),16*REGISTRY_STRIDE))]
+        def encode(rs):
+            return b'PCR5SP01'+b''.join(struct.pack('<II',a,len(b))+b for a,b in rs)+b'PCR5DONE'
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/'capture';valid=encode(regions);p.write_bytes(valid)
+            self.assertEqual(locate(SparseSnapshot(p,digest(valid)))['registry_index'],15)
+            with self.assertRaises(ValueError):SparseSnapshot(p,digest(b'wrong'))
+            for raw in [valid[:-1],encode(regions[:-1]),encode(regions[:-1]+[regions[-2]])]:
+                p.write_bytes(raw)
+                with self.assertRaises(ValueError):SparseSnapshot(p,digest(raw))
 
 if __name__=='__main__':unittest.main()

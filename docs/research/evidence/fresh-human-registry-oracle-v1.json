@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "emulator": "unicorn 2.1.4",
+  "method": "official entry-to-return instructions over complete declared sparse regions; no stubbed callees",
+  "capture": {
+    "source_capture_sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40",
+    "source_identity_scheme": "SHA256 of complete sparse capture artifact",
+    "platform_revision": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "instrumented_binary_sha256": "2f471fb8c5b87f69cf51d5423e6ec4e92e95386ba33fda2b1827d01df7781451",
+    "build_receipt_sha256": "4c7b536403fb545303de05350bebb262126382cea65025b843da1c55a43c0bf5",
+    "qualification": "R5 sparse observed input; campaign receipt required separately",
+    "captured_regions": 16
+  },
+  "state": {
+    "registry_count": 16,
+    "registry_stride": 42735,
+    "tactical_slot_count": 5,
+    "tactical_slot_stride": 7885,
+    "ordinary_reciprocal_human_bindings": 1,
+    "registry_row_sha256": "3b1c8d6007e6bbe0e9b13daf0edd20c9afb72b60ebf4d47cad092f1ac13e3ed5",
+    "club_record_sha256": "a473a0de1c2f793b40757b058fdc1f2fadd42f5d2f92ce8218eb248821f5d8b4",
+    "staff_record_sha256": "0227e46c288e6050af9ca87797bcccc0b5aebf648c6af5f25dd810b41c8b7e42",
+    "captured_heap_region_bytes": 3849008
+  },
+  "private_fixture": {
+    "sha256": "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2",
+    "bytes": 481
+  },
+  "instruction_ranges": [
+    {
+      "start": "005fbd00",
+      "end_exclusive": "005fbe11",
+      "sha256": "a3b0cb5213631502268653449c723a1e3924f3b50e57c37f0fa27ddb591be06a"
+    },
+    {
+      "start": "005fbe20",
+      "end_exclusive": "005fc004",
+      "sha256": "e87b1fc03afd62601885171d5fbd539960c1893220b2689a28969a26b10cb41b"
+    },
+    {
+      "start": "00600a50",
+      "end_exclusive": "00600c88",
+      "sha256": "cc6153dcf30517c0686132f37230fb079b8efb7f018259bd5384f8a986ae1cd6"
+    },
+    {
+      "start": "0053b900",
+      "end_exclusive": "0053b99f",
+      "sha256": "9e1991a802fbd9f8f648d69697664d3a9b680097b7bfc878d9a6508c96cadad3"
+    },
+    {
+      "start": "005409b0",
+      "end_exclusive": "00540a4c",
+      "sha256": "884811ef44ef43b428dedf6a6ed9eca60c94572d928b25c879871046bead0455"
+    },
+    {
+      "start": "005fd210",
+      "end_exclusive": "005fd2e2",
+      "sha256": "6f38c40cc8e08ee18624701904491e49711df5eeea526a3caac12257194cb4e5"
+    },
+    {
+      "start": "005fea50",
+      "end_exclusive": "005feb50",
+      "sha256": "5379529f3481bca68f75929eb7eda93663374f5fe3ff01bb4b600e83f17d8dd4"
+    },
+    {
+      "start": "005feb60",
+      "end_exclusive": "005fed42",
+      "sha256": "ff7c17b2d6aebfffc964a52147a4801aa9fa44522cf40e54b7ffb813c04caadb"
+    },
+    {
+      "start": "00896660",
+      "end_exclusive": "008967c1",
+      "sha256": "628599aa8b0921b1e7d8d9fca0191323230577765a01516aa6b67f9cc7db9515"
+    }
+  ],
+  "successful_instruction_starts": 290,
+  "successful_calls": 21,
+  "cases": [
+    {
+      "step": 0,
+      "option": 0,
+      "previous_slot": 0,
+      "selected_slot": 0,
+      "location": {
+        "registry_index": 15,
+        "slot": 0,
+        "byte_offset": 0
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 1,
+      "option": 1,
+      "previous_slot": 0,
+      "selected_slot": 1,
+      "location": {
+        "registry_index": 15,
+        "slot": 1,
+        "byte_offset": 7885
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 2,
+      "option": 1,
+      "previous_slot": 1,
+      "selected_slot": 1,
+      "location": {
+        "registry_index": 15,
+        "slot": 1,
+        "byte_offset": 7885
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 3,
+      "option": 0,
+      "previous_slot": 1,
+      "selected_slot": 0,
+      "location": {
+        "registry_index": 15,
+        "slot": 0,
+        "byte_offset": 0
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 4,
+      "option": 1,
+      "previous_slot": 0,
+      "selected_slot": 1,
+      "location": {
+        "registry_index": 15,
+        "slot": 1,
+        "byte_offset": 7885
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 5,
+      "option": 0,
+      "previous_slot": 1,
+      "selected_slot": 0,
+      "location": {
+        "registry_index": 15,
+        "slot": 0,
+        "byte_offset": 0
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    }
+  ],
+  "checkpoint_continuation_equal": true,
+  "captured_outer_lookup": {
+    "path": "human-registry",
+    "registry_flag_9a01": 0,
+    "registry_flag_9b25": 0,
+    "ordered_writes": [
+      {
+        "registry_offset": 39529,
+        "width": 1,
+        "value": 0
+      }
+    ]
+  },
+  "original_guard_producer": {
+    "entry": "005feb60",
+    "option": 2,
+    "enable_writes": [
+      {
+        "registry_offset": 39717,
+        "width": 1,
+        "value": 1
+      }
+    ],
+    "restore_writes": [
+      {
+        "registry_offset": 39717,
+        "width": 1,
+        "value": 0
+      }
+    ]
+  },
+  "connected_outer_lookup_cases": [
+    {
+      "option": 0,
+      "returned_slot": 0,
+      "byte_offset": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "option": 1,
+      "returned_slot": 1,
+      "byte_offset": 7885,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "option": 1,
+      "returned_slot": 1,
+      "byte_offset": 7885,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "option": 0,
+      "returned_slot": 0,
+      "byte_offset": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    }
+  ],
+  "defect_controls": {
+    "wrong-row": 6,
+    "wrong-slot": 6,
+    "wrong-bank-stride": 3,
+    "omitted-write": 6,
+    "word-instead-of-byte": 6,
+    "extra-rng-draw": 6,
+    "reordered-writes": 1
+  },
+  "unsupported_probes": [
+    {
+      "name": "null-manager-diagnostic",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "reason": "outside admitted state or write domain"
+    },
+    {
+      "name": "nonhuman-manager-diagnostic",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "reason": "outside admitted state or write domain"
+    },
+    {
+      "name": "holiday-option-three-larger-producer",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "reason": "outside admitted state or write domain"
+    }
+  ],
+  "supported_rng_draws": 0,
+  "limitations": [
+    "Sparse captured regions only, not the complete runtime heap; every oracle data read is admitted inside captured regions",
+    "Direct selector command is a research API transition, not a reconstructed original UI handler",
+    "Preinitialized registry only; constructor/load/destructor, appointments and lifetime transitions unqualified",
+    "Only ordinary reciprocal human binding, explicit nonnull manager/club, selector options 0 and 1",
+    "Slots 2 through 4, national sides, null-current-manager fallback and diagnostics unsupported",
+    "Plan bytes are preserved but not decoded; no original-save, match or original-process parity",
+    "Execution endpoint, contemporaneous seals, input-consumption gap and instrumentation comparison are in the separate R5 campaign receipt"
+  ],
+  "complete_captured_regions_and_image_checked": true,
+  "production_admission": "not-admitted; separate reviewed fixture fingerprint required"
+}
