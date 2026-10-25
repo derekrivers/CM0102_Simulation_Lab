@@ -9,7 +9,7 @@ This project builds on Max Evans's existing work:
 
 [Upstream integration](docs/research/UPSTREAM_INTEGRATION.md) specifies pins, exact inputs, adapters, test reuse, map ingestion and upgrade qualification. The original executable remains the behavioural reference. Neither upstream project is treated as automatically complete or infallible.
 
-**Outcome:** a faithful, playable and extensible reconstruction of the entire CM01/02 game. **Rust** implements the game and simulator; **React/TypeScript** implements the browser interface. The continuous VPS laboratory supplies reproducible evidence and verification throughout.
+**Outcome:** a faithful, playable and extensible reconstruction of the entire CM01/02 game. **Rust** implements the game and simulator; **React/TypeScript** implements the browser interface. The PC is the primary local build, reference-execution and experiment host for calibration and early reconstruction. The continuous VPS laboratory is later durability and throughput capacity, not a prerequisite for local B2/B3 work.
 
 Planning base: `b702984020767bd36095dc231354a77a97a9c2ff`. This is a standalone project roadmap. All phases are planned; nothing here claims a built simulator or deployed VPS.
 

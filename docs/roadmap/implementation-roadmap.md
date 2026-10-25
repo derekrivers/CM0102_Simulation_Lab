@@ -21,7 +21,7 @@ flowchart TD
  P09 --> P10["P10 Extended game"]
 ```
 
-P01 service reliability and P02 local reference calibration can progress in parallel after P00. P04 follows P02 without waiting for P03 or Jev. P03 depends on P01/P02 and develops the continuous mapping loop alongside the Rust work. Its optional model evaluation is not a reconstruction prerequisite. Baseline and regression campaigns continue throughout.
+P01 service reliability and P02 local reference calibration can progress in parallel after P00. The PC is the primary host for P02 and the first P04 slice. P04 follows the relevant P02 evidence without waiting for P01's VPS pilot, P03 or Jev. P03 depends on P01/P02 and develops the continuous mapping loop alongside the Rust work. Its optional model evaluation is not a reconstruction prerequisite. Baseline and regression campaigns continue throughout.
 
 ## First implementation sequence
 
@@ -31,9 +31,9 @@ These are ordered implementation work packages. Create ordinary repository issue
 |---|---|---|---|
 | 1 | Pin sources and import the existing map | Input/provenance manifest, count/schema reconciliation, coverage register | Map-only work can start immediately |
 | 2 | Build Bosman and run one isolated Rust-CLI job | Qualified private input, binary digest, endpoint and artifacts | 1 plus original files |
-| 3 | Local original/Bosman calibration | A/A replay, numeric/RNG cases, deliberate divergence detection | 1, 2; no durable queue required |
-| 4A | First Rust native/browser slice | Supported stateful workflow, original-backed parity, save/reload | 3; no Jev or full mapping platform required |
-| 4B | Durable queue and 24-hour VPS pilot | Fencing/recovery, successful endpoints, resource measurements | 2 and host access |
+| 3 | PC-local original/Bosman calibration | Explorer-launched medium helper, A/A replay, numeric/RNG cases, deliberate divergence detection | 1, 2; no durable queue or VPS required |
+| 4A | First Rust native/browser slice on the PC | Supported stateful workflow, original-backed parity, save/reload | 3; no Jev, VPS pilot or full mapping platform required |
+| 4B | Deferred durable queue and 24-hour VPS pilot | Fencing/recovery, successful endpoints, resource measurements | 2 and suitable host access; off the B2/4A critical path |
 | 5 | Continuous mapping and 72-hour qualification | Reviewed useful contracts, valid reproducers, restore and storage limits | 3, 4B |
 | 6 | Optional Jev shadow trial | Family-separated labels/holdout and measured routing benefit | Sufficient labelled evidence from 5 |
 

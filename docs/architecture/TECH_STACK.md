@@ -14,7 +14,7 @@ Decision date: 24 October 2026. Rust is the user's selected implementation langu
 | Wire and scenario contracts | Versioned JSON Schema; JSON envelopes/NDJSON events; binary artifacts by hash | Reviewable, language-neutral boundaries; large state never repeatedly serialised through JSON |
 | Rust serialisation | Serde with explicit schema versions | Convenient adapters; serialised struct layout is not the save compatibility contract |
 | RE automation | Python, Ghidra headless, Capstone, Unicorn; original Windows debugger for difficult cases | Reuse proven upstream tools; targeted function execution before whole-game substitution |
-| Baseline execution | Pinned Bosman native Linux process; original Windows process on separate calibrated host | Bosman throughput and original behaviour have distinct authority |
+| Baseline execution | Pinned Bosman native Linux process; original Windows process on the calibrated PC through the reviewed medium helper | Bosman throughput and original behaviour have distinct authority; WSL never launches the original |
 | Tests | cargo test, proptest for domain invariants, Criterion for selected benchmarks; Playwright for UI; Python upstream tests | Evidence-driven tests, including native/WASM replay and malformed imports |
 | VPS operations | Linux x86-64 first, Docker Compose and systemd supervision | Small operational footprint, isolated processes and resource controls |
 | Metrics | Structured tracing/logs plus Prometheus-format counters; dashboard in lab app initially | Queue health and research value visible; add Grafana only if useful |

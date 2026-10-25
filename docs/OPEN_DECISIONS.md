@@ -4,9 +4,9 @@ The roadmap is complete as a design proposal; the following block specific execu
 
 | Item | Proposed default | Owner and gate |
 |---|---|---|
-| VPS OS, CPU architecture, RAM, free disk and existing services | Linux x86-64; start one worker and measure | Lister supplies facts before P01 deployment |
+| VPS OS, CPU architecture, RAM, free disk and existing services | Deferred B4/P01 work; Linux x86-64, start one worker and measure | Lister supplies facts before later P01 deployment; does not block B2/B3 |
 | Original executable/data/assets and reference saves | Official 3.9.68, original 2001 data, verified hashes | Lister supplies private input locations before P00 baseline run |
-| Original reference host | Separate Windows host/VM; Linux Bosman used for bulk work | Implementer qualifies environment with Lister before P02 |
+| Original clean-data read provenance | PC is the selected Windows reference host; staging and executable origin alone do not prove data consumption | Close with reviewed observation or isolated binding before a clean-data behavioural claim |
 | Acceptable fidelity/deviation profile | Preserve original observable behaviour; explicit approved quirk fixes | Lister/implementer resolve measured conflicts in P02 |
 | Browser memory/performance target | Measure representative worlds in P04; no fixed FPS/game-days target invented | Implementer at P04 |
 | Original-save coverage | Import supported original saves; export to original format deferred | Confirm variants during P00 inventory; certify P09 |
