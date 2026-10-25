@@ -69,3 +69,36 @@ otherwise a separately sealed capture increment. No whole-path date is promised.
 
 Pending frozen-source review and explicit heavy-slot allocation. Independent
 review must assess exact source, diagnostics privacy, evidence and claim scope.
+
+## Separately frozen empty-mapping expansion
+
+Initial campaign source 5928e7d completed its eight calls and remains immutable.
+Both value-zero branches returned with exact ABI/effects. Strict nonzero probes
+censored at the manager-to-club DWORD, connected probes at 008968f0. Full captured
+state/image matched every partial effect; fresh connected calls also wrote the
+selected-slot byte. This is a preserved first campaign, not a failed qualification
+silently replaced by the expansion below.
+
+Static actual-input inspection found all sixteen mapping DWORDs equal -1 in both
+captures. Thus this exact initialized branch needs no staff-linked dereference or
+plan-word read. The follow-on budget is four additional calls per source only:
+1,1,0, then restore the full checkpoint after the first 1 and execute 1 again.
+Compare the repeated suffix result and complete captured state byte for byte.
+Each call retains the original 3,000 instruction/100ms ceiling. No retries or
+additional branches are authorized. Preserve failures with partial effects.
+
+New source qualify_option_three_empty_mapping.py adds only original ranges
+008968f0..00896a8e and 008982b0..008983ed plus exact sixteen mapping DWORD fields.
+Every CALL is checked by exact caller PC and target. The resolver's flag-zero
+008982b0 branch calls 00600a50 and returns the ordinary club ID; each empty
+mapping slot makes 008968f0 return zero before staff or plan accesses. Expected
+nonzero return is EAX=ffffffff with RET12 and callee-saved registers preserved.
+Writes are the initial +9b26 byte, fresh-only +9a69 selector byte, then 32 DWORD
+ffffffff writes at +9b28+8*i and +9b2c+8*i, i=0..15. Value zero only writes +9b26;
+it preserves previous loop fields. Full captured/image comparison admits exactly
+these byte effects. All other state, including guard/option2/mapping, is immutable.
+Mutated effect/width/value/offset/order/RNG/ABI candidates must fail the same
+verifier used on observations. No production admission follows. Nonempty slots,
+staff-linked lifetimes, plan numeric branches and broader options remain excluded.
+
+Pending independent source review and heavy-slot allocation for this expansion.
