@@ -154,6 +154,52 @@ class Controls(unittest.TestCase):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 use.parse_trace(self.modified(value, name), self.members)
 
+    def helper_library(self, name, source):
+        p = self.root/(name+'.c')
+        p.write_text(source)
+        command = ['/usr/bin/cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '-O0',
+            '-shared', '-fPIC', str(p), '-o', str(self.root/(name+'.so')), '-ldl', '-pthread']
+        use.r5.write(self.root/(name+'-build.json'), command)
+        result = subprocess.run(command, capture_output=True, timeout=30)
+        (self.root/(name+'-build.stderr')).write_bytes(result.stderr)
+        self.assertEqual(result.returncode, 0)
+        return self.root/(name+'.so')
+
+    def test_preexisting_task_census_fails(self):
+        helper = self.helper_library('preexisting-thread', r'''
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <unistd.h>
+static void *worker(void *arg){(void)arg;for(;;)pause();return 0;}
+__attribute__((constructor)) static void start(void){pthread_t thread;if(pthread_create(&thread,0,worker,0))_exit(44);}
+''')
+        # ELF initialization runs this later preload before the observer.
+        preload = str(self.root/'observer.so')+':'+str(helper)
+        self.assertEqual(self.invoke('preexisting', LD_PRELOAD=preload), 116)
+        with self.assertRaises(ValueError):
+            use.parse_trace(self.root/'preexisting.tsv', self.members)
+
+    def test_nested_api_counts_are_separate(self):
+        helper = self.helper_library('nested', r'''
+#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+FILE *fopen(const char *path,const char *mode){
+ FILE *(*next)(const char *,const char *);*(void **)(&next)=dlsym(RTLD_NEXT,"fopen");
+ int fd=open(path,O_RDONLY);if(fd>=0){char c;read(fd,&c,1);close(fd);}return next(path,mode);
+}
+''')
+        preload = str(self.root/'observer.so')+':'+str(helper)
+        self.assertEqual(self.invoke('nested', LD_PRELOAD=preload), 0)
+        s = use.parse_trace(self.root/'nested.tsv', self.members)
+        read = [row for row in s['rows'] if row['operation'] == 'read'][0]
+        self.assertEqual(read['calls'], 2)
+        self.assertEqual(read['nested_calls'], 1)
+        self.assertEqual(read['delivered_api_bytes_lower_bound'], 4)
+        self.assertEqual(s['operations']['fread'], 1)
+
     def test_all_frozen_observer_capacity_failures(self):
         original = use.observer_source().read_text()
         variants = {

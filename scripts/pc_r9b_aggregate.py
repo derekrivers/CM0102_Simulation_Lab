@@ -57,12 +57,14 @@ def parse_trace(path, members):
                 raise ValueError('malformed aggregate row/order')
             index = number(f[1])
             op = f[2]
-            ok, error, known, dev, ino = map(number, f[3:8])
+            ok = number(f[3])
+            error = number(f[4], signed=True)
+            known, dev, ino = map(number, f[5:8])
             size = number(f[8], signed=True)
             calls, positive, requested, lower, items, nested, short = map(number, f[9:16])
             target, supplied = map(decode, f[16:18])
             if (index != len(rows) or op not in READS | OPENS | MAPS or ok not in (0, 1)
-                    or known not in (0, 1) or error > 4095 or (ok and error)
+                    or known not in (0, 1) or not -2**31 <= error < 2**31 or (ok and error)
                     or calls == 0 or positive > calls or nested > calls or short > calls
                     or lower > requested or (positive == 0) != (lower == 0)
                     or (op not in ITEM_READS and (items or short))
@@ -104,11 +106,12 @@ def parse_trace(path, members):
                 raise ValueError('malformed abnormal detail')
             sequence, index = map(number, f[1:3])
             fd = number(f[3], signed=True)
-            requested, lower, sampled_errno = map(number, f[4:7])
+            requested, lower = map(number, f[4:6])
+            sampled_errno = number(f[6], signed=True)
             target, supplied = map(decode, f[7:9])
             if (index >= len(rows) or sequence == 0 or sequence > events
                     or (abnormal and sequence <= abnormal[-1]['sequence'])
-                    or lower > requested or sampled_errno > 4095
+                    or lower > requested or not -2**31 <= sampled_errno < 2**31
                     or target != rows[index]['resolved_target']
                     or supplied != rows[index]['supplied_path']):
                 raise ValueError('invalid abnormal identity/sequence')
