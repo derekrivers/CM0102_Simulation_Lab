@@ -14,11 +14,13 @@ async function preview(fixture){
 }
 (async()=>{
  const started=Date.now(),results=[];
+ for(const key of ['EFFECTIVE_REFERENCE_FIXTURE','FRESH_EFFECTIVE_REFERENCE_FIXTURE'])assert.ok(process.env[key],key+' required for complete journey acceptance');
  const fixtures=[['synthetic',path.join(root,'crates/cm-management/tests/fixtures/synthetic-effective-plan.json')]];
  for(const [label,key] of [['retained','EFFECTIVE_REFERENCE_FIXTURE'],['fresh','FRESH_EFFECTIVE_REFERENCE_FIXTURE']])if(process.env[key])fixtures.push([label,process.env[key]]);
  const invalid=path.join(out,'journey-invalid-fixture.json');fs.writeFileSync(invalid,'{}');
+ const oversized=path.join(out,'journey-oversized-fixture.json');fs.writeFileSync(oversized,' '.repeat(65537));
  // Missing, relative-path and Rust-rejected fixture routes preserve the exact active world.
- for(const [label,fixture] of [['missing',null],['relative','relative.json'],['invalid',invalid]]){
+ for(const [label,fixture] of [['missing',null],['relative','relative.json'],['invalid',invalid],['oversized',oversized]]){
   const host=await preview(fixture),browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH});
   try{const page=await browser.newPage();await page.goto(host.url);await page.getByRole('button',{name:'Apply plan',exact:true}).waitFor();const before=await page.evaluate(()=>window.managementRequest({action:'state'}));
    await page.getByRole('button',{name:'Load connected human reference',exact:true}).click();await page.getByRole('status').filter({hasText:label==='invalid'?'Rejected:':'No qualified connected'}).waitFor();
@@ -54,6 +56,6 @@ async function preview(fixture){
    results.push({case:label,fixture_sha256:hash(JSON.stringify(canonical(JSON.parse(fixtureText)))),native_wasm_equal:true,process_reopen:true,continued_revision:continued.state.revision});
   }finally{if(browser)await browser.close();await host.close();}
  }
- const receipt={schema_version:1,elapsed_seconds:(Date.now()-started)/1000,wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm')),cases:results,scope:'Existing v5 setup/explicit lookup/save/reopen/continuation; no qualified squad or lineup action. Existing corruption/abort/fencing acceptance remains separate.'};
+ const receipt={schema_version:1,retained_and_fresh_executed:true,elapsed_seconds:(Date.now()-started)/1000,wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm')),cases:results,scope:'Existing v5 setup/explicit lookup/save/reopen/continuation; no qualified squad or lineup action. Existing corruption/abort/fencing acceptance remains separate.'};
  fs.writeFileSync(path.join(out,'browser-journey-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
 })().catch(error=>{console.error(error);process.exitCode=1;});
