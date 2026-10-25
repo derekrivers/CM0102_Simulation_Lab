@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "reviewed_executed_revision": "f6b40528d668901eacb04ab50ec2d8fa333084ef",
+  "unchanged_qualifier_revision": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+  "receipt_sha256": "504f4f1142597f4f8e451e15837383df2527a2afc921149e4f72d75a8fb8d877",
+  "result": "approved-bounded-retained-two-record-original-command-research",
+  "reviewer": "C independent of B qualifier and campaign execution",
+  "private_audit": "pc-r10-c-postreview-command-20261025-a1/audit.json",
+  "private_audit_sha256": "258fbf1ddf1cc2ee0b17a962409e5a0491069e0cd7b2fee5971ea11206309b64",
+  "private_source": "pc-r10-c-postreview-command-source.py",
+  "private_source_sha256": "9d8cc70434f2478ae0d9ba8923024a34584bccaec379f800efe505a2f70a51f4",
+  "independent_checks": {
+    "raw_extraction": "C independent direct standard-library extraction prefix only; no B parser imported",
+    "selected_actual_records": "Both complete staff110/player70 record hashes match C pre-execution selection",
+    "expected_heap_reconstruction": "Hash complete pinned original heap with only actual chosen staff ID DWORD overlaid at actual human mapping slot zero; reconstruct original initial empty digest separately",
+    "expected_initial_heap_sha256": "c1c5b7bcf9806b4366e2f984d01a3fb69a4ca5d742c4c1734a8ffe4dd350a31b",
+    "expected_candidate_zero_heap_sha256": "2685196ed7de233706421a3163157b50e3f432c7223329f0197ce580868fa7ad",
+    "expected_candidate_one_heap_sha256": "79124a2daa4051322f5d80c8fcab9dc3ab0e2e98fb261cebcf91779fd301af6f",
+    "all_supported_case_digests_match": 11,
+    "all_ordered_slot_zero_effects_and_write_pcs_match": true,
+    "exact_checkpoint_suffix_state_reads_instruction_trace_match": true,
+    "censored_probes_expected_pcs_no_effects": 4,
+    "exercised_defect_models_true": 12,
+    "actual_private_artifact_hashes_and_sizes": 6,
+    "current_before_source_tool_input_seals_verified": 10,
+    "timing_sidecar_attempt_count": 15,
+    "source_audited": "Exact instruction starts/CALLs and field-width hooks; original EAX/RET16/RET12/callee-saved checks; complete heap and loaded official image invariants; no player pointee dereference or unadmitted call",
+    "execution": "exit0, no limiter reason, unchanged seals,13.849964520 seconds under separately reviewed3GiB follow-up envelope"
+  },
+  "qualified_lifetime": "Only these two actual initialized retained staff/player identities and links held immutable across the exact eleven supported original calls. Full recorded object extents/IDs and original construction/non-null path plus exact all-byte invariants establish this bounded captured lifetime; it is not inferred from pointer presence alone.",
+  "limits": [
+    "Reviewer audited source and actual artifacts; no emulator rerun performed or claimed",
+    "Original image full-byte invariant is checked by reviewed source and successful campaign; reviewer independently reconstructs complete heap digests, not a separate dynamic image capture",
+    "Initial1GiB translator failure remains retained; this acceptance covers separately reviewed3GiB follow-up only",
+    "Fresh sparse input, seven anomalous membership entries, complete squad semantics and projection admission remain unqualified",
+    "No constructor/load/free/appointment lifetime transitions, production command/fingerprint/save version or full milestone admitted",
+    "Lead separately covers shared initialized-lifetime judgment; C cannot self-admit a projection"
+  ]
+}

@@ -102,3 +102,33 @@ links reach aligned full records with matching player IDs. This supplies extent
 and identity evidence, not a constructor/load/free or backlink qualification.
 B must decide and document whether its original no-player-dereference command
 can freeze an immutable initialized domain; no such judgment is made here.
+
+## Accepted bounded original command lifetime, not projection admission
+
+The separately reviewed retained-only follow-up at B source `f6b4052` (unchanged
+qualifier `320b9ba`) now passes eleven original calls and four censored diagnostic
+probes. Original assignment creates a genuinely nonempty slot-zero mapping from
+one of the two independently identified actual reciprocal members; readback
+returns that member through the original nonnull-player-link path. Repetition,
+replacement, exact complete checkpoint continuation and twelve exercised defect
+models pass. The first 1 GiB translator-initialization failure stays retained;
+the separately reviewed successful 3 GiB follow-up does not erase that attempt.
+
+[C's independent post-execution audit](evidence/pc-r10-projection-review-command-post-v1.json)
+reconstructs all eleven complete-heap digests directly from pinned original bytes
+and the actual selected staff-ID overlay, checks ordered effects and exact repeated
+suffixes, verifies six actual campaign artifacts and ten source/tool/input seals,
+and audits the original-image/ABI/read/call invariants in the executed source.
+The reviewer performs no new emulation. All complete selected staff/player records
+and link values remain invariant across those exact calls. Together with complete
+aligned extents/IDs and original link construction and nonnull handling, this
+qualifies only the two-record initialized immutable command lifetime. It does not
+qualify construction, loading, freeing, appointments or general player lifetimes.
+
+This resolves that precise command-lifetime gate for the retained two-record
+domain. Complete real squad membership and independently admitted projection
+remain absent: the seven anomalous list entries are still unexplained and are
+not repaired, filtered into a claimed complete squad or relabeled as loans or
+sentinels. No portable Rust projection, production action, fixture fingerprint,
+new save/profile or v1-v5 migration follows from the research acceptance. The
+browser squad/lineup/save/reopen milestone remains incomplete.
