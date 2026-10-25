@@ -5,6 +5,7 @@
   "scripts": {
     "build": "node build.mjs",
     "check": "node check-browser.cjs",
+    "check:storage": "node check-storage.cjs",
     "typecheck": "tsc --noEmit",
     "preview": "node preview.cjs"
   },
