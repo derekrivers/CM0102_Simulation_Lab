@@ -2,6 +2,8 @@
 //! No original UI, formation contents or saved-game compatibility is claimed.
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+pub mod reference;
+use reference::{ReferenceFixture, resolve_plan};
 
 const PROFILE: &str = "synthetic-null-owner-plan-selection-v1";
 const SESSION: &str = "fictional-club-session-v1";
@@ -70,6 +72,8 @@ pub struct World {
     plans: Vec<Plan>,
     events: Vec<Event>,
     records: Vec<Record>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reference: Option<ReferenceFixture>,
 }
 // Untrusted data has a separate private type; World has no Deserialize escape hatch.
 #[derive(Deserialize)]
@@ -85,6 +89,8 @@ struct LoadedWorld {
     plans: Vec<Plan>,
     events: Vec<Event>,
     records: Vec<Record>,
+    #[serde(default)]
+    reference: Option<ReferenceFixture>,
 }
 impl World {
     fn from_unchecked(data: LoadedWorld) -> Self {
@@ -99,6 +105,7 @@ impl World {
             plans: data.plans,
             events: data.events,
             records: data.records,
+            reference: data.reference,
         }
     }
 }
@@ -159,6 +166,7 @@ impl Default for World {
             plans,
             events: vec![],
             records: vec![],
+            reference: None,
         };
         // Identity binds the supported fixture including all names/references, before any commands.
         world.fixture_sha256 = hash(&serde_json::to_vec(&world).expect("fixed fixture serializes"));
@@ -167,6 +175,51 @@ impl Default for World {
 }
 
 impl World {
+    fn from_reference(fixture: ReferenceFixture) -> Result<Self, String> {
+        fixture.validate()?;
+        let identity = fixture.fingerprint()?;
+        let total = fixture.first_bank_count + fixture.second_bank_count;
+        let clubs = fixture
+            .clubs
+            .iter()
+            .map(|club| Club {
+                id: club.id,
+                name: club.name.clone(),
+                selected_plan: club.selected_plan as u16,
+            })
+            .collect();
+        let plans = (0..total)
+            .map(|id| Plan {
+                id: id as u16,
+                name: format!("Research plan {}", id + 1),
+            })
+            .collect();
+        Ok(Self {
+            schema_version: 2,
+            profile: format!("{}-ordinary-club-bank-v1", fixture.origin),
+            fixture_sha256: identity,
+            session_id: format!("{}-club-session-v1", fixture.origin),
+            revision: 0,
+            clubs,
+            players: vec![],
+            plans,
+            events: vec![],
+            records: vec![],
+            reference: Some(fixture),
+        })
+    }
+
+    fn locations(&self) -> serde_json::Value {
+        let (first, second) = self
+            .reference
+            .as_ref()
+            .map(|r| (r.first_bank_count, r.second_bank_count))
+            .unwrap_or((3, 2));
+        serde_json::Value::Array(self.clubs.iter().map(|club|serde_json::json!({
+            "club_id":club.id,"location":resolve_plan(first,second,i32::from(club.selected_plan)).expect("validated selection")
+        })).collect())
+    }
+
     pub fn clubs(&self) -> &[Club] {
         &self.clubs
     }
@@ -211,11 +264,12 @@ impl World {
         if usize::from(plan) >= self.plans.len() {
             return Err("unsupported-plan".into());
         }
-        let club = self
+        let club_index = self
             .clubs
-            .get(command.club_id as usize)
-            .filter(|c| c.id == command.club_id)
+            .iter()
+            .position(|club| club.id == command.club_id)
             .ok_or("unknown-club")?;
+        let club = &self.clubs[club_index];
         let event = Event {
             kind: "PlanSelected".into(),
             revision: self.revision + 1,
@@ -223,7 +277,7 @@ impl World {
             old_plan: club.selected_plan,
             new_plan: plan,
         };
-        self.clubs[command.club_id as usize].selected_plan = plan;
+        self.clubs[club_index].selected_plan = plan;
         self.revision += 1;
         self.events.push(event.clone());
         self.records.push(Record {
@@ -237,7 +291,7 @@ impl World {
         let payload = serde_json::to_string(self).map_err(|e| e.to_string())?;
         serde_json::to_string(&Save {
             magic: "CM-PLAN-SLICE".into(),
-            schema_version: 1,
+            schema_version: self.schema_version,
             payload_bytes: payload.len(),
             payload_sha256: hash(payload.as_bytes()),
             payload,
@@ -251,7 +305,7 @@ impl World {
         }
         let save: Save = serde_json::from_str(encoded).map_err(|_| "invalid-save-envelope")?;
         if save.magic != "CM-PLAN-SLICE"
-            || save.schema_version != 1
+            || ![1, 2].contains(&save.schema_version)
             || save.payload.len() != save.payload_bytes
             || hash(save.payload.as_bytes()) != save.payload_sha256
         {
@@ -265,7 +319,13 @@ impl World {
         }
         // Reconstruct the admitted state and validate every reference, profile, event and dedup record.
         // No decoded world is committed until this full comparison succeeds.
-        let mut replay = World::default();
+        if save.schema_version != candidate.schema_version {
+            return Err("save-schema-mismatch".into());
+        }
+        let mut replay = match &candidate.reference {
+            Some(fixture) => World::from_reference(fixture.clone())?,
+            None => World::default(),
+        };
         for record in &candidate.records {
             replay.apply(record.command.clone())?;
         }
@@ -284,6 +344,7 @@ pub enum Operation {
     Command { command: Command },
     Save {},
     Load { save: String },
+    ImportReference { fixture: String },
 }
 
 #[derive(Default)]
@@ -312,10 +373,20 @@ impl Engine {
                 self.world = world;
                 serde_json::Value::Null
             }),
+            Operation::ImportReference { fixture } => ReferenceFixture::parse(&fixture)
+                .and_then(World::from_reference)
+                .map(|world| {
+                    self.world = world;
+                    serde_json::Value::Null
+                }),
         });
         match result {
-            Ok(value) => serde_json::json!({"ok":true,"result":value,"state":self.world}),
-            Err(error) => serde_json::json!({"ok":false,"error":error,"state":self.world}),
+            Ok(value) => {
+                serde_json::json!({"ok":true,"result":value,"state":self.world,"plan_locations":self.world.locations()})
+            }
+            Err(error) => {
+                serde_json::json!({"ok":false,"error":error,"state":self.world,"plan_locations":self.world.locations()})
+            }
         }
     }
 }
