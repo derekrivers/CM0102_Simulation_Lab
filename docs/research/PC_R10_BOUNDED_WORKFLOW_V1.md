@@ -165,13 +165,13 @@ workflow, then run the unchanged browser and storage suites and
 to the independently admitted private fixture. Run the new harness from
 `apps/management`, with the same existing `PLAYWRIGHT_MODULE` and `CHROMIUM_PATH`
 configuration. It emits a private actual response corpus to
-`test-output/assignment-retained-corpus.json`. Compare it with:
+`test-output/assignment-acceptance-<unique>/assignment-retained-corpus.json`. Compare it with:
 
 ```sh
 python3 scripts/check_pc_r10_assignment_effects.py \
   /home/derek/cm-proof/map-audit-capture/snapshot \
   /home/derek/.local/share/cm0102-simulation-lab/evidence/pc-r10-command-f6b4052-a2/receipt.json \
-  apps/management/test-output/assignment-retained-corpus.json \
+  "apps/management/test-output/assignment-acceptance-<unique>/assignment-retained-corpus.json" \
   /absolute/new/private/assignment-effects-receipt.json
 ```
 
@@ -183,3 +183,9 @@ IndexedDB publication. These are written acceptance cases, not passed results.
 The effect comparator reconstructs all three original complete-heap identities
 and checks every mapping entry plus ordered writes/return/RNG, with nine
 deliberate observable defects. Existing legacy corpora remain unchanged.
+
+Static review found and corrected a pre-execution harness defect: page init scripts
+do not affect the publishing worker. The abort control now patches the actual
+engine worker and requires its interception counter to advance. Each acceptance
+run retains a fresh private artifact directory instead of replacing prior corpora.
+No failed browser run is implied: the defect was found before execution.

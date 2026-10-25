@@ -19,10 +19,10 @@ async function corruptCurrent(page){await page.evaluate(()=>new Promise((resolve
 const ready=async(page,url)=>{await page.goto(url);await page.getByRole('status').filter({hasText:'State ready'}).waitFor();};
 (async()=>{
  assert.ok(process.env.ASSIGNMENT_REFERENCE_FIXTURE,'Exact admitted private fixture path required');
- fs.mkdirSync(out,{recursive:true});const results=[],started=Date.now();
+ fs.mkdirSync(out,{recursive:true});const runDirectory=fs.mkdtempSync(path.join(out,'assignment-acceptance-'));fs.chmodSync(runDirectory,0o700);const results=[],started=Date.now();
  for(const [label,file] of [['synthetic',path.join(root,'crates/cm-management/tests/fixtures/synthetic-assignment.json')],['retained',process.env.ASSIGNMENT_REFERENCE_FIXTURE]]){
   const fixture=fs.readFileSync(file,'utf8'),initial=native([imported(fixture)])[0];assert.equal(initial.ok,true);
-  const host=await preview(file),profile=fs.mkdtempSync(path.join(out,'assignment-'+label+'-'));
+  const host=await preview(file),profile=fs.mkdtempSync(path.join(runDirectory,label+'-profile-'));
   const options={headless:true,executablePath:process.env.CHROMIUM_PATH};let context;
   try{
    context=await chromium.launchPersistentContext(profile,options);let page=await context.newPage();await ready(page,host.url);
@@ -45,7 +45,7 @@ const ready=async(page,url)=>{await page.goto(url);await page.getByRole('status'
    ops.push({...valid,command:{...valid.command,staff_id:-1}});
    ops.push(valid,valid,{...valid,command:{...valid.command,staff_id:state.fixture.members[1]}},{action:'save'});
    const expected=native(ops),actual=[];for(const op of ops)actual.push(await request(page,op));assert.deepEqual(actual,expected,'complete native/WASM corpus');
-   if(label==='retained')fs.writeFileSync(path.join(out,'assignment-retained-corpus.json'),JSON.stringify({fixture_sha256:initial.state.fixture_sha256,operations:ops,responses:actual}));
+   if(label==='retained')fs.writeFileSync(path.join(runDirectory,'assignment-retained-corpus.json'),JSON.stringify({fixture_sha256:initial.state.fixture_sha256,operations:ops,responses:actual}),{mode:0o600,flag:'wx'});
    // Start a clean persisted profile for real UI interactions and reopen.
    await request(page,imported(fixture),true);await page.reload();await page.getByRole('button',{name:'Read back slot zero',exact:true}).waitFor();
    const first=state.fixture.members[0],second=state.fixture.members[1];
@@ -68,14 +68,16 @@ const ready=async(page,url)=>{await page.goto(url);await page.getByRole('status'
    const stale=await context.newPage();await ready(stale,host.url);const winner=await request(page,command(backup.state,'winner',second),true),winnerHead=await head(page);
    const loser=await request(stale,command(backup.state,'stale',first),true);assert.equal(loser.ok,true);assert.equal(loser.durability.status,'failed');assert.match(loser.durability.error,/conflict/);assert.deepEqual(await head(page),winnerHead);await stale.close();
    // Actual aborted IndexedDB transaction keeps accepted in-memory action visible.
-   await context.addInitScript(()=>{const put=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(...args){const result=put.apply(this,args);this.transaction.abort();return result;};});
    await page.reload();await page.getByRole('button',{name:'Read back slot zero',exact:true}).waitFor();
+   const engineWorker=page.workers().find(worker=>new URL(worker.url()).pathname==='/worker.js');assert.ok(engineWorker,'actual engine worker available');
+   await engineWorker.evaluate(()=>{self.assignmentAbortCount=0;const put=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(...args){const result=put.apply(this,args);self.assignmentAbortCount++;this.transaction.abort();return result;};});
    await page.getByRole('button',{name:'Read back slot zero',exact:true}).click();await page.getByTestId('durability').filter({hasText:'Browser save failed'}).waitFor();
+   assert.ok(await engineWorker.evaluate(()=>self.assignmentAbortCount)>0,'abort hook executed in publishing worker realm');
    const unsaved=await request(page,{action:'state'});assert.equal(unsaved.state.revision,winner.state.revision+1);assert.deepEqual(await head(page),winnerHead);
    assert.deepEqual(unsaved.state,native([{action:'load',save:winnerHead.current.save},unsaved.state.records.at(-1).command]).at(-1).state);
    results.push({label,fixture_sha256:initial.state.fixture_sha256,operations:ops.length,native_wasm_equal:true,process_reopen:true,continuation:true,export_import:true,corrupt_fallback:true,stale_writer_fenced:true,actual_abort:true});
   }finally{if(context)await context.close();await host.close();}
  }
- const receipt={schema_version:1,kind:'bounded-assignment-acceptance-v1',elapsed_seconds:(Date.now()-started)/1000,wasm_sha256:hash(fs.readFileSync(path.join(__dirname,'dist/cm_management.wasm'))),cases:results,scope:'Two admitted records and slot zero only. Original effect comparator and unchanged legacy suites remain separate required checks.'};
- fs.writeFileSync(path.join(out,'assignment-acceptance-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
+ const receipt={schema_version:1,kind:'bounded-assignment-acceptance-v1',artifact_directory:runDirectory,elapsed_seconds:(Date.now()-started)/1000,wasm_sha256:hash(fs.readFileSync(path.join(__dirname,'dist/cm_management.wasm'))),cases:results,scope:'Two admitted records and slot zero only. Original effect comparator and unchanged legacy suites remain separate required checks.'};
+ fs.writeFileSync(path.join(runDirectory,'assignment-acceptance-receipt.json'),JSON.stringify(receipt,null,2)+'\n',{mode:0o600,flag:'wx'});console.log(JSON.stringify(receipt));
 })().catch(error=>{console.error(error);process.exitCode=1;});
