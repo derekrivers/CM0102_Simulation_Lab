@@ -104,6 +104,15 @@ def parse_trace(path, members):
         'events': private}
 
 
+def exact_noninterference(records, successful):
+    endpoint = successful and len(records) == 4 and all(
+        x.get('save', {}).get('sha256') == SAVE for x in records)
+    captured = successful and len(records) == 4 and all(
+        x.get('capture_complete') and x.get('capture', {}).get('sha256') == CAPTURE
+        for x in records[1:])
+    return endpoint, captured
+
+
 def observer_source():
     return Path(__file__).with_name('pc_r9_file_observer.c')
 
@@ -245,9 +254,7 @@ def run(a):
                           'elapsed_seconds': elapsed}), flush=True)
     stable = seal(a) == initial and all(x['identities_stable'] for x in records)
     successful = stable and all(x['execution_status'] == 'succeeded' for x in records)
-    endpoint_equal = successful and all(x.get('save', {}).get('sha256') == SAVE for x in records)
-    captured_equal = successful and all(x.get('capture_complete') and
-        x.get('capture', {}).get('sha256') == CAPTURE for x in records[1:])
+    endpoint_equal, captured_equal = exact_noninterference(records, successful)
     observations = records[2:]
     complete = all(x['observation_completeness'] ==
         'complete-at-observer-active-api-boundary' for x in observations)

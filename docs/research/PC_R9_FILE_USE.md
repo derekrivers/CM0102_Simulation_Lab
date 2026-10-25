@@ -22,7 +22,7 @@ interposition boundary during the constructor-to-destructor observer-active
 interval, not a census of all kernel file activity. Loader I/O before/after that
 interval is outside scope. Descriptor inspection is not atomic with a concurrent
 close/reuse from another thread: that wider lifetime race is unqualified. The
-pinned runtime source is inspected for the observed serial game file route; no
+pinned host/posix.c supplies the host_fopen-to-fopen route; its identity is sealed. No
 claim of general concurrent descriptor-lifetime safety follows.
 
 An original clean manifest member is bound only when resolved path, device/inode,

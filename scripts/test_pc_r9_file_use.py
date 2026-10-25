@@ -113,6 +113,19 @@ class FileUseControls(unittest.TestCase):
         with self.assertRaises(ValueError):
             use.parse_trace(self.modified('\n'.join(content)+'\n'), self.members)
 
+    def test_noninterference_mismatches_never_pass(self):
+        records = [{'save': {'sha256': use.SAVE}, 'capture_complete': True,
+                    'capture': {'sha256': use.CAPTURE}} for _ in range(4)]
+        self.assertEqual(use.exact_noninterference(records, True), (True, True))
+        changed = copy.deepcopy(records)
+        changed[2]['save']['sha256'] = '0'*64
+        self.assertEqual(use.exact_noninterference(changed, True), (False, True))
+        changed = copy.deepcopy(records)
+        changed[3]['capture']['sha256'] = '0'*64
+        self.assertEqual(use.exact_noninterference(changed, True), (True, False))
+        self.assertEqual(use.exact_noninterference(records, False), (False, False))
+        self.assertEqual(use.exact_noninterference(records[:-1], True), (False, False))
+
     def test_overlong_supplied_path_invalidates_trace(self):
         p = self.root/'overlong.tsv'
         env = dict(os.environ, LD_PRELOAD=str(self.root/'observer.so'), PC_R9_TRACE=str(p))
