@@ -52,6 +52,8 @@ async function preview(fixture){
    assert.match(await page.getByTestId('effective-result').textContent(),/Last explicit lookup · revision 1/);
    const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export state',exact:true}).click();const exported=path.join(profile,'export.json');await(await download).saveAs(exported);
    assert.equal(fs.readFileSync(exported,'utf8'),native([{action:'load',save:save.result},continued.state.records.at(-1).command,{action:'save'}]).at(-1).result,'export exact bytes');
+   await page.getByLabel('Choose a research slot',{exact:true}).selectOption('0');await page.getByRole('button',{name:'Apply slot',exact:true}).click();await page.getByRole('status').filter({hasText:'revision 3'}).waitFor();
+   assert.equal((await query()).state.revision,3,'state differs before restore');
    await page.getByLabel('Import state',{exact:true}).setInputFiles(exported);await page.getByRole('status').filter({hasText:'revision 2'}).waitFor();equal((await query()).state,continued.state,'export/import preserves world');
    results.push({case:label,fixture_sha256:hash(JSON.stringify(canonical(JSON.parse(fixtureText)))),native_wasm_equal:true,process_reopen:true,continued_revision:continued.state.revision});
   }finally{if(browser)await browser.close();await host.close();}
