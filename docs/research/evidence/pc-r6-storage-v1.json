@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "browser_version": "148.0.7778.96",
+  "profiles": [
+    {
+      "profile": "synthetic-null-owner-plan-selection-v1",
+      "fixture_sha256": "fef559036350141bb253cfdfd3011076b9bc985666c26aed961b2804b4e66f58",
+      "save_sha256": "597376f974217c059e7e29610268ad601e4984569aef32e113503a5fda870ffd",
+      "recovered_state_sha256": "7928ef35feb8fe359e67dfd78f39cd36dd91725171f16d5e2cf65501f170112f",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "synthetic-regression-ordinary-club-bank-v1",
+      "fixture_sha256": "162a95a541093ebe6af32cbbb2005eaeb62ee41580e7e53e9f9283da550b941b",
+      "save_sha256": "f7d4e40adbd626c0dc6846deed7a074671ced5421b7425a6a6a6c439deace72a",
+      "recovered_state_sha256": "0baed8cfa6613fd6ef00c2c26a299bbdcf2f2bb08f4463cd6d42ceb0c473ad89",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "captured-bosman-ordinary-club-bank-v1",
+      "fixture_sha256": "b68bfba221cccc84a92cfa63804487e206b3858be635e988738c5fc701c29711",
+      "save_sha256": "f437e9f1e4535e443b4b84e3c2917722cac09c517bbc6ce61b4230f299c663d6",
+      "recovered_state_sha256": "35063a27230c58793491301dc1f9acb64a836191e142261c5e293f9a577ddc86",
+      "native_continuation_equal": true
+    }
+  ],
+  "controls": [
+    "persistent browser process close/reopen; exact native state/events/dedup/save/continuation for every current profile",
+    "invalid import preserves memory and committed bytes",
+    "corrupt save, unsupported Rust save and mismatched identity recover previous valid checkpoint",
+    "actual transaction abort preserves previous head and unsaved command is absent after reload",
+    "injected QuotaExceededError aborts real transaction and preserves committed head",
+    "injected storage SecurityError is visible and preserves real IndexedDB head",
+    "worker termination during actual uncommitted IndexedDB write rolls back",
+    "delayed command/import/reset publication is serialized across host sessions and profiles",
+    "concurrent stale tab cannot replace a newer committed checkpoint",
+    "transient initial-open failure followed by another tab session change cannot rebind a publication retry"
+  ],
+  "limitations": [
+    "SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage",
+    "Chromium CDP quota override reported quota=1 but admitted tested IndexedDB writes; actual disk exhaustion was not qualified",
+    "origin-local browser transaction guarantees; no physical-media/power-loss claim",
+    "raw private saves and profile remain only in ignored local test output"
+  ],
+  "wasm_sha256": "1b0a01f314518fb848bbbedd2c82907145cb44b05138ca5571965515f189fdb2"
+}

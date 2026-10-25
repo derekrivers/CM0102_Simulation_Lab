@@ -44,6 +44,20 @@ fixture and preserve commands/deduplication across reload. The previous
 version-1 slice format continues to load and re-export byte for byte. Original
 game saves remain unsupported.
 
+Accepted changes save automatically in this browser through IndexedDB. Reopening
+the same origin recovers the last committed Rust checkpoint. The interface
+distinguishes accepted in-memory state from a failed browser save; use **Save in
+browser** to retry and **Export state** for a portable copy. A corrupt latest
+checkpoint recovers the previous valid checkpoint with a visible notice. A stale
+second tab cannot overwrite a newer committed checkpoint; reopen it to recover.
+Storage is local to this origin and browser profile; clearing site data removes
+it. Keep manual exports for work you need to retain.
+
+`npm run check:storage` runs persistent Chromium/IndexedDB recovery, transaction
+abort, corruption, interrupted-write and stale-writer tests. Storage denial and
+quota exceptions are injected at the IndexedDB API boundary; this does not claim
+actual disk-exhaustion qualification. See `docs/research/PC_R6_BROWSER_STORAGE.md`.
+
 Set `REFERENCE_FIXTURE` to the recovered private fixture path when running
 `npm run check` to execute the real-record native/browser corpus too. Test logs
 contain only hashes and summaries. Captured-name screenshots and exported state

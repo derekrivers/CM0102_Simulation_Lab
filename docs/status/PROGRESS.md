@@ -57,6 +57,21 @@ bounded recovery used Sol/medium, with compact handoffs and one heavy local job.
 
 ## Remaining engineering
 
+PC-R4/R5/R6 execution started from refreshed main `d769ce7` in separate WSL
+worktrees. Two workers follow the recorded [ownership/dependency contract](../roadmap/PC_FIRST.md).
+R6 current-profile persistence is implemented with an atomic IndexedDB head,
+previous-valid recovery and stale-writer/session fencing. Actual persistent
+Chromium close/reopen matches native state/events/deduplication/continuation for
+all three existing profiles. Browser abort/corruption/interruption/race controls
+pass; quota/denial exceptions are fault-injected and actual disk exhaustion is
+unqualified. [Contract and receipt](../research/PC_R6_BROWSER_STORAGE.md) retain
+this distinction. Independent exact-head review/PR/merge are still pending.
+
+R4 found actual reciprocal human-manager registry state in retained private input;
+its evidence/command remains under qualification. R5's separate minimal observer
+passed independent source review after timeout and sparse-validation fixes;
+fresh bounded execution/capture remains pending. No original process ran.
+
 1. The real ordinary-club/nonhuman-manager path is now qualified. Next investigate the reserved human-manager registry path and its lifecycle before exposing human-manager controls or claiming original UI/match effects.
 2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched; this increment reused a retained private capture.
 3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
