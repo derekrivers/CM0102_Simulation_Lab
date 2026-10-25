@@ -27,9 +27,37 @@ The pinned Rust 1.99.1 toolchain (fmt/clippy/WASM) is operational on WSL-native 
 
 Receipts and precise scope: [R1](../research/PC_R1_RNG.md), [R2](../research/PC_R2_RECOVERY.md), [R3](../research/PC_R3_MANAGEMENT.md). New synthetic oracle data and attributable research are public; original binaries/data/captures and replay inputs stay private. Historical control checkouts and frozen CI/launcher contracts are preserved.
 
+## Manager-bound management extension
+
+[PR #33](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/33) records
+exact final-head review, CI and merge identity. Three actual ordinary-club / AI
+manager record pairs were recovered from retained older instrumented Bosman
+state. The +0xcf field is a manager staff pointer, not ownership. The official
+original instructions pass 21 connected setter/resolver/getter cases (63 calls,
+153 starts) over this state, with only admitted mapping words changed. Both
+banks resolve correctly. Human-reserved IDs and diagnostics remain outside scope.
+
+Rust now admits exact reviewed private/public-regression fixture fingerprints,
+supports sparse club IDs, projects bank locations, and validates version-2
+save/reload with continuation and deduplication. Legacy version-1 exports still
+round-trip byte for byte. React supports club selection, manager context and
+explicit private-reference import, with controls locked during import reads.
+All 105 native/Chromium operations match; 63 Rust tests, five extraction controls,
+format/lint/build and strict TypeScript checks pass. Evidence and exclusions:
+[original path](../research/MANAGER_BOUND_PLAN.md),
+[input recovery](../research/PC_R3_CAPTURE_INPUT.md),
+[browser receipt](../research/evidence/pc-r3-manager-browser-v1.json).
+
+The retained source tree matches all 760 clean-manifest entries today. There is
+no contemporaneous consumption seal for the older capture. This supports the
+bounded official-instruction/state qualification; it does not certify a current
+Bosman platform, original Windows process or full human-manager workflow.
+Private records, names and inputs stay out of Git. Research/review used Astra/high;
+bounded recovery used Sol/medium, with compact handoffs and one heavy local job.
+
 ## Remaining engineering
 
-1. Extend only from a newly evidenced bounded command: recover a real supported club/owner state and its relevant original path before claiming human-management UI or match effects.
+1. The real ordinary-club/nonhuman-manager path is now qualified. Next investigate the reserved human-manager registry path and its lifecycle before exposing human-manager controls or claiming original UI/match effects.
 2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched in this increment; no private capture was needed.
 3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
 4. Storage-failure recovery, cgroup/lease/resource fencing, durable orchestration and unattended campaigns remain unqualified.

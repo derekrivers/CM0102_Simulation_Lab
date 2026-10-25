@@ -142,3 +142,55 @@ Outputs use exclusive creation. The input hashes and emulator version are
 mandatory; any unsupported instruction, state read, write, return, stack
 cleanup or sentinel change fails execution. A rerun's output must exactly match
 the retained public receipt, rather than replacing it automatically.
+
+
+## Implemented management boundary
+
+Delivery [PR #33](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/33)
+adds the private capture projection and a separate public fictional regression
+fixture to `cm-management`. Rust accepts only their reviewed canonical SHA-256
+fingerprints, in addition to explicit record/count/name/domain validation. An
+arbitrary record, spoofed origin, reserved human-manager ID, national-club ID or
+changed captured selection cannot enter the profile by declaring itself valid.
+The accepted private fixture stays outside Git and build output. A loopback-only
+preview may serve it on explicit request; React imports it through Rust.
+
+Club IDs are sparse stable identifiers. Selecting a club changes the view;
+`SelectPlan` changes only its mapping selection and emits the existing ordered
+Rust event. `PlanLocation {bank,index,byte_offset}` is calculated by Rust from
+the qualified getter contract. Manager links are immutable reference context,
+not a newly implemented appointment command. Plan names remain fictional and
+squad records are absent from this capture projection. The interface says so.
+
+Version-2 slice saves embed the admitted fixture, profile, state, event log and
+command deduplication. Load validates the fixture again, reconstructs the
+initial world and replays every accepted command before replacing state. The
+version-1 save schema and fixture remain unchanged, including byte-identical
+re-export of a retained fictional version-1 save. No implicit migration or
+original-save compatibility is asserted.
+
+[The browser receipt](evidence/pc-r3-manager-browser-v1.json) records 105 operations:
+37 legacy cases, 34 public synthetic-manager cases and 34 real captured-manager
+cases. Each profile compares full native/browser state, events, save data and
+rejections exactly. All 21 original qualified command cases feed both new
+profiles. Sparse club switching, manager presentation, bank boundaries,
+version-2 reload/continuation/deduplication, corrupt imports and a delayed import
+locking Apply/club/Export controls pass in real Chromium 148. The captured-profile
+canonical SHA-256 is
+`cf5536a32a7e2d7c5392ae23b5f5fc6898f49c0c5757c7f1e905b5631810ee35`.
+
+Seven Rust management tests plus the compile-fail invariant boundary pass; the
+full workspace has 63 passing Rust tests including that boundary. Formatting,
+Clippy with denied warnings, native/WASM builds, TypeScript strict checking and
+browser build pass. Five extractor rejection controls pass, and the coordinator
+independently regenerated the original oracle under optimized Python with
+byte-identical output. Public JSON omits real names, row IDs and native capture
+pointers; private captures/projections and captured-name screenshots stay local.
+
+Review used GPT-6 Astra/high for original semantics and independent core review,
+and GPT-6.1 Sol/medium for bounded input recovery and rotating evidence review.
+The coordinator independently reviewed extraction and reproduced the oracle.
+The UI asynchronous-import race found during review was fixed and tested.
+Exact final-head review, CI and merge identity are recorded in PR #33. No new
+Bosman build/replay, original-process launch, new infrastructure or CI-policy
+change was needed. Token/billing totals are not exposed by this interface.
