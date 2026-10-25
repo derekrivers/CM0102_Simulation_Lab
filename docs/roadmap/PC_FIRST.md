@@ -134,3 +134,29 @@ Rust saves, atomic publication, previous-valid fallback, writer/session fencing,
 accepted versus durable revisions and real-browser recovery/failure controls.
 Manual v1/v2 compatibility remains supported. No original process launch, new
 service/infrastructure, whole-game parity or unattended readiness is claimed.
+
+### R4/R5/R6 bounded delivery outcome
+
+R6 existing-profile storage merged through [PR #34](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/34);
+R4 direct human slot selection and v3 recovery through
+[PR #35](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/35).
+The fresh sealed R5 observer/capture increment is delivered through
+[PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36).
+Each PR records exact-head independent review, frozen checks and merge identity.
+
+Accepted boundaries: one immutable real human binding, slots 0/1, one ordered
+selection-byte write and a distinct registry slot location; 159 exact native/
+browser operations and durable recovery for all five admitted profiles. R4's
+retained 21/345 and fresh 21/290 entry-to-return instruction results are separate;
+both independently reproduced with no stubs. R5's four 14-day saves and two
+complete captures match byte for byte, with contemporary identities. Its actual
+data-open consumption gap remains unknown, and its new fingerprint unadmitted.
+No constructor/appointment/full-lifecycle, original UI/match, original-process
+parity or original-save claim is added. Next bounded work can qualify another
+producer or independently review fresh-fixture admission; it is not scheduled.
+
+Reviewed resource routing remained two workers and one heavy job: baseline,
+R4 retained emulation/core builds, R5 separate relink/four runs, R4 fresh replay,
+then coordinator integration/independent reproduction. No third worker, full
+Bosman rebuild, original launch, infrastructure or frozen-CI change occurred.
+All raw/private artifacts and historical controls are preserved.

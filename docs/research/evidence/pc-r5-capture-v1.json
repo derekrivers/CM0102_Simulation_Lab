@@ -1,0 +1,427 @@
+{
+  "arms": [
+    {
+      "arm": "baseline",
+      "capture_complete_markers": 0,
+      "capture_status": "disabled",
+      "command_configuration": {
+        "bytes": 1171,
+        "sha256": "ff3765d8aab649a2a5d7ba5705d8939021260c52d57c42e50b3a26d1a1e2fa1a"
+      },
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 83.12262302701129,
+      "execution_status": "succeeded",
+      "exit_code": 0,
+      "identities_stable": true,
+      "idle_sleeps": 20962,
+      "reason": "completed-target",
+      "save": {
+        "bytes": 18975625,
+        "sha256": "8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11"
+      },
+      "seals": {
+        "after": {
+          "bytes": 1384,
+          "sha256": "a3de2d839f145acf667cc9301bc8ea73aab10172d35b1045f211f3543156a46c"
+        },
+        "before": {
+          "bytes": 1384,
+          "sha256": "d31ef4140950e0078d97aef5754fe3ce196010126dd96eb73cf6532fc4c1d1b5"
+        }
+      },
+      "stderr": {
+        "bytes": 3381,
+        "sha256": "34907a7f52a724b77fafafe51af67a0c642166b85864ea1f432064dd0b7a650d"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "arm": "disabled",
+      "capture_complete_markers": 0,
+      "capture_status": "disabled",
+      "command_configuration": {
+        "bytes": 1171,
+        "sha256": "a49a4ae0ff38ca46e7a35a9806e3eb302afc6604fb6d0562cb4e44967e54bdb7"
+      },
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 83.76718776499911,
+      "execution_status": "succeeded",
+      "exit_code": 0,
+      "identities_stable": true,
+      "idle_sleeps": 20923,
+      "reason": "completed-target",
+      "save": {
+        "bytes": 18975625,
+        "sha256": "8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11"
+      },
+      "seals": {
+        "after": {
+          "bytes": 1384,
+          "sha256": "c9eda87d2deac4b47d42b029823f063cf26ca65b0e50d29d96146188940be0a8"
+        },
+        "before": {
+          "bytes": 1384,
+          "sha256": "dfb0c9038bce8862e50a99220237cd66a26505d05c0dbe24bfa28f995fd828b3"
+        }
+      },
+      "stderr": {
+        "bytes": 3381,
+        "sha256": "8b4da13b5f629cb3e030c3241791c1d38a379a13e6c1b0564ec059e84d68a9c0"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "arm": "enabled-a",
+      "capture": {
+        "bytes": 3849184,
+        "sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40"
+      },
+      "capture_complete_markers": 1,
+      "capture_status": "complete",
+      "command_configuration": {
+        "bytes": 1303,
+        "sha256": "30e6afa136ed705236b6212fe508c6889640cce137dfd8bcced449336226ff6f"
+      },
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 83.55980804399587,
+      "execution_status": "succeeded",
+      "exit_code": 0,
+      "identities_stable": true,
+      "idle_sleeps": 20839,
+      "reason": "completed-target",
+      "save": {
+        "bytes": 18975625,
+        "sha256": "8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11"
+      },
+      "seals": {
+        "after": {
+          "bytes": 1384,
+          "sha256": "59803f40b47c9030b72882a511722226483ba20c87cd0160e857cd974cf57fc2"
+        },
+        "before": {
+          "bytes": 1384,
+          "sha256": "be3820845034a756f3043ac41b5c3394ce7ca595496fc6c9df92e6e4bfe28dc7"
+        }
+      },
+      "stderr": {
+        "bytes": 3422,
+        "sha256": "eebbe444d76e56a162c93cb423596be46cc6cbb74c2417c90d752e8a34ee60a2"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "arm": "enabled-b",
+      "capture": {
+        "bytes": 3849184,
+        "sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40"
+      },
+      "capture_complete_markers": 1,
+      "capture_status": "complete",
+      "command_configuration": {
+        "bytes": 1303,
+        "sha256": "c930725f14324083c964248b99bea7b0b4701b91a50a0fa81ccccd85fac5ba02"
+      },
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 83.24975318499492,
+      "execution_status": "succeeded",
+      "exit_code": 0,
+      "identities_stable": true,
+      "idle_sleeps": 20956,
+      "reason": "completed-target",
+      "save": {
+        "bytes": 18975625,
+        "sha256": "8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11"
+      },
+      "seals": {
+        "after": {
+          "bytes": 1384,
+          "sha256": "1c8df54c5f5e229f6cb7bb4def39a0f00a8d203450e718e6887740f357fb1aa7"
+        },
+        "before": {
+          "bytes": 1384,
+          "sha256": "75d42de1327d0360e4708f65bcddcfa63459205c9cb124f0ab3779a7f673a479"
+        }
+      },
+      "stderr": {
+        "bytes": 3422,
+        "sha256": "8aec84803228b1e7a348f5301ee85e73a1858ad464f9d175ee844a67cffcd6e6"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "build": {
+    "baseline": {
+      "bytes": 48696400,
+      "sha256": "9a41f4a028f0dd1df71e3f9f18f9821a17f91947bb20e7ed0ba9fc18fcafa07b"
+    },
+    "compiler": {
+      "bytes": 1023032,
+      "sha256": "1b99826121ae6682a634e5efe09bd3e3df58ce58e0b28f849114ab5b89139c26"
+    },
+    "existing_object_count": 264,
+    "headers": {
+      "rt.h": {
+        "bytes": 26495,
+        "sha256": "3cb41b4e5d2cd689eff3f941a39c5a977dc6f562a63f707f1b67313a951d0cad"
+      },
+      "rt_host.h": {
+        "bytes": 2921,
+        "sha256": "875640eecb12a179e4134ef5ccea60a2f1bd05f333684ee492bff6d322bc72f3"
+      }
+    },
+    "instrumented": {
+      "bytes": 48700744,
+      "sha256": "2f471fb8c5b87f69cf51d5423e6ec4e92e95386ba33fda2b1827d01df7781451"
+    },
+    "observer_object": {
+      "bytes": 7408,
+      "sha256": "242632e661c864b1b375ec84605ec360883287f2191910f11fc6cd194f212c22"
+    },
+    "observer_source": {
+      "bytes": 3077,
+      "sha256": "a37e6d56f93d87281c47bc761ebafa4ff9c9bb9ea8dacbe9292410681ab82841"
+    },
+    "private_build_receipt": {
+      "bytes": 58342,
+      "sha256": "4c7b536403fb545303de05350bebb262126382cea65025b843da1c55a43c0bf5"
+    },
+    "source_build_relation": "Existing qualified object files sealed before/after; observer-only compile and separate native relink, not a fresh full source build.",
+    "tool_files": {
+      "cc": {
+        "bytes": 1023032,
+        "sha256": "1b99826121ae6682a634e5efe09bd3e3df58ce58e0b28f849114ab5b89139c26"
+      },
+      "ld": {
+        "bytes": 1359128,
+        "sha256": "e46a122cc3a29feba3b1d0fc2a274b6e46538be016ebe381370c0801bb98b0b8"
+      },
+      "ninja": {
+        "bytes": 248040,
+        "sha256": "5965527e09fe2b3787772aa4f711d6a36b393e7f2fcaa744a7a96c5a4ddf59cb"
+      }
+    },
+    "tools": {
+      "cc": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "ld": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+      "ninja": "1.11.1"
+    }
+  },
+  "capture_raw_equal": true,
+  "clean_data_consumption_proven": "unknown",
+  "clock": "RECOMP_FIXED_CLOCK=1",
+  "command_policy": "Four serial fresh classic arms, same pinned smoke actions excluding screenshots; explicit --game locator; held native executable descriptor.",
+  "comparison_verdict": "not-run",
+  "consumption_limit": "Explicit configured locator and sealed before/after clean identities; native executable hashed/executed through same held descriptor; actual game-data opens not independently observed.",
+  "driver": {
+    "bytes": 19403,
+    "sha256": "f36f0fef75f712448c902d8d18370174eb9e1a49b14c5b7f69d797c79347ec11"
+  },
+  "exclusions": [
+    "original Windows launch",
+    "original-process parity",
+    "production fingerprint admission",
+    "general registry lifecycle",
+    "full tactical content semantics",
+    "whole-match parity",
+    "continuous campaigns",
+    "new infrastructure"
+  ],
+  "executed_driver_source_revision": "e36b51604a36c00e52e0c031d250cd8f3458846c",
+  "execution": {
+    "admitted_arms": 4,
+    "complete_captures": 2,
+    "enabled_captures": 2,
+    "endpoint": "existing save hook after 14 game days with exit zero and save present",
+    "failed_arms": 0,
+    "focused_setup_attempts": 1,
+    "sealed_elapsed_seconds": 339.909737155,
+    "status": "succeeded",
+    "succeeded_arms": 4
+  },
+  "four_arm_saves_equal": true,
+  "global_seals": {
+    "after": {
+      "bytes": 65,
+      "sha256": "b512e0adea008ba0cc443992aeb2c6d2dd7aede5bde8ac965f1d70abfb491e39"
+    },
+    "before": {
+      "bytes": 3061,
+      "sha256": "c1bd2e1e293fe4591b043aa38648fea3e49215bb5eeccbb0778f672ba88b6ebf"
+    }
+  },
+  "inputs": {
+    "file_count": 760,
+    "manifest": {
+      "bytes": 72879,
+      "sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6"
+    },
+    "specimen": {
+      "bytes": 7192576,
+      "sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86"
+    }
+  },
+  "inputs_stable": true,
+  "licensing": "Bosman GPL-3.0 derivative remains private; independently authored observer/driver source contains no translated instructions or game data.",
+  "limits": {
+    "as_bytes": 6442450944,
+    "cpu_seconds": 300,
+    "each_output_bytes": 1048576,
+    "file_bytes": 67108864,
+    "seconds": 240
+  },
+  "noninterference_scope": "Exact 14-day save equality across qualified baseline, disabled observer, enabled A and enabled B; does not establish unchanged entire runtime state or original-process parity.",
+  "observations": {
+    "payload_bytes": 3849040,
+    "range_count": 16,
+    "reciprocal_human_bindings": 1,
+    "regions": [
+      {
+        "bytes": 4,
+        "label": "club-count",
+        "sha256": "c3dabc83c44ea35a0e2ebcadc5c1d6ab46a16301deb336fad8b6d6173e1c9939"
+      },
+      {
+        "bytes": 4,
+        "label": "nation-count",
+        "sha256": "7a7a7b729d2305eaf560e8b6669df13b8f26df43aee4f1ce323d05d8bb38a876"
+      },
+      {
+        "bytes": 4,
+        "label": "staff-count",
+        "sha256": "d06e2ef4dc8b61117697bcdf906bee54992156729a268dcc628346a6ac64669c"
+      },
+      {
+        "bytes": 4,
+        "label": "club-base",
+        "sha256": "a63882e90643165913af3a2f1ff4db2577dea3b89dd6728625b143c952c92ae6"
+      },
+      {
+        "bytes": 4,
+        "label": "staff-base",
+        "sha256": "1cebd285685572450a2f4ffb695500d9236d40c8b07d7e9abc9d407152eeb4f0"
+      },
+      {
+        "bytes": 4,
+        "label": "context-pointer",
+        "sha256": "0a2a72c8c7c461bfe5db828e2eebc1315c25a08c67c0c5b8b09ec47727f8829c"
+      },
+      {
+        "bytes": 4,
+        "label": "registry-pointer",
+        "sha256": "b05a04cce5102091f7be11301e32dff5428ffbb5a0c5f7d9d35e0dd7acf37ccf"
+      },
+      {
+        "bytes": 4,
+        "label": "game-date",
+        "sha256": "28045daaec137740e35ccc30f0ffb5da985f755dd240d4efd3fdce5cd15995d0"
+      },
+      {
+        "bytes": 1460634,
+        "label": "clubs",
+        "sha256": "bbb06ce57417faeee3d5f22cee6a5462fd986c765f4a27331103640519c5cc9e"
+      },
+      {
+        "bytes": 1047200,
+        "label": "staff",
+        "sha256": "ea68a192b201ac0b48df74c21fce6a87bd073030cf1e7f33a1d29e125c732fff"
+      },
+      {
+        "bytes": 1541,
+        "label": "context",
+        "sha256": "2007337e897226cec3bd760202da73f7c52e9ac4fde5c4a992b89437c5d0c723"
+      },
+      {
+        "bytes": 369170,
+        "label": "mapping",
+        "sha256": "f27a80bf076670a0a919950fcc4457aa3fef3bf879cd18770cfe62cf383c8552"
+      },
+      {
+        "bytes": 108307,
+        "label": "first-bank",
+        "sha256": "c1b509999519777208b356b3b88e1da1f514a7bf7e21db5510a266d012351340"
+      },
+      {
+        "bytes": 178388,
+        "label": "second-bank",
+        "sha256": "04fc1fab8c81884d9738645f89766cd7a3dc20239efb360af14bbad09949ed59"
+      },
+      {
+        "bytes": 8,
+        "label": "registry-object",
+        "sha256": "3181cc92711dfbbbd03b59a535b4e8f0d7f5ba792676c450286888186c17ae7f"
+      },
+      {
+        "bytes": 683760,
+        "label": "registry-rows",
+        "sha256": "85c077d006bce63001aad81130df5d3e37f141b31fbfc1aa1d499cff94cf41b5"
+      }
+    ],
+    "registry_rows": 16,
+    "schema": "PCR5SP01/PCR5DONE sparse16 little-endian ranges"
+  },
+  "private_attempt_receipt": {
+    "bytes": 37228,
+    "sha256": "45227e4b8c245580374c3c38c2f4e8406393f96f01e8c39fd3b126e09e92450a"
+  },
+  "python": {
+    "bytes": 8020928,
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "recorded_date": "2026-10-25",
+  "review": {
+    "fresh_original_instruction_replay": {
+      "calls": 21,
+      "original_instruction_starts": 290,
+      "production_fingerprint_admission": "not granted by capture receipt",
+      "receipt_file": "fresh-human-registry-oracle-v1.json",
+      "receipt_sha256": "39915e94bf65ca7c6586153dffa63b03160dc483119a58e8dc9e82fbc92fd911",
+      "scope": "Fresh observed human registry guard state enters connected outer getter path directly; captured-region and official-image invariants, ABI, ordered writes and continuation checked.",
+      "status": "passed separate R4 qualification",
+      "stubbed_callees": 0
+    },
+    "instrumentation_and_driver": "Coordinator independent source review accepted exact e36b51604a36c00e52e0c031d250cd8f3458846c before compile/relink/run; eight controls independently repeated."
+  },
+  "schema_version": 1,
+  "scope": "PC-R5 current Bosman first-human-turn sparse observation and bounded save noninterference",
+  "script_sha256": "1175d488beecc0917fd3ccb864c0927dd23c0c4e3a78e3f3b7ae2f285c162940",
+  "seed": 1,
+  "smoke": {
+    "bytes": 41619,
+    "sha256": "3428aeae65a2dcd899e123b8c9649d109404cd11c601d2c89947d872d8d7196b"
+  },
+  "source": {
+    "revision": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "tree": "81f376f62451203eaa32f7539f1d6a741b3f2099"
+  },
+  "source_patch": "none; separate linker observer",
+  "validation": {
+    "commands": [
+      "PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pc_r5_capture.py",
+      "cc -std=c11 -Wall -Wextra -Werror -fsyntax-only -I<pinned-runtime-headers> scripts/pc_r5_observer.c",
+      "git diff --check"
+    ],
+    "controls": [
+      "truncation/missing footer",
+      "unsupported pointer/oversized extent",
+      "missing reciprocal human",
+      "symlink identity/attempt reuse",
+      "output cap",
+      "closed-stream hang deadline",
+      "missing context/bank/overlap/count bounds",
+      "silent timeout"
+    ],
+    "controls_passed": 8
+  }
+}
