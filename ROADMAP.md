@@ -10,9 +10,9 @@ Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workf
 | PC-R1: CRT and small-bound RNG | Verified | 1,024 CRT steps + 2,570 bounded calls; all exposed state matches; native and actual WASM execution; checkpoint continuation |
 | PC-R2: lab/reference recovery | Targeted recovery verified; wider qualification open | Working WSL toolchain, fresh bounded Bosman replay, scoped evidence ledger and necessary Windows qualification |
 | PC-R3: stateful management workflow | Bounded tactical-plan selection verified | An evidenced Rust command with rejection cases, browser interaction, native/browser equality and save/reload |
-| PC-R4: human tactical registry | Direct slot delivery merged in PR #35; fresh fixture admitted through PR #38; additional option-2 producer qualified and implemented for reviewed delivery | Retained/fresh initialized bindings, original ordered byte effects, native/browser equality, explicit v3/v4 continuation and recovery |
+| PC-R4: human tactical registry | Direct slots merged in PR #35, fresh admission through PR #38 and additional option-2 producer through PR #40 | Retained/fresh initialized bindings, original ordered byte effects, native/browser equality, explicit v3/v4 continuation and recovery |
 | PC-R5: fresh pinned capture | Bounded delivery merged in PR #36 | Sealed current-platform derivative, exact repeated capture and endpoint saves; actual data-open consumption remains unknown |
-| PC-R6: durable browser recovery | Existing-profile delivery merged in PR #34; human v3 integration verified | Exact Rust saves in IndexedDB, atomic replacement/fallback, failure reporting and session/tab fencing |
+| PC-R6: durable browser recovery | Existing profiles merged in PR #34; human v3/v4 integration verified | Exact Rust saves in IndexedDB, atomic replacement/fallback, failure reporting and session/tab fencing |
 
 The [active PC delivery contract](docs/roadmap/PC_FIRST.md) contains the task checklists, dependencies, exclusions and stop conditions. [Progress](docs/status/PROGRESS.md) records results. [Reversal integration](docs/research/REVERSAL.md) pins the reusable research and distinguishes official instruction emulation from a different GDI specimen's live evidence.
 
