@@ -307,3 +307,15 @@ final review passed before merge; [progress](../status/PROGRESS.md#protected-del
 and the [delivery receipt](../research/evidence/pc-r7-r9-delivery-v1.json) retain
 identities. This includes a truthful failed R9 result, not successful file-use
 qualification.
+
+
+## R10 squad milestone and R9b independent lane - 25 October 2026
+
+Base remained fetched main `33e415f712e315548ccec9c7f63afd6bc7b33266` with no intervening commits. The [batch contract and outcome](../research/PC_R10_BATCH.md) records actual six-slot capacity, five named worker selections, disjoint paths, gates, exact reviews and single-heavy-job routing. The owner explicitly superseded the historical two-worker guidance for this batch; no global setting changed.
+
+- Original retained-only assignment/readback is qualified for two exact real record pairs: eleven successful calls, four censored probes, twelve controls and exact complete-state continuation. The first allocator failure remains retained; the separately reviewed resource follow-up passed.
+- Real preexisting nonempty input and complete squad projection/admission remain open. Twenty mapping slots are empty; seven member-list anomalies are not silently filtered. No new production command/profile/save or lineup capability is shipped.
+- Existing v5 local setup, honest boundaries and actual process reopen/continuation pass seven new cases; all 552 canonical operations and twelve profile objects remain exact.
+- R9b failed its actual observer-policy campaign: two observed SIGSYS exits, no completed traces/counters or endpoints. Only independently reviewed reports enter main; experimental source stays off main.
+
+The requested real squad, lineup change, save/reopen/continue milestone is not complete. Next work must resolve original member/unused-slot semantics, admit an exact projection independently, freeze compatible Rust state/save integration, then port the qualified command and execute its actual native/browser/recovery corpus. R9b diagnosis is independent and requires a new frozen experiment; no whole-game date, original Windows process or deployment follows.

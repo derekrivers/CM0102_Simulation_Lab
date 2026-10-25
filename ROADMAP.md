@@ -16,6 +16,8 @@ Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workf
 | PC-R7: connected effective-plan lookup | Delivered through PR #42, merge abc8ea49 | Exact retained/fresh initialized branches, explicit v5 operation and tagged return, native/Chromium equality and twelve-profile recovery |
 | PC-R8: option-3 dependencies | Exact empty-mapping research qualified; production unavailable | Preserved censored probes plus complete original path/ordered effects/continuation for both captures |
 | PC-R9: clean-tree file-use provenance | Two failed observation campaigns retained; consumption unknown | Follow-up endpoint/captured-range equality passed, trace completeness failed; unsuccessful observer remains off main |
+| PC-R10: real squad and original lineup workflow | Retained two-record original assignment/readback qualified; full workflow open | Complete squad projection/admission and Rust/browser lineup/save continuation remain pending; existing v5 setup improved |
+| PC-R9b: bounded provenance repair | Failed-policy result retained; consumption unknown | Both observed arms SIGSYS/incomplete; experimental source stays off main |
 
 The [active PC delivery contract](docs/roadmap/PC_FIRST.md) contains the task checklists, dependencies, exclusions and stop conditions. [Progress](docs/status/PROGRESS.md) records results. [Reversal integration](docs/research/REVERSAL.md) pins the reusable research and distinguishes official instruction emulation from a different GDI specimen's live evidence.
 

@@ -281,3 +281,20 @@ R7 implementation and R8's precise research are delivered. R9 delivery is the
 failed-result record only: actual file-use provenance remains unknown and the
 unsuccessful observer stays off main. No full-game/P02/P04 gate, original Windows
 process, deployment, wider mapping or production option3 admission is claimed.
+
+
+## R10 original lineup research, browser setup and R9b - 25 October 2026
+
+Fetched base stayed `33e415f712e315548ccec9c7f63afd6bc7b33266`; no intervening commits. [Batch ownership, gates and results](../research/PC_R10_BATCH.md) records the actual five workers plus lead, models and single-heavy-job handovers. Historical checkouts/private inputs were preserved.
+
+Real-input inventory finds no preexisting nonempty human lineup: all twenty mappings are -1 in both admitted states. Independent parsers agree on 43 reciprocal association candidates, five mismatches and two unresolved nonzero list links. A complete squad projection/fingerprint is not admitted. No new capture, synthetic mapping transplant, new Rust command/profile or migration is substituted for that missing gate.
+
+The [original assignment/readback campaign](../research/PC_R10_COMMAND.md) is qualified within its retained-only two-record initialized domain: eleven successful calls, four censored unsupported probes, twelve discriminating defective models, exact full heap/image/effects/ABI/EAX and checkpoint continuation. Independent E/C audits separately reconstruct all three expected complete heap states and verify raw records/artifacts/starts/reads. The first Unicorn translator initialization failure is retained; a separately frozen reviewed 3 GiB follow-up passes in 13.849964520 seconds. Qualified research does not admit a complete squad or production save/UI command.
+
+The [browser increment](../research/PC_R10_BROWSER_JOURNEY.md) adds explicit local v5 setup and clear origin/no-qualified-squad boundaries. Seven actual Chromium journey cases pass, including native equality, actual persistent process close/reopen, continuation and discriminating exported-state restore. Independent review caught the first helper's asynchronous import wait gap; that receipt and its limit remain, and the corrected test passes. Full legacy 552-operation and twelve-profile receipt objects remain exact, including all earlier subsets and invalid-head cases.
+
+[R9b](../research/PC_R9B_FILE_USE.md) truthfully delivers a failed result. One frozen four-arm campaign spans 368.100230688 seconds between seals. Baseline/disabled outputs exactly match available R5 saves/capture. Both observed arms fail with SIGSYS, no endpoint/capture, and incomplete 55-byte header/policy traces. Counters and exact forbidden syscall remain unknown. Zero of two observations pass completeness; full four-arm noninterference fails; consumption stays unknown and original/Bosman comparison not-run. A independently verifies all 155 artifacts, 760 clean inputs, 49 ldd dependencies and chronological seals. All unqualified observer source remains off main on pushed `codex/pc-r9b` at `7445c3ae593ae21a7705fd25bb1e98230eef8324` (executed `1007f45`). Previous failed R9 attempts remain unchanged.
+
+Fresh validation passes 86 Rust tests serially, fmt, denied-warning workspace Clippy, fresh native/release WASM, strict TypeScript/build, 552 actual Chromium operations and twelve persistent profiles. Research controls and source/raw/artifact reviews are separately recorded. v1-v5 exact meanings/bytes, pins, CI and infrastructure are unchanged. No original Windows process or deployment ran.
+
+The player-visible milestone remains open: resolve original full member/unused-slot semantics, independently admit the projection, freeze compatible Rust/save state, port the qualified assignment/readback, then prove the real squad/action's browser save/reopen/continuation. Exact final-head review, four frozen checks and merge disposition belong to the delivery record.

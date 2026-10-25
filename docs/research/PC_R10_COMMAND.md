@@ -1,7 +1,7 @@
 # R10 original lineup command dependency boundary
 
 Status: the retained-only original assignment/readback campaign passes its
-frozen dynamic checks; independent post-run review is pending. No production
+frozen dynamic checks and independent E/C post-run review. No production
 admission. This does not complete the requested real squad, lineup change,
 save/reopen and continuation milestone. R8's already qualified empty option-3
 branch remains valid and unchanged; it is not rerun or exposed as a lineup command.
@@ -248,7 +248,7 @@ outside Git; public results normalize the two actual records to candidate 0/1.
 ## Required implementation carry-forward
 
 The lead can use the original-backed transition **assign one of these two exact
-admitted members to mapping slot zero, then return original readback**, with the
+qualified retained members to mapping slot zero, then return original readback**, with the
 strict ordinary-mode/zero-cache/immutable-binding domain above. A repeated
 assignment still records its original write. Atomic host rejection, command-ID
 history, serialization/replay and browser storage are new Rust/host requirements,
@@ -261,3 +261,9 @@ semantics are qualified. Rust command integration, independently admitted squad
 projection, explicit save/profile compatibility, the actual browser journey and
 native/WASM persistent save/reopen/continuation remain required work. This
 research increment alone does not complete the player-visible milestone.
+
+
+## Independent delivery decision
+
+Independent E review approved exact research head `83c700b089d9bed86730ff7cba835eaba107efdb` after checking actual artifacts, all ordered reads/starts/effects and independently constructing the three complete expected heap digests. C separately checked exact raw record identities, original player-layout excerpts, complete heap overlays and checkpoint suffix. Neither reviewer reran the emulator; their actual artifact/source checks are explicit.
+The [E post-review](evidence/pc-r10-command-postexecution-review-e-v1.json) and [C post-review](evidence/pc-r10-projection-review-command-post-v1.json) supersede generation-time pending-review fields without rewriting immutable receipts. This approves the bounded original research, not a production fingerprint or full squad workflow.
