@@ -232,3 +232,10 @@ The initial parallel workspace run failed three unchanged five-second supervisor
 timing assertions; the complete serial rerun passed without source/deadline/CI
 changes. That failed run is retained in the admission decision. Final independent
 exact-head review, frozen CI and merge disposition are recorded in the delivery PR.
+
+Admission merged in [PR #38](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/38),
+merge `d1df089e6521113afda787be2d20340c17ea99de`. The independent reviewer
+approved exact head `21eed5453282e0904902c626d2a3386450f9fcc1` after reviewing
+all changed source/tests/docs and independently passing the 16 management tests.
+All four frozen checks passed, including default parallel Rust tests. The
+final private review audit identity is recorded in the admission decision.

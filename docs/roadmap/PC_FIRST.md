@@ -150,7 +150,8 @@ browser operations and durable recovery for all five admitted profiles. R4's
 retained 21/345 and fresh 21/290 entry-to-return instruction results are separate;
 both independently reproduced with no stubs. R5's four 14-day saves and two
 complete captures match byte for byte, with contemporary identities. Its actual
-data-open consumption gap remains unknown, and its new fingerprint unadmitted.
+data-open consumption gap remains unknown; its new fingerprint was left unadmitted
+in that batch, pending the subsequent independent review below.
 No constructor/appointment/full-lifecycle, original UI/match, original-process
 parity or original-save claim is added. Next bounded work can qualify another
 producer or independently review fresh-fixture admission; it is not scheduled.
@@ -193,3 +194,10 @@ supervisor timing failures are retained without changing source or thresholds.
 The [admission decision and receipts](../research/PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission)
 record the scope. Final exact-head review, CI and merge disposition follow in the
 delivery PR; no original process or new capture campaign was run.
+
+Delivery merged through [PR #38](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/38)
+as `d1df089e6521113afda787be2d20340c17ea99de`. Exact head `21eed545` received
+independent final review with no findings; all four frozen checks passed, including
+default parallel Rust tests. The additional fingerprint is now admitted. The
+initial local parallel failure remains in the evidence record; no limits or CI
+were weakened. Remaining fidelity work stays in the existing progress register.
