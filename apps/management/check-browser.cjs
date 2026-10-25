@@ -17,7 +17,7 @@ const operations=[...prefix,command('continuation',24,2,1),{action:'load',save:s
 const expected=native(operations);
 for(const index of [24,25,26,27,28,35,36]){assert.equal(expected[index].ok,false);assert.deepEqual(expected[index].state,expected[index-1].state);}
 assert.deepEqual(expected[31].state,expected[33].state);assert.deepEqual(expected[33].state,expected[34].state);
-const allowed=new Map([['/','index.html'],...['index.html','app.js','worker.js','style.css','cm_management.wasm'].map(x=>['/'+x,x])]);
+const allowed=new Map([['/','index.html'],...['index.html','app.js','worker.js','storage.js','style.css','cm_management.wasm'].map(x=>['/'+x,x])]);
 const server=http.createServer((req,res)=>{const file=allowed.get(req.url);if(!file){res.writeHead(404).end();return;}const mime=file.endsWith('.wasm')?'application/wasm':file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html';res.setHeader('Content-Type',mime);res.end(fs.readFileSync(path.join('dist',file)));});
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
