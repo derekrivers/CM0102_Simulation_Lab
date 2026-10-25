@@ -43,12 +43,17 @@ const server=http.createServer((req,res)=>{const file=allowed.get(req.url);if(!f
   if(process.env.HUMAN_REFERENCE_FIXTURE)humanProfiles.push(await verifyHuman(page,root,out,fs.readFileSync(process.env.HUMAN_REFERENCE_FIXTURE,'utf8')));
   if(process.env.FRESH_HUMAN_REFERENCE_FIXTURE)humanProfiles.push(await verifyHuman(page,root,out,fs.readFileSync(process.env.FRESH_HUMAN_REFERENCE_FIXTURE,'utf8')));
   const freshAdmission=process.env.FRESH_HUMAN_REFERENCE_FIXTURE&&process.env.HUMAN_REFERENCE_FIXTURE?await require('./check-fresh-human.cjs')(page,root,fs.readFileSync(process.env.FRESH_HUMAN_REFERENCE_FIXTURE,'utf8'),fs.readFileSync(process.env.HUMAN_REFERENCE_FIXTURE,'utf8')):null;
+  const verifyRegistry=require('./check-registry.cjs');
+  const registryProfiles=[await verifyRegistry(page,root,out,fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-registry-producer.json'),'utf8'))];
+  if(process.env.REGISTRY_REFERENCE_FIXTURE)registryProfiles.push(await verifyRegistry(page,root,out,fs.readFileSync(process.env.REGISTRY_REFERENCE_FIXTURE,'utf8')));
+  if(process.env.FRESH_REGISTRY_REFERENCE_FIXTURE)registryProfiles.push(await verifyRegistry(page,root,out,fs.readFileSync(process.env.FRESH_REGISTRY_REFERENCE_FIXTURE,'utf8')));
   assert.deepEqual(errors,[]);
   const receipt={schema_version:1,command_count:operations.length,original_instruction_cases:oracle.cases.length,native_browser_equal:true,canonical_sha256:hash(encoded(actual)),wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm')),browser_version:browser.version(),controls:['invalid plan/bound/club/revision/id atomic','save/load deterministic continuation','duplicate commands idempotent after reload','invalid save import preserves state','React command/save/import interaction'],limitations:['legacy profile uses fictional squad and a null manager pointer','ordinary reference profiles admit only pinned ordinary club/nonhuman manager records','retained production capture uses an older instrumented Bosman platform with no contemporaneous input-consumption seal','plan labels remain fictional; original UI, full human registry lifecycle and match effects unqualified']};
   receipt.reference_profiles=referenceProfiles;
   receipt.human_profiles=humanProfiles;
   receipt.fresh_admission=freshAdmission;
-  receipt.total_operations=operations.length+referenceProfiles.reduce((n,p)=>n+p.operations,0)+humanProfiles.reduce((n,p)=>n+p.operations,0)+(freshAdmission?.operations||0);
+  receipt.registry_profiles=registryProfiles;
+  receipt.total_operations=operations.length+referenceProfiles.reduce((n,p)=>n+p.operations,0)+humanProfiles.reduce((n,p)=>n+p.operations,0)+(freshAdmission?.operations||0)+registryProfiles.reduce((n,p)=>n+p.operations,0);
   fs.writeFileSync(path.join(out,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
  }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
