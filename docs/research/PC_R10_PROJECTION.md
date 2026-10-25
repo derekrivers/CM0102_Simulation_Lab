@@ -87,21 +87,19 @@ an explicit new compatibility profile/version and preserve v1-v5 without migrati
 Malformed/hybrid/source-relabel imports must reject atomically. No fixture generated
 by this lane is eligible for self-admission.
 
-The actionable blocker is the complete original-evidenced member/assignment
-contract and independently admitted projection, including linked-state lifetime
-where the chosen command/readback needs it. B may qualify a smaller meaningful
-assignment using genuine eligible staff without dereferencing player data; that
-would require an explicit narrowed contract and still cannot silently establish a
-complete squad. A/B own any separately reviewed minimally expanded capture. Until
-then the real squad/lineup/save/reopen milestone remains open.
+The remaining production blockers are a complete original-evidenced squad member
+contract and independently admitted projection, followed by Rust/save/browser
+integration. B's subsequent narrowed two-record assignment qualification below
+resolves its initialized immutable command-lifetime gate without establishing a
+complete squad. A/B own any separately reviewed minimally expanded capture. The
+real squad/lineup/save/reopen milestone remains open.
 
 A further standalone retained structural check uses candidate player globals
 00ae23c4/00ae236c and hypothesized 70-byte stride: a complete 504,980-byte
 table is captured with no ID/index mismatch; all 48 aligned candidate member
 links reach aligned full records with matching player IDs. This supplies extent
 and identity evidence, not a constructor/load/free or backlink qualification.
-B must decide and document whether its original no-player-dereference command
-can freeze an immutable initialized domain; no such judgment is made here.
+The subsequent accepted result below resolves B's narrowed original no-player-dereference command domain; this standalone structural check alone did not establish it.
 
 ## Accepted bounded original command lifetime, not projection admission
 
