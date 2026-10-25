@@ -107,3 +107,30 @@ request and never copied into build output. See the existing
 [manager-bound contract](../research/MANAGER_BOUND_PLAN.md) and
 [progress](../status/PROGRESS.md). Human registry/appointments, original UI,
 plan-content decoding, matches and original saves remain unqualified.
+
+## PC-R4/R5/R6 ownership and acceptance — 25 October 2026
+
+Refreshed main: `d769ce774d25cbf6754c7187d006f351c9b90252`. Historical
+worktrees/private artifacts are preserved. Coordinator (model setting unchanged;
+identity not exposed) owns R6, integration and canonical status on
+`codex/pc-r6-durable` / WSL `cm0102-pc`. Worker A, GPT-6 Astra/high, owns R4
+original instructions/producers on `codex/pc-r4-human` / `cm0102-pc-r4`.
+Worker B, GPT-6.1 Sol/medium, owns R5 observation/provenance on
+`codex/pc-r5-capture` / `cm0102-pc-r5`. No third worker is allocated.
+
+R4 and R5 start concurrently; R6 current-profile storage is independent. R5's
+final read set depends on A; human command admission depends on qualified real
+state and connected no-stub instruction execution. One heavy build/emulation/run
+slot is explicitly handed over: coordinator baseline first, then R4 emulation.
+Independent exact-head review and existing protected PR/merge checks apply to
+every increment. Token/billing totals are unavailable.
+
+R4 freezes binding/lifetime, domains, ordered effects, RNG and continuation before
+implementation. Unsupported/censored paths retain precise missing dependencies.
+R5 separates current/historical/instrumented identities, contemporary seals,
+consumption evidence, completeness, repeated capture/noninterference and comparison.
+R6 uses the [host checkpoint contract](../research/PC_R6_BROWSER_STORAGE.md): exact
+Rust saves, atomic publication, previous-valid fallback, writer/session fencing,
+accepted versus durable revisions and real-browser recovery/failure controls.
+Manual v1/v2 compatibility remains supported. No original process launch, new
+service/infrastructure, whole-game parity or unattended readiness is claimed.

@@ -35,7 +35,7 @@ module.exports=async function verifyReference(page,root,out,encodedFixture) {
  assert.equal(await page.getByRole('button',{name:'Apply plan',exact:true}).isDisabled(),true);
  assert.equal(await page.getByLabel('Club',{exact:true}).isDisabled(),true);
  assert.equal(await page.getByRole('button',{name:'Export state'}).isDisabled(),true);
- release();await page.getByTestId('manager-name').waitFor();
+ release();await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(button=>button.textContent==='Apply plan'&&!button.disabled));await page.getByTestId('manager-name').waitFor();
  assert.equal(hash(await page.getByTestId('manager-name').textContent()),hash(fixture.clubs[0].manager_name),'manager projection mismatch');
  await page.getByLabel('Club',{exact:true}).selectOption(String(fixture.clubs[1].id));
  await page.getByLabel('Choose a research plan').selectOption(String(total-1));
