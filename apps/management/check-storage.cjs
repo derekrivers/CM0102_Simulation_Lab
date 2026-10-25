@@ -125,6 +125,19 @@ async function head(page){return page.evaluate(async()=>{
   equal((await head(page)).current.identity,latest.durability.durable,'stale tab cannot overwrite');await other.close();
   controls.push('concurrent stale tab cannot replace a newer committed checkpoint');
 
+  // Initial storage failure cannot grant a later retry another tab's token.
+  injection="\nconst originalOpen=openDatabase;let denyFirstOpen=true;openDatabase=()=>{if(denyFirstOpen){denyFirstOpen=false;return Promise.reject(new DOMException('denied','SecurityError'));}return originalOpen();};";
+  const failedTab=await context.newPage();await ready(failedTab,url);injection='';
+  const failedState=(await request(failedTab,{action:'state'})).state;
+  assert.equal(failedState.revision,0);
+  await request(page,{action:'import_reference',fixture:fixtures[1]});
+  const newerHead=await head(page);
+  const retry=await request(failedTab,command(failedState,'retry-after-first-open-failure',1));
+  assert.equal(retry.ok,true);assert.equal(retry.durability.status,'failed');assert.match(retry.durability.error,/conflict/);
+  equal(await head(page),newerHead,'failed recovery retry cannot adopt another session token');
+  await failedTab.close();
+  controls.push('transient initial-open failure followed by another tab session change cannot rebind a publication retry');
+
   const receipt={schema_version:1,browser_version:context.browser().version(),profiles:results,controls,limitations:['SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage','Chromium CDP quota override reported quota=1 but admitted tested IndexedDB writes; actual disk exhaustion was not qualified','origin-local browser transaction guarantees; no physical-media/power-loss claim','raw private saves and profile remain only in ignored local test output'],wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm'))};
   fs.writeFileSync(path.join(out,'storage-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
  }finally{await context.close();server.close();}

@@ -33,9 +33,13 @@ async function validateCheckpoint(checkpoint) {
   return checkpoint;
 }
 
-async function connectStorage() {
+async function connectStorage(forPublication = false) {
   const head = await readCheckpoint();
   if (head && (head.version !== 1 || typeof head.token !== 'string')) throw new Error('invalid-storage-head');
+  // A tab that could not recover must not adopt another tab's newer token and
+  // publish its unrelated in-memory world. Only explicit recovery may rebind.
+  if (forPublication && (head?.token ?? null) !== token)
+    throw new Error('storage-conflict-reopen-to-recover');
   token = head?.token ?? null;
   if (!head) { storageReady = true; previous = null; return {checkpoint: null, fallback: false}; }
   for (const [index, candidate] of [head.current, head.previous].entries()) {
@@ -67,7 +71,7 @@ async function recover(wasm) {
 async function persist(wasm) {
   try {
     // Retry availability without replacing accepted in-memory commands.
-    if (!storageReady) await connectStorage();
+    if (!storageReady) await connectStorage(true);
     const saved = invoke(wasm, {action: 'save'});
     if (!saved.ok) throw new Error('save-rejected');
     const checkpoint = {version: 1, host_session: hostSession, identity: identity(saved.state),
