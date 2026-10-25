@@ -27,6 +27,32 @@ Private inputs and all existing historical worktrees remain preserved.
 
 ### Reviewed executable lab precursor — 25 October 2026
 
+**Delivered merge and actual qualification start:** [PR #46](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/46)
+merged exact reviewed head `9c27ed7b1c2184b4a0dc26fca41b6e776d27ac93` as
+`cb4694abd77ead05e8477e573c02ab3e336d1034` after independent complementary
+acceptance and all four frozen checks. The execution checkout stays clean at
+accepted source `42a313887e46274a2932dbe8c04de7a5e8f2840d`; executable trees
+match the merge. Documentation-only records use a separate worktree.
+
+The real `ll1-24h-20261025` campaign started **25 October 2026, 14:56:45 UTC**
+(London time). It cannot complete its horizon before **26 October, 14:56:45**.
+The [frozen launch record](../research/evidence/local-lab-24h-start-v1.json)
+binds the merge/check URLs, pre-launch protocol hash, manifest, exact budgets,
+successful endpoints, immutable attempts, holder acknowledgement and restart.
+At its recorded 317.91 seconds the three logical jobs had all succeeded, with
+four published physical attempts. The first Bosman attempt was deliberately
+interrupted by the one-shot drill; recovery began 3.2687 seconds after the
+recorded restart request, preserved completed RNG/original results and succeeded
+on its distinct bounded second attempt. The worker now accounts for explicit
+idle time rather than repeating work to occupy the day.
+
+**Package 5 remains in progress.** Launch and successful endpoints do not prove
+24 hours. The actual remaining horizon, post-horizon RNG replay and independent
+long-run/replay acceptance are still required. The private live HTML/JSON report
+refreshes without an agent. A thread follow-up at 16:00 local time remains quiet
+before the horizon and reviews the evidence afterward; it is not the execution
+engine and will retire after conclusive delivery. P01/P03 remain open.
+
 Exact clean implementation `42a313887e46274a2932dbe8c04de7a5e8f2840d`
 passed complementary independent source, actual evidence and operator review.
 The [delivery receipt](../research/evidence/local-lab-delivery-v1.json),

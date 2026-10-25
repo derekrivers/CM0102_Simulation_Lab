@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "merge": {
+    "pull_request": 46,
+    "accepted_head": "9c27ed7b1c2184b4a0dc26fca41b6e776d27ac93",
+    "merge_revision": "cb4694abd77ead05e8477e573c02ab3e336d1034",
+    "required_checks": [
+      {
+        "name": "controller-policy-windows",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40204408145/job/121202434803"
+      },
+      {
+        "name": "immutable-runtime-bootstrap",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40204448941/job/121202285093"
+      },
+      {
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40204408145/job/121202191909"
+      },
+      {
+        "name": "runtime-binding",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40204408145/job/121202160977"
+      },
+      {
+        "name": "immutable-runtime-bootstrap",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40204407056/job/121202158304"
+      }
+    ]
+  },
+  "scope": "LL1 bounded local one-worker observation; full P01/P03 open",
+  "execution_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+  "source_dirty": false,
+  "campaign_id": "ll1-24h-20261025",
+  "manifest_sha256": "0ac601252e55b485f5305d433c5f6c68c9d11e64cf07034f2488907061c3d711",
+  "prelaunch_freeze_sha256": "c0dbb69e7cc6f5cf048c38baf045239a5ff7bfca8a297196508961bb34da4836",
+  "prelaunch_freeze": {
+    "accepted_merge": "cb4694abd77ead05e8477e573c02ab3e336d1034",
+    "campaign_id": "ll1-24h-20261025",
+    "frozen_before_launch_utc_epoch": 1792940203.387176,
+    "jobs": [
+      {
+        "job_id": "001-rng-native-wasm-v1",
+        "parameters": {},
+        "template_id": "rng-native-wasm-v1"
+      },
+      {
+        "job_id": "002-original-r10-regression-v1",
+        "parameters": {},
+        "template_id": "original-r10-regression-v1"
+      },
+      {
+        "job_id": "003-bosman-same-save-v1",
+        "parameters": {},
+        "template_id": "bosman-same-save-v1"
+      }
+    ],
+    "limits": {
+      "disk_bytes": 536870912,
+      "elapsed_seconds": 1800,
+      "max_attempts": 2,
+      "max_jobs": 3,
+      "min_free_bytes": 1073741824,
+      "output_bytes": 2097152,
+      "stall_seconds": 660
+    },
+    "milestone": "LL1 bounded one-PC one-worker approved campaigns; not full P01/P03",
+    "observation_seconds": 86400,
+    "preconditions": {
+      "frozen_CI_checks": "all passed before expected-head guarded merge",
+      "independent_source_and_evidence_reviews": "accepted",
+      "pilot_replay_seconds": 0.6163244240015047,
+      "pilot_seconds": 153.8720188249863,
+      "research_pilot_seconds": 1.1740089320082916,
+      "source_clean": true
+    },
+    "protocol_sha256": "590e070b12fe34eca5317c14ff19cb0f262c4e2bbfe1750eb9b1826b84672f98",
+    "replay_requirement": "post-horizon selected RNG replay with retained source/input/tool identities and independent final evidence acceptance",
+    "restart_drill": "one-shot systemd user timer at45seconds, exact campaign/root/repo/PID-bound restart command",
+    "reviewed_delivery_head": "9c27ed7b1c2184b4a0dc26fca41b6e776d27ac93",
+    "schema_version": 1,
+    "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+    "stop_conditions": {
+      "max_failures": 1,
+      "stop_on_divergence": true
+    }
+  },
+  "started_utc": "2026-10-25T14:56:45.250062+00:00",
+  "not_before_completion_utc": "2026-10-26T14:56:45.250062+00:00",
+  "recorded_utc": "2026-10-25T15:02:03.831218+00:00",
+  "actual_observation_seconds_at_record": 317.9096186740062,
+  "active_seconds_at_record": 182.6596052829991,
+  "idle_seconds_at_record": 125.01641416690836,
+  "state_at_record": "running",
+  "actual_24_hours_completed": false,
+  "observation_eligible_at_record": true,
+  "jobs": [
+    {
+      "job_id": "001-rng-native-wasm-v1",
+      "state": "succeeded",
+      "attempts": 1,
+      "comparison_verdict": "equal"
+    },
+    {
+      "job_id": "002-original-r10-regression-v1",
+      "state": "succeeded",
+      "attempts": 1,
+      "comparison_verdict": "equal"
+    },
+    {
+      "job_id": "003-bosman-same-save-v1",
+      "state": "succeeded",
+      "attempts": 2,
+      "comparison_verdict": "not-run"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "653d1fe72df2429eb051ace27ebcf91c",
+      "job_id": "001-rng-native-wasm-v1",
+      "ordinal": 1,
+      "execution_status": "succeeded",
+      "comparison_verdict": "equal",
+      "reason": null,
+      "publication_state": "published",
+      "result_sha256": "47f5fcc9d66b2d9235f0ab1240805607a2dcea8ce8577089fd3e9febeb50c47d"
+    },
+    {
+      "attempt_id": "84be418d2751467bb4c96add61a800cc",
+      "job_id": "002-original-r10-regression-v1",
+      "ordinal": 1,
+      "execution_status": "succeeded",
+      "comparison_verdict": "equal",
+      "reason": null,
+      "publication_state": "published",
+      "result_sha256": "8a5308e96db62ef2ff546f03e676a7bc52bafe8f8f413ce226044012df5a9401"
+    },
+    {
+      "attempt_id": "90265f1c2ad94131a5bcf531361b437e",
+      "job_id": "003-bosman-same-save-v1",
+      "ordinal": 1,
+      "execution_status": "infrastructure_failed",
+      "comparison_verdict": "not-run",
+      "reason": "worker-interrupted",
+      "publication_state": "published",
+      "result_sha256": "3ed54cd7867e240e9ba70c57b0898fd86d7d72ad534eacecd345e500d6ff7e9f"
+    },
+    {
+      "attempt_id": "66f47bca7a304f65bc31132eef38e5ad",
+      "job_id": "003-bosman-same-save-v1",
+      "ordinal": 2,
+      "execution_status": "succeeded",
+      "comparison_verdict": "not-run",
+      "reason": null,
+      "publication_state": "published",
+      "result_sha256": "1d2ef4c6594e0fb3be6924b75f5005fa3405640aa4df80ff704304418bdf39f7"
+    }
+  ],
+  "restart_events": [
+    {
+      "kind": "worker-started",
+      "time": 1792940205.2690854,
+      "detail": {
+        "cgroup": {
+          "cpu_max": [
+            "100000",
+            "100000"
+          ],
+          "memory_max": "2147483648",
+          "path": "/user.slice/user-1000.slice/user@1000.service/app.slice/cm0102-local-lab.service",
+          "pids_max": "128"
+        },
+        "pid": 273953
+      }
+    },
+    {
+      "kind": "restart-requested",
+      "time": 1792940252.761678,
+      "detail": {
+        "pid": 273953,
+        "source": "operator-or-frozen-drill"
+      }
+    },
+    {
+      "kind": "recovered",
+      "time": 1792940256.0303833,
+      "detail": {}
+    },
+    {
+      "kind": "worker-started",
+      "time": 1792940256.0762084,
+      "detail": {
+        "cgroup": {
+          "cpu_max": [
+            "100000",
+            "100000"
+          ],
+          "memory_max": "2147483648",
+          "path": "/user.slice/user-1000.slice/user@1000.service/app.slice/cm0102-local-lab.service",
+          "pids_max": "128"
+        },
+        "pid": 274055
+      }
+    }
+  ],
+  "host_holder": {
+    "record_sha256_at_snapshot": "a337e170739c3d7b4850c5439784a36b0db0aede147b37d5ea9197ca0df68ac4",
+    "fresh_token_acknowledged": true,
+    "worker_active": true,
+    "heartbeat_utc": "2026-10-25T15:02:03.752042+00:00"
+  },
+  "report_location_contract": "STATE/campaigns/ll1-24h-20261025/report.html and report.json",
+  "follow_up": "Daily 16:00 local thread follow-up stays quiet before the actual horizon and reviews final evidence/replay afterward; the local worker executes all jobs independently.",
+  "remaining_acceptance": [
+    "Actual86400second horizon must elapse",
+    "No censored observation, silent loss or corrupt publication",
+    "Post-horizon selected RNG replay",
+    "Independent actual long-run/replay evidence acceptance"
+  ]
+}
