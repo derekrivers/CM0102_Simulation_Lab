@@ -50,6 +50,13 @@ async function head(page){return page.evaluate(async()=>{
   if(process.env.REGISTRY_REFERENCE_FIXTURE)registryFixtures.push(fs.readFileSync(process.env.REGISTRY_REFERENCE_FIXTURE,'utf8'));
   if(process.env.FRESH_REGISTRY_REFERENCE_FIXTURE)registryFixtures.push(fs.readFileSync(process.env.FRESH_REGISTRY_REFERENCE_FIXTURE,'utf8'));
   fixtures.push(...registryFixtures);
+  if(process.env.STORAGE_INVALID_HEADS_ONLY==='1'){
+   const invalid_heads=await require('./check-invalid-storage.cjs')({page,context,url,request,ready,head,editHead,command,native,equal,fixture:registryFixtures.at(-1)});
+   const receipt={schema_version:1,browser_version:context.browser().version(),invalid_heads,
+    wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm')),scope:'invalid persistent heads only; full storage acceptance not run'};
+   fs.writeFileSync(path.join(out,'invalid-head-receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+   console.log(JSON.stringify(receipt));return;
+  }
   for(const fixture of fixtures){
    const initial=fixture?{action:JSON.parse(fixture).schema_version===2&&JSON.parse(fixture).human?'import_registry_reference':JSON.parse(fixture).registry_row_sha256?'import_human_reference':'import_reference',fixture}:{action:'reset'};
    const first=await request(page,initial);assert.equal(first.ok,true);

@@ -105,5 +105,11 @@ required to rebind to another tab's publication.
 actual persistent IndexedDB malformed heads and two invalid checkpoints, visible
 failure, full private-byte retention, existing and startup memory, accepted
 commands and publication retries, concurrent writer fencing and explicit recovery.
-These cases change no host recovery semantics. Execution evidence will be linked
-after the additive acceptance run.
+These cases change no host recovery semantics. The
+[narrow Chromium receipt](evidence/pc-r6-invalid-heads-v1.json) passes both cases
+against the unchanged `12a35b3` native/worker/WASM implementation and the exact
+private fresh v4 fixture. Command: `STORAGE_INVALID_HEADS_ONLY=1 node
+check-storage.cjs`, with the existing fixture/Playwright/Chromium environment.
+Elapsed command time was 6.88 seconds; Chromium was 148.0.7778.96 and WASM hash
+remains `5526af2d0711c1e3a68b22f0c612691a5a0747d0e6f3ef85ccd932d7b02193c8`.
+This isolated run does not stand in for the full browser/storage acceptance run.
