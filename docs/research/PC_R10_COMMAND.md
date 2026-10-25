@@ -166,3 +166,39 @@ reviewed diagnosis and budget. Source/tool/input hashes and actual host/per-call
 durations travel with the result. Exclusive new private paths prevent overwrite.
 Independent source/contract review and the lead's heavy-slot allocation are
 required before execution. No campaign has executed at this freeze.
+
+## Retained initialization failure and separately frozen follow-up
+
+The independently approved exact source `320b9ba` ran once under the original
+1 GiB address-space ceiling. It failed before its first original call: Unicorn's
+native library could not allocate its translator buffer and exited 1. The outer
+launcher retained empty stdout, the allocator diagnostic, exact source/input/tool
+seals, command/limits and elapsed 0.549156385 seconds. No Python oracle receipt or
+timing sidecar could be completed after that native exit; the outer result is the
+failure evidence. No original mapping write or instruction execution occurred.
+The [initialization record](evidence/pc-r10-command-initialization-v1.json) preserves
+this failed attempt unchanged; it is not counted as a successful campaign.
+
+Three isolated zero-game initialization controls then instantiated the installed
+Unicorn 2.1.4, queried its native translator size and mapped one empty page; no game
+input was loaded and no instruction executed. The 1 GiB case reproduced exit 1;
+2 GiB and 3 GiB cases succeeded and reported an unchanged default translator
+reservation of exactly 1,073,741,824 bytes. Successful minimal initialization used
+1,092,032 KiB virtual address space, already exceeding the failed ceiling, while
+resident memory stayed below 26 MiB. The installed Python control API and retained
+logs are hashed in the initialization record.
+
+The new follow-up budget is **one** additional retained-only campaign, maximum
+15 original calls, with address-space ceiling **3 GiB**. This accommodates the
+observed 1 GiB virtual translator reservation plus full 108,564,672-byte captured
+heap, mapped heap, checkpoints and exact comparison buffers. It does not change
+the installed translator configuration, qualifier instructions, candidate data,
+original writes, comparisons, or per-call bounds. Outer limits remain 90 seconds
+wall, 60 seconds CPU, 16 MiB per output file and 1 MiB per console stream. The
+qualifier source remains exactly that independently approved at `320b9ba`.
+
+A new exclusive attempt directory and freshly sealed outer launcher are required.
+Independent review must approve this diagnosis/resource delta before the lead
+allocates a new heavy slot. No unreviewed retry is authorized and no further
+retry follows from this follow-up freeze. The old attempt and its original limit
+remain immutable. Execution and production admission remain pending.

@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "executed_revision": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e",
+  "execution_status": "failed-before-first-original-call",
+  "failure": "Unicorn native dynamic translator allocation failed under frozen 1 GiB address-space ceiling",
+  "exit_code": 1,
+  "original_calls_executed": 0,
+  "host_elapsed_seconds": 0.5491563850082457,
+  "source_input_tool_seals_unchanged": true,
+  "comparison_verdict": "not-comparable",
+  "original_stdout_bytes": 0,
+  "original_stderr": "Could not allocate dynamic translator buffer",
+  "receipt_timing_absent": "Native library exits before per-call loop and Python exception/finally handling; outer launcher preserves failure",
+  "attempt_artifacts": {
+    "before.json": {
+      "bytes": 2091,
+      "sha256": "516cf8d175b8a4cb4e038e450533a846a64850dde8ffd4c821d327b386119b6b"
+    },
+    "stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "launch.py": {
+      "bytes": 3156,
+      "sha256": "5d76bcbd54c91578a869a9fbae582de2279748f10926b9775a6b1e8230e789b2"
+    },
+    "receipt.json.timing.json": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result.json": {
+      "bytes": 937,
+      "sha256": "1b829c647cfc2de4752e4159b45336bde7a1b34b4e407de2da12c3acf801055c"
+    },
+    "stderr.log": {
+      "bytes": 45,
+      "sha256": "28be675d11f614b87752ba0215497c84ac91ac15661ff4b989db031eec7d4ea5"
+    },
+    "receipt.json": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "zero_game_initialization_controls": [
+    {
+      "cap_gib": 1,
+      "exit_code": 1,
+      "elapsed_seconds": 0.13891190200229175,
+      "stdout": "{\"stage\": \"constructed\", \"version\": \"2.1.4\"}\n",
+      "stderr": "Could not allocate dynamic translator buffer\n",
+      "game_inputs_loaded": false,
+      "instructions_executed": 0
+    },
+    {
+      "cap_gib": 2,
+      "exit_code": 0,
+      "elapsed_seconds": 0.07584165400476195,
+      "stdout": "{\"stage\": \"constructed\", \"version\": \"2.1.4\"}\n{\"tcg_buffer_bytes\": 1073741824}\n{\"stage\": \"mapped-one-empty-page\", \"vm_status\": [\"VmSize:\\t 1092032 kB\\n\", \"VmRSS:\\t   25092 kB\\n\"], \"peak_rss_kib\": 25092, \"instructions_executed\": 0}\n",
+      "stderr": "",
+      "game_inputs_loaded": false,
+      "instructions_executed": 0
+    },
+    {
+      "cap_gib": 3,
+      "exit_code": 0,
+      "elapsed_seconds": 0.07193599300808273,
+      "stdout": "{\"stage\": \"constructed\", \"version\": \"2.1.4\"}\n{\"tcg_buffer_bytes\": 1073741824}\n{\"stage\": \"mapped-one-empty-page\", \"vm_status\": [\"VmSize:\\t 1092032 kB\\n\", \"VmRSS:\\t   22912 kB\\n\"], \"peak_rss_kib\": 22912, \"instructions_executed\": 0}\n",
+      "stderr": "",
+      "game_inputs_loaded": false,
+      "instructions_executed": 0
+    }
+  ],
+  "diagnosis_artifacts": {
+    "1gib.stderr": {
+      "bytes": 45,
+      "sha256": "28be675d11f614b87752ba0215497c84ac91ac15661ff4b989db031eec7d4ea5"
+    },
+    "1gib.stdout": {
+      "bytes": 45,
+      "sha256": "04336e8b6db44d4e1940772b714d76dd9e051ed485684a2f4adc9c40303a380a"
+    },
+    "control.py": {
+      "bytes": 522,
+      "sha256": "d2cf1f59260eca5cf3bcc4774e525860e7825cab13d6ab9175d43ca6b72473a7"
+    },
+    "2gib.stdout": {
+      "bytes": 230,
+      "sha256": "1416c8d9489b0857c54a85d5433584df5f0aa82457b07f07ee0bf315993bbd64"
+    },
+    "2gib.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "3gib.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "results.json": {
+      "bytes": 1198,
+      "sha256": "0cb00a6af9c88360dfa52efc55ea3b8a60f85d398b0f15faff62582000098d23"
+    },
+    "3gib.stdout": {
+      "bytes": 230,
+      "sha256": "0b0cacebe8542791fbde05b88301aa20d3792c8b3c5aae797e13a1aff87e006f"
+    }
+  },
+  "installed_api_source": {
+    "sha256": "62ffe84341f4288e309040e06555b81798031817d32fd19a945e250813f872f0",
+    "method": "ctl_get_tcg_buffer_size returns installed native buffer size"
+  },
+  "followup": "separately frozen 3 GiB address-space ceiling; exact original command/data/controls/per-call/outer time budgets unchanged; independent review and heavy slot required",
+  "production_admission": "none"
+}
