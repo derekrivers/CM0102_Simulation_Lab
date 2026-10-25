@@ -2,10 +2,15 @@
 //! No original UI, formation contents or saved-game compatibility is claimed.
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+pub mod assignment;
 pub mod effective;
 pub mod human;
 pub mod reference;
 pub mod registry;
+use assignment::{
+    AssignmentAction, AssignmentCommand, AssignmentFixture, AssignmentReadbackCommand,
+    AssignmentWorld,
+};
 use effective::{EffectiveAction, EffectiveFixture, EffectiveWorld};
 use human::{HumanCommand, HumanRegistryFixture, HumanWorld};
 use reference::{ReferenceFixture, resolve_plan};
@@ -355,6 +360,9 @@ pub enum Operation {
     HumanCommand { command: HumanCommand },
     ImportRegistryReference { fixture: String },
     ImportEffectiveReference { fixture: String },
+    ImportAssignmentReference { fixture: String },
+    AssignmentCommand { command: AssignmentCommand },
+    AssignmentReadbackCommand { command: AssignmentReadbackCommand },
     EffectivePlanCommand { command: HumanCommand },
     RegistryOptionCommand { command: RegistryOptionCommand },
 }
@@ -365,6 +373,7 @@ pub struct Engine {
     human: Option<HumanWorld>,
     registry: Option<RegistryWorld>,
     effective: Option<EffectiveWorld>,
+    assignment: Option<AssignmentWorld>,
 }
 impl Engine {
     pub fn request(&mut self, bytes: &[u8]) -> serde_json::Value {
@@ -379,11 +388,16 @@ impl Engine {
                 self.human = None;
                 self.registry = None;
                 self.effective = None;
+                self.assignment = None;
                 Ok(serde_json::Value::Null)
             }
             Operation::State {} => Ok(serde_json::Value::Null),
             Operation::Command { command } => {
-                if self.human.is_some() || self.registry.is_some() || self.effective.is_some() {
+                if self.human.is_some()
+                    || self.registry.is_some()
+                    || self.effective.is_some()
+                    || self.assignment.is_some()
+                {
                     Err("unsupported-command".into())
                 } else {
                     self.world
@@ -427,7 +441,21 @@ impl Engine {
                 .ok_or_else(|| "unsupported-command".to_string())?
                 .apply(EffectiveAction::EffectivePlanCommand(command))
                 .map(|e| serde_json::to_value(e).expect("event")),
-            Operation::Save {} => if let Some(world) = &self.effective {
+            Operation::AssignmentCommand { command } => self
+                .assignment
+                .as_mut()
+                .ok_or_else(|| "unsupported-command".to_string())?
+                .apply(AssignmentAction::AssignmentCommand(command))
+                .map(|e| serde_json::to_value(e).expect("event")),
+            Operation::AssignmentReadbackCommand { command } => self
+                .assignment
+                .as_mut()
+                .ok_or_else(|| "unsupported-command".to_string())?
+                .apply(AssignmentAction::AssignmentReadbackCommand(command))
+                .map(|e| serde_json::to_value(e).expect("event")),
+            Operation::Save {} => if let Some(world) = &self.assignment {
+                world.save()
+            } else if let Some(world) = &self.effective {
                 world.save()
             } else if let Some(world) = &self.registry {
                 world.save()
@@ -440,9 +468,18 @@ impl Engine {
             Operation::Load { save } => {
                 let envelope: Save =
                     serde_json::from_str(&save).map_err(|_| "invalid-save-envelope".to_string())?;
-                if envelope.schema_version == 5 {
+                if envelope.schema_version == 6 {
+                    AssignmentWorld::load(&save).map(|world| {
+                        self.assignment = Some(world);
+                        self.effective = None;
+                        self.registry = None;
+                        self.human = None;
+                        serde_json::Value::Null
+                    })
+                } else if envelope.schema_version == 5 {
                     EffectiveWorld::load(&save).map(|world| {
                         self.effective = Some(world);
+                        self.assignment = None;
                         self.human = None;
                         self.registry = None;
                         serde_json::Value::Null
@@ -451,6 +488,7 @@ impl Engine {
                     RegistryWorld::load(&save).map(|world| {
                         self.registry = Some(world);
                         self.effective = None;
+                        self.assignment = None;
                         self.human = None;
                         serde_json::Value::Null
                     })
@@ -459,6 +497,7 @@ impl Engine {
                         self.human = Some(world);
                         self.registry = None;
                         self.effective = None;
+                        self.assignment = None;
                         serde_json::Value::Null
                     })
                 } else {
@@ -467,6 +506,7 @@ impl Engine {
                         self.human = None;
                         self.registry = None;
                         self.effective = None;
+                        self.assignment = None;
                         serde_json::Value::Null
                     })
                 }
@@ -478,6 +518,7 @@ impl Engine {
                     self.human = None;
                     self.registry = None;
                     self.effective = None;
+                    self.assignment = None;
                     serde_json::Value::Null
                 }),
             Operation::ImportHumanReference { fixture } => HumanRegistryFixture::parse(&fixture)
@@ -486,12 +527,23 @@ impl Engine {
                     self.human = Some(world);
                     self.registry = None;
                     self.effective = None;
+                    self.assignment = None;
+                    serde_json::Value::Null
+                }),
+            Operation::ImportAssignmentReference { fixture } => AssignmentFixture::parse(&fixture)
+                .and_then(AssignmentWorld::from_fixture)
+                .map(|world| {
+                    self.assignment = Some(world);
+                    self.human = None;
+                    self.registry = None;
+                    self.effective = None;
                     serde_json::Value::Null
                 }),
             Operation::ImportEffectiveReference { fixture } => EffectiveFixture::parse(&fixture)
                 .and_then(EffectiveWorld::from_fixture)
                 .map(|world| {
                     self.effective = Some(world);
+                    self.assignment = None;
                     self.human = None;
                     self.registry = None;
                     serde_json::Value::Null
@@ -501,10 +553,19 @@ impl Engine {
                 .map(|world| {
                     self.registry = Some(world);
                     self.effective = None;
+                    self.assignment = None;
                     self.human = None;
                     serde_json::Value::Null
                 }),
         });
+        if let Some(world) = &self.assignment {
+            return match result {
+                Ok(value) => serde_json::json!({"ok":true,"result":value,"state":world,
+                    "plan_locations":[],"assignment_readback_result":world.last_readback()}),
+                Err(error) => serde_json::json!({"ok":false,"error":error,"state":world,
+                    "plan_locations":[],"assignment_readback_result":world.last_readback()}),
+            };
+        }
         if let Some(world) = &self.effective {
             return match result {
                 Ok(value) => serde_json::json!({"ok":true,"result":value,"state":world,

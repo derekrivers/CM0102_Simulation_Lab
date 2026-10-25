@@ -1,0 +1,137 @@
+{
+  "base_revision": "8ae412aac6377f4bc824fa6f8c29d76c0c79bd99",
+  "decision": "admitted-exact-retained-two-member-initial-projection-for-bounded-slot-zero-contract",
+  "fixture": {
+    "bytes": 629,
+    "sha256": "39ec04463f83c893e3ab702a6d29d31bd95ee925b06d7a3e70d149a85e9075ea"
+  },
+  "frozen_semantics": {
+    "assignment": "One width-four row-offset-two write including repeats, return one, zero RNG; no inferred removal, swap or clearing",
+    "canonicalization": "sorted-key compact UTF-8 JSON, no trailing newline",
+    "exact_fields": [
+      "schema_version",
+      "origin",
+      "specimen_sha256",
+      "source_capture_sha256",
+      "image_sha256",
+      "heap_sha256",
+      "backend_revision",
+      "club_id",
+      "manager_staff_id",
+      "members",
+      "row_mode",
+      "cache_count",
+      "mapping"
+    ],
+    "fixture_schema": 1,
+    "host_restrictions": "Atomic import/load/rejection and transport idempotency/history are new host requirements, not original diagnostic/save parity",
+    "mapping": "Twenty signed DWORD entries initially all -1; only literal slot zero may change to either admitted staff ID",
+    "member_selection": "Exactly two ascending actual retained staff IDs with independently validated captured identity; incomplete squad",
+    "origin": "captured-bosman-two-member-assignment",
+    "profile": "captured-bosman-two-member-assignment-slot-zero-v1",
+    "readback": "Tagged empty or admitted staff identity; no game-state write",
+    "save": "New schema 6; v1-v5 interpretation and bytes unchanged; immutable fixture plus mapping/history replay required",
+    "session": "captured-bosman-two-member-assignment-assignment-session-v1"
+  },
+  "independent_checks": {
+    "actual_campaign_artifacts_verified": 6,
+    "actual_canonical_fixture_bytes_equal": true,
+    "build_browser_or_heavy_execution_by_this_reviewer": 0,
+    "censored_probe_boundary_pcs_and_empty_partial_effects_checked": 4,
+    "complete_checkpoint_suffix_receipt_equal": true,
+    "complete_club_staff_player_mapping_context_extents": true,
+    "complete_raw_heap_overlay_call_cases": 11,
+    "exercised_defect_models_checked": 12,
+    "fifty_slot_inventory": {
+      "aligned_staff": 48,
+      "duplicate_links": 0,
+      "invalid_nonzero_nonminusone_links": 2,
+      "reciprocal_candidates": 43,
+      "reciprocal_mismatches": 5
+    },
+    "method": "New standard-library raw extraction, independent address/extent/identity logic; no import or execution of producer, oracle parser, emulator or prior reviewer extractor",
+    "official_specimen_and_retained_image_heap_hashes_and_sizes": true,
+    "ordered_cases_writes_write_pcs_results_rng_abi_flags_checked": true,
+    "original_execution_by_this_reviewer": 0,
+    "player_table_all_id_index_matches": true,
+    "producer_and_helper_full_source_review": "No findings for pinned retained-only extraction",
+    "source_input_tool_seals_verified": 10,
+    "twenty_initial_minus_one_mapping_and_zero_cache": true,
+    "two_selected_records": "First two ascending stable staff IDs; full staff/player hashes match producer, prior C extraction and accepted oracle receipt",
+    "unique_reciprocal_ordinary_human_binding": true
+  },
+  "limitations": [
+    "Admits exactly the sealed initial fixture and logical bounded contract; not generic producer outputs, any synthetic fixture, Rust implementation or executable workflow acceptance",
+    "No new original execution; loaded-image, exact dynamic ABI/read/call invariants rely on inspected qualifier and retained independently reviewed campaign, not a new dynamic capture",
+    "Two initialized immutable object identities only; construction, loading, freeing, appointment, original save/process parity and general lifetime remain unsupported",
+    "Seven anomalous list entries remain unexplained; no complete squad, positions, eligibility, player attributes, duplicate removal, swaps, clearing or other slots/members/cache modes admitted",
+    "Native/WASM equality, exact v6 persistence/replay and actual browser close/reopen/continuation remain pending after protected heavy-slot release",
+    "Protected LL1 campaign and candidate checkouts were not mutated; admission does not release their resource or acceptance gates",
+    "First translator initialization failure and all censored/failed prior attempts remain retained"
+  ],
+  "private_review_artifacts": [
+    {
+      "bytes": 7023,
+      "name": "review.py",
+      "sha256": "fd164b607354ea00d6af1c51cd6e71f26fc150f359161da63d41dbb33ab35fbb"
+    },
+    {
+      "bytes": 1032,
+      "name": "private-audit.json",
+      "sha256": "864656c3d169b5770f98dcc8afdcb1375ca8fe27de65b4e4279676ff0f122e26"
+    },
+    {
+      "bytes": 1715,
+      "name": "compare.py",
+      "sha256": "9cecbd9f8a99cca71db78612a06396ae8831f602e979bc71023ce83bf5dfbed3"
+    },
+    {
+      "bytes": 988,
+      "name": "comparison.json",
+      "sha256": "d1268a57dac162eef9e45aa6c757b74a12dfe2cfb8a845b023c86ced82a0051c"
+    },
+    {
+      "bytes": 9139,
+      "name": "reviewed-contract.md",
+      "sha256": "57f92b33ba3541ee608e38791a62b50aef952e2d2fe4d99a0e81ed7a7effe064"
+    }
+  ],
+  "producer_helper": {
+    "bytes": 6982,
+    "path": "scripts/pc_r10_projection_inventory.py",
+    "sha256": "7c42169d6adc241d1fdee3618d85a750ac84532af65b2fcd316285666db4e740"
+  },
+  "producer_private_audit": {
+    "bytes": 793,
+    "sha256": "01c59196f4e4293f649ef9bcdb42004ffa20406b3e839f6b2967f8077f4fe509"
+  },
+  "producer_source": {
+    "bytes": 5157,
+    "path": "scripts/pc_r10_assignment_projection.py",
+    "sha256": "13a61bc932970f8656b940ad01003766fbe5c81fd239a21b3ce059ab0252c71a"
+  },
+  "retained_original_evidence": {
+    "executed_revision": "f6b40528d668901eacb04ab50ec2d8fa333084ef",
+    "official_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+    "prior_postreviews": [
+      "pc-r10-command-postexecution-review-e-v1.json",
+      "pc-r10-projection-review-command-post-v1.json"
+    ],
+    "receipt_sha256": "504f4f1142597f4f8e451e15837383df2527a2afc921149e4f72d75a8fb8d877",
+    "unchanged_qualifier_revision": "320b9ba6f66bcf84de130987c5b51a9a16fbda8e"
+  },
+  "reviewed_contract": {
+    "bytes": 9139,
+    "path": "docs/research/PC_R10_BOUNDED_WORKFLOW_V1.md",
+    "sha256": "57f92b33ba3541ee608e38791a62b50aef952e2d2fe4d99a0e81ed7a7effe064",
+    "snapshot": "pc-r10-bounded-independent-admission-20261025-a1/reviewed-contract.md",
+    "status": "Reviewed while ledger said pending admission; later ledger-only status updates require no new semantic admission"
+  },
+  "reviewer": {
+    "actual_model": "GPT-6 Astra",
+    "reasoning_effort": "high",
+    "role": "Independent admission reviewer; not producer or implementation author",
+    "token_usage": "unknown"
+  },
+  "schema_version": 1
+}

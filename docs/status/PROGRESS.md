@@ -2,6 +2,42 @@
 
 Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
 
+## Bounded R10 source preparation — 25 October 2026
+
+From refreshed main `8ae412a`, owner coordinator direction authorizes a separately
+admitted two-member slot-zero outcome. Isolated native branch
+`codex/r10-bounded-workflow` prepares additive Rust world/save v6, explicit
+assignment/readback, replay validation, thin browser controls and deferred
+native/WASM/original-effects/recovery acceptance. Versions 1–5 and their canonical
+corpora remain preserved. This is unbuilt source preparation, not a delivered
+browser capability or completion of PC-R10/P04.
+
+An independent GPT-6 Astra/high reviewer reconstructed and admitted the exact
+629-byte private fixture with SHA-256
+`39ec04463f83c893e3ab702a6d29d31bd95ee925b06d7a3e70d149a85e9075ea`.
+The independent parser imports neither producer nor oracle. Both selected records,
+ten seals, six artifacts, eleven complete original heap overlays and exact suffix
+match retained accepted evidence. Seven membership anomalies remain unexplained.
+No new original execution occurred. See the
+[bounded contract](../research/PC_R10_BOUNDED_WORKFLOW_V1.md) and
+[admission receipt](../research/evidence/pc-r10-bounded-projection-review-v1.json).
+
+At 16:31:51 London, a fresh consistent SQLite read-only snapshot found LL1
+running with no stop reason and 5,706.109803 monotonic seconds. Three jobs succeeded;
+all four attempts were published, including the retained interrupted attempt.
+RNG/R10 comparison was equal; Bosman original comparison remains not-run. The
+execution checkout was clean at `42a3138`; PR #48 remains draft at `14a3b398`.
+This limited snapshot did not rehash artifacts or requalify service health. No
+campaign, launcher, configuration or frozen candidate checkout changed; no heavy
+slot was released and no pilot was run.
+
+Routing: current lead session (model/effort not independently exposed), bounded
+implementer GPT-6.1 Sol/medium and independent reviewer GPT-6 Astra/high. Tokens/cost
+unknown; no heavy work. Node syntax checks, Python AST checks and direct rustfmt
+parsing pass; these are source checks only. Actual Rust tests/lint/build, complete
+native/WASM equality, original-effects comparison, real browser close/reopen,
+final exact-revision review, frozen CI and merge remain gates after LL1 acceptance.
+
 ## Demonstrated evidence
 
 ### Owner-directed lab delivery — started 25 October 2026

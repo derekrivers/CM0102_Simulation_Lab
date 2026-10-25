@@ -1,11 +1,11 @@
 // Local-only preview. Private fixtures are served on demand, never copied into dist.
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path');
-const root=path.join(__dirname,'dist'),fixture=process.env.REFERENCE_FIXTURE,humanFixture=process.env.HUMAN_REFERENCE_FIXTURE,effectiveFixture=process.env.EFFECTIVE_REFERENCE_FIXTURE;
+const root=path.join(__dirname,'dist'),fixture=process.env.REFERENCE_FIXTURE,humanFixture=process.env.HUMAN_REFERENCE_FIXTURE,effectiveFixture=process.env.EFFECTIVE_REFERENCE_FIXTURE,assignmentFixture=process.env.ASSIGNMENT_REFERENCE_FIXTURE;
 const assets=new Map([['/','index.html'],...['index.html','app.js','worker.js','storage.js','style.css','cm_management.wasm'].map(name=>['/'+name,name])]);
 const server=http.createServer((request,response)=>{
  try {
   let file;
-  const local=request.url==='/reference-fixture.json'?fixture:request.url==='/human-reference-fixture.json'?humanFixture:request.url==='/effective-reference-fixture.json'?effectiveFixture:null;
+  const local=request.url==='/reference-fixture.json'?fixture:request.url==='/human-reference-fixture.json'?humanFixture:request.url==='/effective-reference-fixture.json'?effectiveFixture:request.url==='/assignment-reference-fixture.json'?assignmentFixture:null;
   if(local){
    if(!path.isAbsolute(local)||fs.statSync(local).size>65536)throw new Error('invalid fixture');
    file=local;
