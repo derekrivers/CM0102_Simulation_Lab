@@ -171,6 +171,19 @@ implicit outer lookup, original UI/lifecycle/appointment/match/original-save cla
 No original process or new Bosman campaign ran. Independent final-head review,
 protected checks and merge disposition are recorded in the delivery PR.
 
+Delivery merged through [PR #40](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/40)
+as `37c511dc2ec6ca0e173b36a900b09411e1da952b`. Independent review approved
+exact head `c53692921af108d37be3493cd934dfb7ddcdebd3` with no findings after
+reviewing all 23 files, independently passing 24 management checks and verifying
+all receipt/audit seals, 60 relative links and unchanged legacy results. Private
+final review: 3,099 bytes, SHA-256
+`d61f1e8f1905d33c32318d9bbc762a5024a10f9fa3c0aa30434f774fac27bcbc`.
+All four frozen checks passed before merge: Rust run `40189853461` and latest
+base-guard run `40189976662`. The target remained `8bd8368` and the reviewed head
+was unchanged at merge. Default parallel Rust CI passed; no thresholds/policies
+were altered. The additional producer is admitted and delivered within its
+documented initialized-state domain. Fidelity exclusions below remain open.
+
 ## Remaining engineering
 
 1. Direct human registry selection and the fixed option-2 byte producer are qualified for the retained and freshly captured pinned initialized bindings. General registry construction/load/reuse, appointments, remaining slots/options and original UI/match effects remain unsupported. Next bounded research can qualify a further producer or dependency without assuming gameplay semantics.

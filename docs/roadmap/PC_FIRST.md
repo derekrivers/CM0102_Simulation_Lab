@@ -242,3 +242,9 @@ All 79 Rust tests pass serially, plus fmt/Clippy/native/WASM/TypeScript/build.
 The [bounded decision and receipts](../research/HUMAN_REGISTRY_PRODUCER.md)
 record scope and private audit identities. Final independent exact-head review,
 frozen checks and merge disposition follow in the delivery PR.
+
+This increment merged in [PR #40](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/40)
+at `37c511dc2ec6ca0e173b36a900b09411e1da952b`. Independent final review
+approved exact head `c53692921af108d37be3493cd934dfb7ddcdebd3` with no findings;
+all four frozen checks passed before merge, including default parallel Rust CI.
+No original process, new Bosman campaign or verification-policy change occurred.
