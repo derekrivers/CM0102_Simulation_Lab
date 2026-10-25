@@ -58,6 +58,21 @@ abort, corruption, interrupted-write and stale-writer tests. Storage denial and
 quota exceptions are injected at the IndexedDB API boundary; this does not claim
 actual disk-exhaustion qualification. See `docs/research/PC_R6_BROWSER_STORAGE.md`.
 
+The separate qualified human profile exposes **Apply slot** only after Rust
+admits its fixture. Use **Import club fixture**, or set `HUMAN_REFERENCE_FIXTURE`
+to the private projected human fixture and choose **Load human reference**. The
+local preview serves that file only on demand and never packages it in `dist`.
+Only direct selection of research slot 1/2 on a preinitialized reciprocal
+human-manager binding is supported. The original outer tactical getter can
+follow a separate fallback; no original UI, appointment, plan decoding or match
+effect is claimed. Human state uses an explicit v3 slice save; v1/v2 formats are
+unchanged. Browser persistence uses the same exact-save contract for v3.
+
+Set `HUMAN_REFERENCE_FIXTURE` for `npm run check` and `npm run check:storage` to
+include the admitted private human fixture. A separately labeled public synthetic
+human profile always runs. Fresh capture fingerprints require independent
+qualification and are not automatically admitted.
+
 Set `REFERENCE_FIXTURE` to the recovered private fixture path when running
 `npm run check` to execute the real-record native/browser corpus too. Test logs
 contain only hashes and summaries. Captured-name screenshots and exported state

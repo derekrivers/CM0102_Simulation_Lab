@@ -161,3 +161,29 @@ Fresh reproduction: `python -O scripts/qualify_fresh_human_registry.py
 /private/official/cm0102.exe /private/enabled-a/capture.bin
 014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40
 /private/build-receipt.json /private/new-oracle.json`.
+
+## Integrated browser and recovery result
+
+The [browser receipt](evidence/pc-r4-human-browser-v1.json) retains 159 exact
+native/Chromium operations: unchanged 105 legacy/ordinary cases plus 27 each
+for the labeled synthetic and real retained human profiles. All six admitted
+original selector cases feed each human corpus. Complete state, ordered writes,
+events, records, rejections and saves match; v3 reload/deduplication/continuation,
+legacy byte-identical v1 exports, capability-gated Apply slot, invalid imports
+and reset pass. The private fixture stays outside Git and build output.
+
+The [v3 storage receipt](evidence/pc-r4-storage-v3.json) extends the same R6 host
+contract to all five admitted profiles. Actual persistent Chromium process
+close/reopen preserves exact Rust save/state/events/deduplication and native
+continuation. The existing abort/corruption/interruption/session/tab controls
+remain passing; quota/denial API injection and physical-durability limits remain
+explicit. No separate mutable TypeScript engine or human storage format exists.
+
+Coordinator independently reproduced both original receipts under optimized
+Python: retained 21 calls/345 starts and fresh 21 calls/290 starts are byte
+identical to their public receipts. Five Python controls pass. Integrated Rust
+checks pass 70 tests (including two compile-fail boundaries), formatting, denied-
+warning workspace Clippy, native and WASM builds; strict TypeScript/build checks
+pass. Models remain Astra/high research, Sol/medium capture and unchanged
+coordinator; independent core/evidence and UI reviews plus final CI/merge are
+recorded in the delivery PR. The fresh input fingerprint remains unadmitted.
