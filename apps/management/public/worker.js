@@ -92,8 +92,8 @@ self.onmessage = ({data: {id, operation, storage}}) => {
         await persist(wasm); response = invoke(wasm, {action: 'state'});
       } else {
         response = invoke(wasm, operation);
-        if (storage && response.ok && ['command', 'load', 'reset', 'import_reference'].includes(operation.action)) {
-          if (operation.action !== 'command') hostSession = crypto.randomUUID();
+        if (storage && response.ok && ['command', 'human_command', 'load', 'reset', 'import_reference', 'import_human_reference'].includes(operation.action)) {
+          if (!['command', 'human_command'].includes(operation.action)) hostSession = crypto.randomUUID();
           await persist(wasm);
         }
       }

@@ -38,9 +38,13 @@ const server=http.createServer((req,res)=>{const file=allowed.get(req.url);if(!f
   const verifyReference=require('./check-reference.cjs');
   const referenceProfiles=[await verifyReference(page,root,out,fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-managers-v1.json'),'utf8'))];
   if(process.env.REFERENCE_FIXTURE) referenceProfiles.push(await verifyReference(page,root,out,fs.readFileSync(process.env.REFERENCE_FIXTURE,'utf8')));
+  const verifyHuman=require('./check-human.cjs');
+  const humanProfiles=[await verifyHuman(page,root,out,fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-human-registry.json'),'utf8'))];
+  if(process.env.HUMAN_REFERENCE_FIXTURE)humanProfiles.push(await verifyHuman(page,root,out,fs.readFileSync(process.env.HUMAN_REFERENCE_FIXTURE,'utf8')));
   assert.deepEqual(errors,[]);
-  const receipt={schema_version:1,command_count:operations.length,original_instruction_cases:oracle.cases.length,native_browser_equal:true,canonical_sha256:hash(encoded(actual)),wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm')),browser_version:browser.version(),controls:['invalid plan/bound/club/revision/id atomic','save/load deterministic continuation','duplicate commands idempotent after reload','invalid save import preserves state','React command/save/import interaction'],limitations:['legacy profile uses fictional squad and a null manager pointer','reference profiles admit only pinned ordinary club/nonhuman manager records','retained capture uses an older instrumented Bosman platform with no contemporaneous input-consumption seal','plan labels remain fictional; no original UI binding, human registry or match effects']};
+  const receipt={schema_version:1,command_count:operations.length,original_instruction_cases:oracle.cases.length,native_browser_equal:true,canonical_sha256:hash(encoded(actual)),wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm')),browser_version:browser.version(),controls:['invalid plan/bound/club/revision/id atomic','save/load deterministic continuation','duplicate commands idempotent after reload','invalid save import preserves state','React command/save/import interaction'],limitations:['legacy profile uses fictional squad and a null manager pointer','ordinary reference profiles admit only pinned ordinary club/nonhuman manager records','retained production capture uses an older instrumented Bosman platform with no contemporaneous input-consumption seal','plan labels remain fictional; original UI, full human registry lifecycle and match effects unqualified']};
   receipt.reference_profiles=referenceProfiles;
+  receipt.human_profiles=humanProfiles;
   fs.writeFileSync(path.join(out,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
  }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});

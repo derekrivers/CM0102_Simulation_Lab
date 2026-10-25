@@ -64,3 +64,11 @@ completion even when a previously persisted manager is already visible.
 Baseline 63 workspace Rust tests and native/WASM builds passed before host edits;
 Rust source/save formats are unchanged by this increment. Independent review and
 exact-head CI/merge disposition are recorded in the delivery PR.
+
+Current-profile delivery merged in [PR #34](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/34),
+merge `3248e75b12a06919504c743c54dcedb1255af21f`, after independent Astra/high
+review of final head `762ed06c145b6b6abc21d4d3ce72eba12ea20d40` and all four
+frozen CI checks. Review found and verified a retry-token rebinding fix: after an
+initial storage-open failure, a tab cannot adopt another tab's newly published
+session token on a late publication retry. The browser regression compares the
+entire retained head. The additive R4 v3 profile uses this same host contract.

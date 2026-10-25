@@ -1,0 +1,32 @@
+// Native/browser equality and React interaction for an admitted human fixture.
+const assert=require('node:assert/strict'),path=require('node:path'),{createHash}=require('node:crypto');
+const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+module.exports=async function checkHuman(page,root,out,fixture){
+ const receipt=await require('../../scripts/check_human_browser.cjs')(page,root,fixture);
+ await page.reload();await page.locator('button').filter({hasText:/^Apply (plan|slot)$/}).waitFor();
+ await page.getByLabel('Import club fixture',{exact:true}).setInputFiles({name:'human-fixture.json',mimeType:'application/json',buffer:Buffer.from(fixture)});
+ await page.getByRole('button',{name:'Apply slot',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Apply plan',exact:true}).count(),0);
+ await page.getByLabel('Choose a research slot').selectOption('1');await page.getByRole('button',{name:'Apply slot',exact:true}).click();
+ await page.getByRole('status').filter({hasText:'revision 1'}).waitFor();
+ assert.equal(await page.getByTestId('selected-slot').textContent(),'Research slot 2');
+ assert.match(await page.getByTestId('durability').textContent(),/Saved in this browser: revision 1/);
+ const state=await page.evaluate(()=>window.managementRequest({action:'state'}));
+ const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export state'}).click();
+ const file=path.join(out,JSON.parse(fixture).origin+'-slice-v3.json');await(await downloadEvent).saveAs(file);
+ await page.getByLabel('Choose a research slot').selectOption('0');await page.getByRole('button',{name:'Apply slot',exact:true}).click();
+ await page.getByRole('status').filter({hasText:'revision 2'}).waitFor();
+ await page.getByLabel('Import state',{exact:true}).setInputFiles(file);await page.getByRole('status').filter({hasText:'revision 1'}).waitFor();
+ await page.reload();await page.getByRole('button',{name:'Apply slot',exact:true}).waitFor();
+ const restored=await page.evaluate(()=>window.managementRequest({action:'state'}));assert.equal(digest(restored),digest(state),'human UI persisted full state/effects/records');
+ await page.getByLabel('Import state',{exact:true}).setInputFiles({name:'bad-save.json',mimeType:'application/json',buffer:Buffer.from('invalid')});
+ await page.getByRole('status').filter({hasText:'Rejected:'}).waitFor();assert.equal(await page.getByTestId('selected-slot').textContent(),'Research slot 2');
+ const tampered=JSON.parse(fixture);tampered.registry_row_sha256='0'.repeat(64);
+ await page.getByLabel('Import club fixture',{exact:true}).setInputFiles({name:'unqualified.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(tampered))});
+ await page.getByRole('status').filter({hasText:'Rejected:'}).waitFor();
+ const preserved=await page.evaluate(()=>window.managementRequest({action:'state'}));assert.equal(digest(preserved),digest(state),'unqualified human fixture atomicity');
+ await page.getByRole('button',{name:'New fictional session'}).click();await page.getByRole('button',{name:'Apply plan',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Apply slot',exact:true}).count(),0);
+ receipt.ui_controls=['capability-gated slot controls','Rust slot transition','v3 export/import and browser reload','invalid save and unqualified fixture atomicity','reset removes human capability'];
+ return receipt;
+};

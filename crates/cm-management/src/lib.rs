@@ -2,7 +2,9 @@
 //! No original UI, formation contents or saved-game compatibility is claimed.
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+pub mod human;
 pub mod reference;
+use human::{HumanCommand, HumanRegistryFixture, HumanWorld};
 use reference::{ReferenceFixture, resolve_plan};
 
 const PROFILE: &str = "synthetic-null-owner-plan-selection-v1";
@@ -345,11 +347,14 @@ pub enum Operation {
     Save {},
     Load { save: String },
     ImportReference { fixture: String },
+    ImportHumanReference { fixture: String },
+    HumanCommand { command: HumanCommand },
 }
 
 #[derive(Default)]
 pub struct Engine {
     world: World,
+    human: Option<HumanWorld>,
 }
 impl Engine {
     pub fn request(&mut self, bytes: &[u8]) -> serde_json::Value {
@@ -361,25 +366,68 @@ impl Engine {
         let result = result.and_then(|op| match op {
             Operation::Reset {} => {
                 self.world = World::default();
+                self.human = None;
                 Ok(serde_json::Value::Null)
             }
             Operation::State {} => Ok(serde_json::Value::Null),
-            Operation::Command { command } => self
-                .world
+            Operation::Command { command } => {
+                if self.human.is_some() {
+                    Err("unsupported-command".into())
+                } else {
+                    self.world
+                        .apply(command)
+                        .map(|e| serde_json::to_value(e).expect("event"))
+                }
+            }
+            Operation::HumanCommand { command } => self
+                .human
+                .as_mut()
+                .ok_or_else(|| "unsupported-command".to_string())?
                 .apply(command)
                 .map(|e| serde_json::to_value(e).expect("event")),
-            Operation::Save {} => self.world.save().map(serde_json::Value::String),
-            Operation::Load { save } => World::load(&save).map(|world| {
-                self.world = world;
-                serde_json::Value::Null
-            }),
+            Operation::Save {} => self
+                .human
+                .as_ref()
+                .map_or_else(|| self.world.save(), HumanWorld::save)
+                .map(serde_json::Value::String),
+            Operation::Load { save } => {
+                let envelope: Save =
+                    serde_json::from_str(&save).map_err(|_| "invalid-save-envelope".to_string())?;
+                if envelope.schema_version == 3 {
+                    HumanWorld::load(&save).map(|world| {
+                        self.human = Some(world);
+                        serde_json::Value::Null
+                    })
+                } else {
+                    World::load(&save).map(|world| {
+                        self.world = world;
+                        self.human = None;
+                        serde_json::Value::Null
+                    })
+                }
+            }
             Operation::ImportReference { fixture } => ReferenceFixture::parse(&fixture)
                 .and_then(World::from_reference)
                 .map(|world| {
                     self.world = world;
+                    self.human = None;
+                    serde_json::Value::Null
+                }),
+            Operation::ImportHumanReference { fixture } => HumanRegistryFixture::parse(&fixture)
+                .and_then(HumanWorld::from_fixture)
+                .map(|world| {
+                    self.human = Some(world);
                     serde_json::Value::Null
                 }),
         });
+        if let Some(world) = &self.human {
+            return match result {
+                Ok(value) => serde_json::json!({"ok":true,"result":value,"state":world,
+                    "plan_locations":[],"human_slot_location":world.location()}),
+                Err(error) => serde_json::json!({"ok":false,"error":error,"state":world,
+                    "plan_locations":[],"human_slot_location":world.location()}),
+            };
+        }
         match result {
             Ok(value) => {
                 serde_json::json!({"ok":true,"result":value,"state":self.world,"plan_locations":self.world.locations()})
