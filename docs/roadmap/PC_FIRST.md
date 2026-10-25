@@ -61,3 +61,15 @@ Windows hosts the separately reviewed operator-launched reference route; WSL hos
 No VPS upgrade/purchase, 24/7 campaign, distributed workers, dashboard project, PostgreSQL deployment or Jev pipeline is scheduled. Reconsider infrastructure only when a demonstrated feature or experiment needs it. After two focused setup sessions without useful execution, record the blocker and reassess a simpler route before adding infrastructure.
 
 Measure accepted behaviour contracts, reproducible cases, unresolved divergences and working workflows. Record engineering/model spend when available. Do not use PR counts, named-function percentages or synthetic UI breadth as game completion. Estimate subsequent work after several measured slices; no whole-game completion date is committed.
+
+## Active ownership and dependencies — 25 October 2026
+
+Base: main `084c8ab`; refreshed with origin before work. One coordinator and two workers maximum; one heavy build/replay slot, allocated initially to R2 toolchain setup. All active work is on WSL-native filesystems; historical Windows and Linux controls/private inputs stay preserved.
+
+| Owner | Branch / checkout | Owned changes | Dependencies and review |
+|---|---|---|---|
+| Coordinator | codex/pc-integration / WSL cm0102-pc | R3 evidence/acceptance; shared Cargo workspace and lockfile, integration, status | Receives workers' exact revision/evidence; independent reviewer required for coordinator implementation |
+| Worker A — GPT-6.1 Sol, medium | codex/pc-r1-rng / WSL cm0102-pc-r1 | portable RNG crate, corpus/provenance, native/WASM execution harness, checkpoint | R2 installs pinned toolchain; coordinator owns workspace edits; coordinator reviews fidelity and exact revision |
+| Worker B — GPT-6.1 Sol, medium | codex/pc-r2-recovery / WSL cm0102-pc-r2 | toolchain recovery, bounded adapter/supervisor defects and tests, fresh replay receipt | No live original execution; coordinate heavy slot with A; independent exact-revision review |
+
+Routing follows AGENTS.md with bounded implementation workers; stronger review is reserved for subtle numeric/integration findings. Worker prompts use compact explicit inputs rather than full conversation duplication. Model/token usage is recorded only when exposed; coordinator model identity and exact billing totals are not exposed by this interface. Reporting goes to the coordinator and the existing progress document after verification, not a parallel roadmap.
