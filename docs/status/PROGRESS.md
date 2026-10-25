@@ -76,7 +76,8 @@ write; the distinct slot stride is 7,885. Original instructions pass 21 calls/
 stubbed callees. The retained outer getter's fallback and fresh registry branch
 remain distinct. Coordinator independently reproduced both receipts byte for
 byte. Full constructors/appointments, original UI and match effects stay outside
-scope. The fresh projected fingerprint is explicitly unadmitted.
+scope. The fresh projected fingerprint was unadmitted in that delivery;
+the separate follow-up below records its subsequent admission review.
 
 Integrated validation passes 70 Rust tests, five oracle controls, formatting,
 workspace Clippy/build, WASM and strict TypeScript checks. All 159 native/actual-
@@ -134,7 +135,14 @@ state/save results remain exact. Existing quota/denial injection limits remain.
 All 71 Rust tests pass serially, plus formatting, workspace Clippy, native/WASM
 builds and strict TypeScript/build. An initial parallel run failed three unchanged
 supervisor timing assertions; no thresholds, runtime source or frozen CI changed.
-Final independent exact-head review, CI and merge disposition are in the delivery PR.
+Delivery merged in [PR #38](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/38),
+merge `d1df089e6521113afda787be2d20340c17ea99de`. Independent Astra/high review
+approved exact head `21eed5453282e0904902c626d2a3386450f9fcc1` with no findings,
+independently repeated all 16 management tests and verified receipts/legacy hashes.
+All four frozen checks passed, including the unchanged default parallel Rust CI
+run. The initial local parallel timing failures remain retained; no threshold or
+CI policy changed. The additional exact fixture is admitted with no open delivery
+dependency; fidelity exclusions below remain unchanged.
 Evidence: [scope and browser/recovery receipts](../research/PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission).
 
 ## Remaining engineering

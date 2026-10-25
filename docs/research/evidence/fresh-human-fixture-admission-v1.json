@@ -85,7 +85,25 @@
       "actual Chromium 148",
       "actual IndexedDB recovery/abort/corruption/same-profile races"
     ],
-    "exact_final_head_review_and_frozen_ci": "required in delivery PR before merge"
+    "exact_final_head_review_and_frozen_ci": "passed; see delivery record"
+  },
+  "delivery": {
+    "pull_request": "https://github.com/derekrivers/CM0102_Simulation_Lab/pull/38",
+    "reviewed_head": "21eed5453282e0904902c626d2a3386450f9fcc1",
+    "merge_commit": "d1df089e6521113afda787be2d20340c17ea99de",
+    "independent_review": "approved; no actionable findings; 16 management tests independently passed",
+    "private_final_review_audit": {
+      "bytes": 2312,
+      "sha256": "5851b0b0a71a53efc843c46cdb95185bb76f3b4d1107f49088954f54d33188e5"
+    },
+    "frozen_checks": {
+      "runtime-binding": "passed",
+      "build": "passed, including default parallel Rust tests",
+      "controller-policy-windows": "passed",
+      "immutable-runtime-bootstrap": "passed"
+    },
+    "rust_toolchain": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "node_version": "22.22.2"
   },
   "independent_review_artifacts": {
     "private_audit": {
