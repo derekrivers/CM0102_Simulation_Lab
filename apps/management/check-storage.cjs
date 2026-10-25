@@ -23,6 +23,8 @@ async function editHead(page,change){return page.evaluate(async change=>{
  await new Promise((resolve,reject)=>{const tx=db.transaction('checkpoints','readwrite'),store=tx.objectStore('checkpoints'),read=store.get('active');
   read.onsuccess=()=>{const head=read.result;if(change==='corrupt')head.current.save='corrupt';
    if(change==='identity')head.current.identity.revision+=1;
+   if(change==='malformed-head')head.version=0;
+   if(change==='both-invalid'){head.current.save='corrupt-current';head.previous.save='corrupt-previous';}
    if(change==='unsupported'){head.current.save='{}';head.current.save_sha256='44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a';}
    store.put(head,'active');};tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);
  });db.close();
@@ -73,6 +75,8 @@ async function head(page){return page.evaluate(async()=>{
   const freshControls=process.env.FRESH_HUMAN_REFERENCE_FIXTURE&&process.env.HUMAN_REFERENCE_FIXTURE?await require('./check-fresh-storage.cjs')({page,context,url,request,ready,head,editHead,command,native,equal,setInjection:value=>{injection=value;}}):null;
 
   const registryControls=await require('./check-registry-storage.cjs')({page,context,url,request,ready,head,editHead,native,equal,setInjection:value=>{injection=value;},fixtures:registryFixtures});
+
+  const invalidHeadControls=await require('./check-invalid-storage.cjs')({page,context,url,request,ready,head,editHead,command,native,equal,fixture:registryFixtures.at(-1)});
 
   for(const change of ['corrupt','unsupported','identity']){
    const reset=await request(page,{action:'reset'}),a=command(reset.state,'fallback-a-'+change,1),one=await request(page,a);
@@ -153,6 +157,7 @@ async function head(page){return page.evaluate(async()=>{
   const receipt={schema_version:1,browser_version:context.browser().version(),profiles:results,controls,limitations:['SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage','Chromium CDP quota override reported quota=1 but admitted tested IndexedDB writes; actual disk exhaustion was not qualified','origin-local browser transaction guarantees; no physical-media/power-loss claim','raw private saves and profile remain only in ignored local test output'],wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm'))};
   receipt.fresh_admission=freshControls;
   receipt.registry_producer=registryControls;
+  receipt.invalid_heads=invalidHeadControls;
   fs.writeFileSync(path.join(out,'storage-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
  }finally{await context.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});

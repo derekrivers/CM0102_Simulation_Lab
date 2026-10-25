@@ -2,7 +2,8 @@
 
 The host stores the exact Rust slice-save string. Rust continues to own admission,
 rules, serialization, replay validation, events and command deduplication. This
-increment changes neither profile nor v1/v2 slice-save formats. IndexedDB is
+initial increment changed neither profile nor v1/v2 slice-save formats. Later
+v3/v4 profiles use the same host contract, as recorded below. IndexedDB is
 origin-local; clearing browser data removes it. Private fixtures stay in that
 browser and outside public build output. Manual export/import remains available.
 
@@ -78,3 +79,31 @@ adds another exact fixture to the same v3 profile. Its six-fixture actual-browse
 recovery receipt preserves the previous five results and adds fresh corruption/
 abort recovery and retained/fresh import races with identical profile/session
 names. Storage schemas, worker logic and save formats are unchanged.
+
+The [v4 producer recovery receipt](evidence/human-registry-producer-storage-v1.json)
+extends actual persistent browser close/reopen and native continuation to nine
+fixtures. All six prior stored results remain unchanged. Mixed producer/selector
+deduplication, corrupt-current fallback, visible accepted-but-unsaved state after
+an actual transaction abort, and retained/fresh same-profile writer fencing pass.
+The [matching browser receipt](evidence/human-registry-producer-browser-v1.json)
+contains 375 exact native/Chromium operations, retaining the earlier 204 hashes.
+This supplements the historical three- and six-fixture results above; storage
+schema and recovery rules remain unchanged.
+
+## Additional negative recovery acceptance
+
+Malformed head metadata fails before any checkpoint is admitted. With valid
+head metadata but two invalid checkpoints, recovery records the observed token
+but admits neither save. Both failures retain the complete stored head and leave
+the active Rust world unchanged; a new worker therefore keeps its default world.
+Accepted in-memory commands remain usable and exportable, while publication
+retries fail visibly until recovery/storage conditions permit publication. A
+newer token cannot be adopted through a publication retry; explicit recovery is
+required to rebind to another tab's publication.
+
+`check-invalid-storage.cjs` freezes direct regressions for those existing rules:
+actual persistent IndexedDB malformed heads and two invalid checkpoints, visible
+failure, full private-byte retention, existing and startup memory, accepted
+commands and publication retries, concurrent writer fencing and explicit recovery.
+These cases change no host recovery semantics. Execution evidence will be linked
+after the additive acceptance run.
