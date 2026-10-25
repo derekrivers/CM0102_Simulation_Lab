@@ -15,7 +15,7 @@
   "captured_ranges_noninterference": false,
   "successful_baseline_disabled_saves_equal_r5": true,
   "disabled_complete_capture_equal_r5": true,
-  "observer_aggregate_counters": "unknown; destructor not reached",
+  "observer_aggregate_counters": "unknown; no completed destructor aggregate flush/footer",
   "forbidden_syscall_identity": "unknown; SIGSYS alone does not identify syscall",
   "failure": "single-task observer policy terminated both observed arms with SIGSYS; no completion footer, endpoint save or sparse capture",
   "identities_stable": true,
