@@ -60,7 +60,7 @@ module.exports=async function checkRegistry(page,root,out,fixtureText){
  const v2=native([{action:'import_reference',fixture:ordinary},{action:'save'}]).at(-1).result;
  const v3=native([{action:'import_human_reference',fixture:JSON.stringify(human)},{action:'save'}]).at(-1).result;
  const oldExports=[];
- for(const oldSave of [legacy,v2,v3]){operations.push({action:'load',save:oldSave},{action:'save'});oldExports.push([operations.length-1,oldSave]);}
+ for(const oldSave of [legacy,v2,v3]){operations.push({action:'load',save:oldSave},command(state,'older-profile-producer',0,'RegistryOptionTwoSet',1),{action:'save'});oldExports.push([operations.length-1,oldSave]);}
  operations.push({action:'load',save:saved},{action:'save'});
  const roundtripIndex=operations.length-1;
  for(const mutate of [
