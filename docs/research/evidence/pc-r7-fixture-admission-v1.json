@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "decision": "Approve only exact schema-3 initialized projections for explicit effective lookup; final implementation review remains required",
+  "qualification_revision": "0e6e428",
+  "reviewer": "independent coordinator raw extraction; zero repository parser imports",
+  "real_projections": {
+    "retained": {
+      "sha256": "25464b62ef384947465583f38824091d0aeb1a76a901b3e6f9a74f4e08e80aa9",
+      "canonical_bytes": 911
+    },
+    "fresh": {
+      "sha256": "e7304d465638b1cfccb0ac337f38fd72f364a47632b494a96f4ba6771de4391f",
+      "canonical_bytes": 911
+    }
+  },
+  "synthetic_projection": {
+    "sha256": "950b8ed556adc847a9f81d302278e624286b98f5fde03a9f29204be08ca11584",
+    "canonical_bytes": 898,
+    "classification": "separately synthetic regression; unchanged admitted inner registry and dummy bank/mapping hashes; no original capture claim"
+  },
+  "independent_projection_script_sha256": "f346cfc9905891a2a2100e837634ac5ec38fbf76633881ec2954dd95e3021692",
+  "private_admission_audit_sha256": "40a8640458c1ab22d1602dc111b7e04618f742792349b79d4b59b350bf75ae1e",
+  "source_review": "R8 independent pre-execution approval exact 0e6e428 after controls/failure diagnostics corrections",
+  "limits": [
+    "Only unchanged initialized reciprocal human binding",
+    "Actual ordinary fallback first bank slot zero only",
+    "No original-process/UI/lifecycle/match or saved-game compatibility claim"
+  ]
+}

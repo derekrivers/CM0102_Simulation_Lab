@@ -1,6 +1,6 @@
 # Connected effective-plan lookup: frozen R7 qualification
 
-Status: proposed for independent review before execution. Existing v1–v4
+Status: original qualification and exact projection admission passed; production integration under review. Existing v1–v4
 contracts and evidence are immutable. New production work requires this original
 qualification and independent admission of each exact new projection.
 
@@ -104,3 +104,33 @@ compatibility, mixed retries, replay rejection, deterministic save continuation
 and actual durable browser recovery remain implementation acceptance, not claims
 of this qualifier. Full lifecycle, arbitrary managers/mappings/banks, other
 slots/options, original UI/process/save and match effects remain unsupported.
+
+## Original execution and independent admission
+
+Independent R8 reviewer approved exact source `0e6e428` before execution after
+requesting exercised defect candidates and complete sanitized failure context.
+Two first-attempt campaigns completed, each 33 successful original calls. The
+[retained receipt](evidence/pc-r7-retained-effective-plan-v1.json) and
+[fresh receipt](evidence/pc-r7-fresh-effective-plan-v1.json) bind source/dependency
+hashes, complete input identities, exact starts/ordered effects, ABI, complete
+state/image and mixed deterministic continuation. Unsupported probes remain
+explicitly not comparable, including retained unsupported slot returning through
+fallback without a selector. Fresh-only or retained-only controls are null where
+that real capture cannot discriminate the opposite branch. No attempt failed.
+
+Retained receipt SHA256 is `15d7bcd7c0393ef159b9fd62878bee139edaf835958c03fd1d249843c2862e74`;
+fresh is `36274441659bf1529466d1eaf35e3a51063ef5387c90d71d16bd63a718064618`.
+Fresh command tool wall time was 1.698 seconds. The retained command exceeded
+the first 10-second tool yield; precise total host duration was not recorded.
+This timing omission does not change per-call emulator bounds or correctness
+comparisons and is not represented as a measured total.
+
+The [independent admission](evidence/pc-r7-fixture-admission-v1.json) records the
+coordinator's standalone raw extraction, with zero repository parser imports:
+exact reciprocal binding, previous schema-2 admission, full mapping row and both
+banks, canonical 911-byte real wrappers. Only those two fingerprints and the
+independently checked 898-byte synthetic wrapper are admitted. Public files
+contain structural counts/hashes only; raw projections and source records remain
+private. Profile is `<origin>-effective-plan-v1`; session is
+`<origin>-effective-session-v1`. Query response `effective_plan_result` is the
+last historical `EffectivePlanLookedUp` event or null, never an implicit lookup.
