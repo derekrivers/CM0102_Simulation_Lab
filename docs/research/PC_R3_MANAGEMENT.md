@@ -1,6 +1,6 @@
 # PC-R3: bounded club tactical-plan selection
 
-Status: command selected; original-instruction qualification precedes implementation.
+Status: bounded command implemented and verified; exact-head delivery tracked in [PR #32](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/32).
 
 ## Evidence and choice
 
@@ -82,3 +82,29 @@ path has no RNG. Full owner registry/classification, original UI bindings,
 actual tactical-plan contents, original squad capture, match application,
 diagnostics, allocation and original saves remain unresolved. No live
 Windows observation is required or authorized for this bounded experiment.
+
+## Verified results
+
+The [original instruction oracle](evidence/plan-selection-oracle-v1.json) ran 24
+cases across 96 instruction starts without replaced callees. Every call made
+one ordered two-byte mapping write and preserved context/club/mapping sentinel
+bytes, with the expected return/stack behavior. Each of four deliberately wrong
+write models is detected in all 24 cases. The claim is the bounded mapping
+transition, not complete hidden-state/register equivalence.
+
+The [browser receipt](evidence/pc-r3-browser-2026-10-25.json) records 37 operations
+executed both natively and in a real Chromium 148 WASM worker. Canonical full
+state/events/rejections/save outputs match SHA-256
+`4f5280e535551f4bc16a05d8b08544c46cb4075d59caf31343397df7754fe873`.
+Actual React Apply, Export, Import and corrupt-import rejection passed. Saved
+state preserves deduplication and deterministic continuation. The browser uses
+Node 22.22.2 for its test host; two missing Chromium runtime libraries
+(libnspr4/libnss3) were installed without changing game or Rust pins.
+
+Independent GPT-6 Astra/high review found and verified fixes for initial WASM
+buffer allocation detaching a host view, and a public Rust world-construction
+bypass. World fields are private, public deserialization is unavailable, and
+loading has a private decode type plus full replay validation. The direct
+mutation compile-fail check, all Rust behavioral tests, strict TypeScript
+checking and builds pass. R1/R2 remain separate crates/host modules; no second
+production rules implementation was introduced.

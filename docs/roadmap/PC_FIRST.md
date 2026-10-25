@@ -9,9 +9,9 @@ Build one original-instruction-backed Rust RNG slice, execute the same corpus na
 | Package | Status | Demonstrable target | Dependency |
 |---|---|---|---|
 | PC-R0: evidence recovery | Complete for the selected RNG input | Retained research checks pass; fresh official-instruction oracle and synthetic table match retained hashes | Receipt in the Reversal evidence record |
-| PC-R1: portable RNG | Next implementation | 1,024 CRT steps and 2,570 bounded calls match every exposed result/state field; actual native/WASM equality and checkpoint continuation | PC-R0 and a working pinned toolchain |
-| PC-R2: reference and lab recovery | Scoped follow-up; docs reconciliation included in this reset | Fresh bounded Bosman replay; reconciled evidence ledger; qualified Windows observations when needed | Each claim's own source, specimen and execution prerequisites |
-| PC-R3: player-visible stateful workflow | Planned | One evidenced management command, invalid-action rejection, native/browser equality, save/reload continuation | Relevant PC-R1/PC-R2 evidence and an accepted command contract |
+| PC-R1: portable RNG | Verified scoped implementation | 1,024 CRT steps and 2,570 bounded calls match every exposed result/state field; actual native/WASM equality and checkpoint continuation | PC-R0 and a working pinned toolchain |
+| PC-R2: reference and lab recovery | Targeted recovery verified; wider reference gates open | Fresh bounded Bosman replay; reconciled evidence ledger; qualified Windows observations when needed | Each claim's own source, specimen and execution prerequisites |
+| PC-R3: player-visible stateful workflow | Bounded tactical-plan workflow verified | One evidenced management command, invalid-action rejection, native/browser equality, save/reload continuation | Relevant PC-R1/PC-R2 evidence and an accepted command contract |
 
 PC-R1 may proceed before full P02 calibration and the Windows helper campaign. This is a scoped numeric implementation, not formal P02/P04 closure. Original-process and broader journey claims still require their corresponding gates. B0/B1 remain historical checkpoint names; B2 calibration and B3 reconstruction continue through these packages. B4/B5 continuous operations stay deferred.
 
@@ -23,24 +23,24 @@ Implement one small portable compatibility crate or module. Inject the 51,000-wo
 
 Admitted corpus: sampled signed bounds within -65,535 through 65,535, CRT wrapping arithmetic, zero-bound no-consumption, cursor increment/wrap and CRT offset update. Freeze supported cursor, offset and table-value domains before coding. Invalid states and unsupported inputs must fail without partial mutation. A sampled corpus is not exhaustive proof of the domain.
 
-- [ ] Review the routine contract against the pinned original instructions and oracle; preserve attribution and artifact identities.
-- [ ] Match all 1,024 CRT steps and 2,570 bounded calls, including exposed state fields and sequential stream checkpoints.
-- [ ] Demonstrate that negative controls detect wrong wrap, extra CRT consumption, zero-bound mutation and wrong arithmetic; reject unsupported bounds, state and table inputs.
-- [ ] Execute the same Rust corpus natively and through WASM, comparing canonical output/state hashes. Building WASM alone does not pass.
-- [ ] Export/reload a versioned Rust RNG checkpoint including table identity, and demonstrate identical continuation. This is not original saved-game compatibility.
-- [ ] Pass formatting, lint, relevant build/behaviour checks and independent review of the exact revision. Retain commands, tools, hashes, scope and review outcome.
+- [x] Review the routine contract against the pinned original instructions and oracle; preserve attribution and artifact identities.
+- [x] Match all 1,024 CRT steps and 2,570 bounded calls, including exposed state fields and sequential stream checkpoints.
+- [x] Demonstrate that negative controls detect wrong wrap, extra CRT consumption, zero-bound mutation and wrong arithmetic; reject unsupported bounds, state and table inputs.
+- [x] Execute the same Rust corpus natively and through WASM, comparing canonical output/state hashes. Building WASM alone does not pass.
+- [x] Export/reload a versioned Rust RNG checkpoint including table identity, and demonstrate identical continuation. This is not original saved-game compatibility.
+- [x] Pass formatting, lint, relevant build/behaviour checks and independent review of the exact revision. Retain commands, tools, hashes, scope and review outcome.
 
 Excluded: large-bound x87 branch, OS-time seeding, full initialization, actual-game table qualification, original-save restoration, additional random sources, original-process equivalence and match outcomes. Preserve source/oracle contradictions as failures; do not adjust expected values to suit the port.
 
 ## PC-R2 acceptance and outstanding engineering
 
-- [ ] Establish a WSL-native development checkout and pinned toolchain, preserving historical controls and private evidence. Rust/cargo were not found on the checked Windows/default WSL paths during recovery; setup remains to be done.
-- [ ] Reproduce the accepted fixed-clock, seed-1, 14-day Bosman replay with fresh artifact identities before using that deployment for new claims. Rehashing old artifacts is not a new replay.
-- [ ] Reconcile research by executable hash, RVA and scoped behaviour. Do not add Reversal's 9,241 inferred functions to the map's 11,747 starts as a coverage total.
+- [x] Establish a WSL-native development checkout and pinned toolchain, preserving historical controls and private evidence. Exact Rust 1.99.1, rustfmt, clippy and the WASM target are installed; active work uses separate WSL-native checkouts.
+- [x] Reproduce the accepted fixed-clock, seed-1, 14-day Bosman replay with fresh artifact identities before using that deployment for new claims. Rehashing old artifacts is not a new replay.
+- [x] Reconcile research by executable hash, RVA and scoped behaviour. Do not add Reversal's 9,241 inferred functions to the map's 11,747 starts as a coverage total.
 - [ ] Recover/hash private capture inputs when an experiment needs them; public metadata alone does not reproduce Reversal's live GDI result.
 - [ ] Qualify required official Windows observations under the [PC medium-helper contract](../architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md). Keep synthetic fixture, original launch, clean-data consumption, A/A and Bosman comparison as distinct gates.
 
-Before broadening adapter execution or starting unattended campaigns, address two identified code gaps with bounded tests: `bosman_adapter.rs` buffers nested output with `wait_with_output()` before applying its limit; early failure paths in `process_contract.rs` can return before a final request/log/replay record is published. These are open work, not fixed by documentation cleanup.
+The two identified defects are fixed and tested: nested output is streamed through independent caps/deadline, and admitted failures publish bounded streams/request plus a failed manifest when storage permits. Pre-admission rejects create no attempt; publication failure can leave an incomplete attempt. See [PC-R2 evidence](../research/PC_R2_RECOVERY.md). Cgroups, leases and unattended campaigns remain outside this increment.
 
 The dormant launcher retirement is a separate maintenance task: identify its frozen source/config/contract and workflow dependencies, propose replacement verification, and use the repository's authorized review/protection process. Do not weaken or bypass the base-branch workflow guard to delete it. This task does not block PC-R1 under existing checks; changes to CI itself need that policy transition.
 
@@ -48,9 +48,9 @@ The dormant launcher retirement is a separate maintenance task: identify its fro
 
 Select one original-evidenced stateful squad command after examining dependencies (lineup assignment only if tractable). Freeze the supported state, effects and rejection cases before implementation. Reuse selected Reversal layouts only where useful.
 
-- [ ] Display a validated supported squad fixture and perform the command through Rust; an invalid action leaves state unchanged.
-- [ ] Match native/browser state and ordered events, then save/reload and prove deterministic continuation.
-- [ ] Keep unsupported commands unavailable and distinguish fictional demo data from captured reference data.
+- [x] Display a validated supported squad fixture and perform the command through Rust; an invalid action leaves state unchanged.
+- [x] Match native/browser state and ordered events, then save/reload and prove deterministic continuation.
+- [x] Keep unsupported commands unavailable and distinguish fictional demo data from captured reference data.
 
 A read-only profile, static match phases or a navigation mock-up does not complete this target. If the chosen action is too coupled, record the evidence and select another bounded stateful action.
 
@@ -73,3 +73,7 @@ Base: main `084c8ab`; refreshed with origin before work. One coordinator and two
 | Worker B — GPT-6.1 Sol, medium | codex/pc-r2-recovery / WSL cm0102-pc-r2 | toolchain recovery, bounded adapter/supervisor defects and tests, fresh replay receipt | No live original execution; coordinate heavy slot with A; independent exact-revision review |
 
 Routing follows AGENTS.md with bounded implementation workers; stronger review is reserved for subtle numeric/integration findings. Worker prompts use compact explicit inputs rather than full conversation duplication. Model/token usage is recorded only when exposed; coordinator model identity and exact billing totals are not exposed by this interface. Reporting goes to the coordinator and the existing progress document after verification, not a parallel roadmap.
+
+## Accepted increment evidence
+
+[R1](../research/PC_R1_RNG.md), [R2](../research/PC_R2_RECOVERY.md), and [R3](../research/PC_R3_MANAGEMENT.md) retain scoped contracts and receipts. Delivery [PR #32](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/32) records exact-head review, CI and merge disposition. R3 selects a tactical-plan index on a preinitialized null-owner fixture, not an original UI binding or match-plan contents. Conditional private-capture/Windows gates above were not needed and remain unqualified. Independent review used GPT-6 Astra/high; both implementation workers used GPT-6.1 Sol/medium. No exact token/billing totals are exposed.

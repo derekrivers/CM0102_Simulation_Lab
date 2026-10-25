@@ -7,8 +7,7 @@ original-save compatibility and additional RNG sources remain excluded.
 
 ## Original contract and frozen domain
 
-Before implementation, the worker hash-verified the private executable at
-`/home/derek/cm-proof/game/cm0102.exe` as
+Before implementation, the worker hash-verified the private official executable as
 `0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86`
 and inspected it with GNU objdump (`-D -Mintel`, ranges VA 0090cfc0..0090d040
 and 00946a04..00946a22). No executable bytes are retained here.

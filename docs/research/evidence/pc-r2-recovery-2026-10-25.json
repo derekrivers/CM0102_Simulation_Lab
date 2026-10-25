@@ -133,7 +133,7 @@
       "timeout_ms": 600000
     }
   },
-  "review_status": "pending independent exact-revision review",
+  "review_status": "independently reviewed in integrated code revision 80a2cb6ca6afaa8db6221b441b9fb7cdcedbf20f; no remaining correctness findings",
   "schema_version": 1,
   "scope": "PC-R2 bounded lab recovery; no original-process or comparison qualification",
   "validation": {
@@ -162,6 +162,6 @@
       "main": 14,
       "process_integration": 15
     },
-    "total_passed": 51
+    "total_passed": 53
   }
 }

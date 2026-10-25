@@ -1,15 +1,15 @@
 # Roadmap
 
-Updated 25 October 2026. **The next implementation target is a verified Rust RNG slice on the PC.** The full objective remains a faithful, playable and extensible reconstruction of the entire game.
+Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workflow now pass their scoped acceptance checks.** The full objective remains a faithful, playable and extensible reconstruction of the entire game.
 
 ## Current delivery sequence
 
 | Target | Status | Acceptance |
 |---|---|---|
 | PC-R0: recover research evidence | Complete for the selected input | Reversal checks passed; fresh official-instruction RNG outputs match retained hashes |
-| PC-R1: CRT and small-bound RNG | Next | 1,024 CRT steps + 2,570 bounded calls; all exposed state matches; native and actual WASM execution; checkpoint continuation |
-| PC-R2: lab/reference recovery | Open, selected work alongside PC-R1 | Working WSL toolchain, fresh bounded Bosman replay, scoped evidence ledger and necessary Windows qualification |
-| PC-R3: stateful management workflow | Planned | An evidenced Rust command with rejection cases, browser interaction, native/browser equality and save/reload |
+| PC-R1: CRT and small-bound RNG | Verified | 1,024 CRT steps + 2,570 bounded calls; all exposed state matches; native and actual WASM execution; checkpoint continuation |
+| PC-R2: lab/reference recovery | Targeted recovery verified; wider qualification open | Working WSL toolchain, fresh bounded Bosman replay, scoped evidence ledger and necessary Windows qualification |
+| PC-R3: stateful management workflow | Bounded tactical-plan selection verified | An evidenced Rust command with rejection cases, browser interaction, native/browser equality and save/reload |
 
 The [active PC delivery contract](docs/roadmap/PC_FIRST.md) contains the task checklists, dependencies, exclusions and stop conditions. [Progress](docs/status/PROGRESS.md) records results. [Reversal integration](docs/research/REVERSAL.md) pins the reusable research and distinguishes official instruction emulation from a different GDI specimen's live evidence.
 
