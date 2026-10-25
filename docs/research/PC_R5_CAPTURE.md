@@ -107,6 +107,10 @@ plus official-image invariants. Its separate receipt SHA-256 is
 This links the fresh input to scoped original instructions; it does not
 establish original-process parity or admit a production fixture fingerprint.
 
+The separate subsequent [fresh-fixture admission review](PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission)
+admits only the exact projected fingerprint for the existing direct command.
+That decision does not alter this capture receipt or its consumption/noninterference scope.
+
 The enabled/disabled save equality supports noninterference at this bounded
 14-day save endpoint. It does not prove equality of every live byte or prove
 which clean data files were opened. The explicit consumption gap remains

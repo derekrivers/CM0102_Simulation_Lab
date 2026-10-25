@@ -151,9 +151,9 @@ The fresh oracle receipt SHA-256 is
 `39915e94bf65ca7c6586153dffa63b03160dc483119a58e8dc9e82fbc92fd911`.
 Its projected fixture fingerprint
 `15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2`
-is **not admitted** to Rust. Production remains bound to the separately reviewed
-retained private fixture; neither a capture nor an oracle grants itself new
-production authority. The updated shared oracle reproduced the retained receipt
+was **not admitted by that oracle or PR #35**. The separate admission review below
+now admits this exact projection alongside the retained private fixture; neither
+a capture nor an oracle grants itself new production authority. The updated shared oracle reproduced the retained receipt
 byte for byte. Five Python controls now include sparse completeness, identity
 and overlap checks. No R5 script import is required by the independent parser.
 
@@ -186,4 +186,49 @@ checks pass 70 tests (including two compile-fail boundaries), formatting, denied
 warning workspace Clippy, native and WASM builds; strict TypeScript/build checks
 pass. Models remain Astra/high research, Sol/medium capture and unchanged
 coordinator; independent core/evidence and UI reviews plus final CI/merge are
-recorded in the delivery PR. The fresh input fingerprint remains unadmitted.
+recorded in the delivery PR. Fresh input admission required the subsequent review below.
+
+## Independently reviewed fresh-fixture admission
+
+On 25 October 2026 an independent Astra/high reviewer who authored neither R4 nor
+R5 approved only fingerprint
+`15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2`.
+The [admission decision](evidence/fresh-human-fixture-admission-v1.json) binds the
+existing capture/build/oracle receipts to an independent raw projection: 481
+canonical bytes, mode 0600, retained outside Git. The reviewer checked 274 private
+artifacts, 264 sealed build objects, source/tool/header/native identities, all
+760 clean files, four chronological stable arm seals and exact saves/captures.
+Official disassembly and both original-instruction receipts were independently
+checked; fresh 21/290 and retained 21/345 reproductions were byte-identical.
+Private audit and standalone projection-script identities travel in the decision.
+
+This is one additional exact allowlist entry for the existing captured origin,
+direct-human-slot-v1 profile and v3 format. Retained fingerprint `986a2f…` remains
+admitted. No migration, session-name change, broader command, outer-getter model,
+registry lifecycle or new original-process/clean-consumption claim is introduced.
+The original fresh oracle's `not-admitted` field remains an immutable statement
+of its authority when generated, superseded only by this separate reviewed decision.
+
+[Browser acceptance](evidence/fresh-human-admission-browser-v1.json) passes 204
+exact native/Chromium operations: the prior 159 unchanged, 27 fresh oracle/UI
+operations and 18 fresh/retained admission/compatibility controls. The fresh corpus
+uses the fresh oracle explicitly. Wrong source/row/specimen/origin/initial-slot,
+hybrid identities and checksum-repaired embedded fixtures reject atomically.
+Retained and fresh v3 saves each round-trip byte for byte and continue correctly.
+
+[Recovery acceptance](evidence/fresh-human-admission-storage-v1.json) closes and
+reopens actual persistent Chromium for all six admitted fixtures. Exact saves,
+state/events/records/deduplication and native continuation match; all previous
+five storage results are unchanged. Fresh corruption fallback and actual aborted
+transaction preserve the prior checkpoint and visibly report accepted unsaved
+work. Delayed publication and stale tabs cannot replace a different imported
+fixture even when profile and Rust session names match. Existing storage denial,
+quota-error, interruption and recovery controls also pass with their established
+injection/physical-durability limits unchanged.
+
+Validation passes 71 Rust tests with serial test execution, formatting, denied-
+warning workspace Clippy, native/WASM builds and strict TypeScript/build checks.
+The initial parallel workspace run failed three unchanged five-second supervisor
+timing assertions; the complete serial rerun passed without source/deadline/CI
+changes. That failed run is retained in the admission decision. Final independent
+exact-head review, frozen CI and merge disposition are recorded in the delivery PR.

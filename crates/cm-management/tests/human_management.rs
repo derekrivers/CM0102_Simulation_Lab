@@ -187,3 +187,39 @@ fn command_capacity_stops_mutation_but_retains_retry() {
         before["state"]
     );
 }
+
+#[test]
+fn fresh_capture_identity_does_not_authorize_hybrid_fixture_or_resealed_save() {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../../docs/research/evidence/fresh-human-registry-oracle-v1.json"
+    ))
+    .unwrap();
+    // Keep all entity/count fields fictional; public capture hashes alone must
+    // not turn this structurally valid projection into an admitted real fixture.
+    let mut hybrid: Value = serde_json::from_str(FIXTURE).unwrap();
+    hybrid["origin"] = json!("captured-bosman-human-registry");
+    hybrid["source_capture_sha256"] = oracle["capture"]["source_capture_sha256"].clone();
+    hybrid["registry_row_sha256"] = oracle["state"]["registry_row_sha256"].clone();
+    let mut engine = Engine::default();
+    let initial = import(&mut engine);
+    let rejected = request(
+        &mut engine,
+        json!({"action":"import_human_reference","fixture":hybrid.to_string()}),
+    );
+    assert_eq!(rejected["error"], "unqualified-human-fixture");
+    assert_eq!(rejected["state"], initial["state"]);
+    let saved = request(&mut engine, json!({"action":"save"}));
+    let mut envelope: Value = serde_json::from_str(saved["result"].as_str().unwrap()).unwrap();
+    let mut payload: Value = serde_json::from_str(envelope["payload"].as_str().unwrap()).unwrap();
+    payload["fixture"] = hybrid;
+    let encoded = payload.to_string();
+    envelope["payload_bytes"] = json!(encoded.len());
+    envelope["payload_sha256"] = json!(format!("{:x}", Sha256::digest(encoded.as_bytes())));
+    envelope["payload"] = json!(encoded);
+    let rejected = request(
+        &mut engine,
+        json!({"action":"load","save":envelope.to_string()}),
+    );
+    assert_eq!(rejected["error"], "unqualified-human-fixture");
+    assert_eq!(rejected["state"], initial["state"]);
+}

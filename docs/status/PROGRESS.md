@@ -115,9 +115,31 @@ merged implementation. Actual data opens were not independently observed;
 consumption remains unknown and comparison remains not-run. Endpoint equality
 does not claim whole-runtime noninterference. No original Windows process ran.
 
+## Fresh human fixture admission follow-up
+
+Independent review from main `7665cec` approves the exact fresh 481-byte human
+projection `15697cf…` for the existing direct slot 0/1 command, captured origin
+and v3 format. The retained real fixture remains admitted and old saves remain
+unchanged. The reviewer authored neither R4 nor R5, reconstructed the projection
+without either existing parser, checked sealed source/build/tools/input/output
+identities and reproduced both original receipts byte for byte. The private audit
+and projection script are hashed in the [admission decision](../research/evidence/fresh-human-fixture-admission-v1.json).
+
+All 204 native/actual-Chromium operations match, including 27 fresh oracle/UI
+cases and 18 fresh/retained identity/save controls; the previous 159 hashes remain
+unchanged. Actual browser close/reopen recovers all six fixtures with exact save,
+events/deduplication and native continuation. Fresh corruption/transaction-abort
+and same-profile/session delayed/stale-write cases pass. The previous five stored
+state/save results remain exact. Existing quota/denial injection limits remain.
+All 71 Rust tests pass serially, plus formatting, workspace Clippy, native/WASM
+builds and strict TypeScript/build. An initial parallel run failed three unchanged
+supervisor timing assertions; no thresholds, runtime source or frozen CI changed.
+Final independent exact-head review, CI and merge disposition are in the delivery PR.
+Evidence: [scope and browser/recovery receipts](../research/PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission).
+
 ## Remaining engineering
 
-1. Direct human registry selection is qualified for the pinned initialized binding. General registry construction/load/reuse, appointments, remaining slots and original UI/match effects remain unsupported. A next bounded increment may qualify one additional state producer or explicitly review fresh-fixture admission.
+1. Direct human registry selection is qualified for the retained and freshly captured pinned initialized bindings. General registry construction/load/reuse, appointments, remaining slots and original UI/match effects remain unsupported. A next bounded increment may qualify one additional state producer.
 2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched.
 3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
 4. Browser checkpoint recovery is bounded and tested; cgroup/lease/resource fencing, durable orchestration, physical-storage exhaustion and unattended campaigns remain unqualified.

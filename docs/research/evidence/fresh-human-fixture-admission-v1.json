@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "decision_date": "2026-10-25",
+  "reviewed_base": "7665cec96c6390277a0e87e43b5978a880da92ec",
+  "decision": "approve exact additional private fixture for existing bounded command",
+  "independent_reviewer": "GPT-6 Astra/high; authored neither R4 nor R5",
+  "fixture": {
+    "sha256": "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2",
+    "canonical_bytes": 481,
+    "projection_method": "independent raw sparse-record extraction without importing either existing parser",
+    "private_file_mode": "0600",
+    "origin": "captured-bosman-human-registry",
+    "profile": "captured-bosman-human-registry-direct-human-slot-v1",
+    "save_schema_version": 3,
+    "previous_private_fixture_retained": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d"
+  },
+  "evidence": {
+    "official_specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+    "bosman_revision": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "sparse_capture_sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40",
+    "instrumented_binary_sha256": "2f471fb8c5b87f69cf51d5423e6ec4e92e95386ba33fda2b1827d01df7781451",
+    "build_receipt_sha256": "4c7b536403fb545303de05350bebb262126382cea65025b843da1c55a43c0bf5",
+    "clean_manifest_sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6",
+    "fresh_oracle_sha256": "39915e94bf65ca7c6586153dffa63b03160dc483119a58e8dc9e82fbc92fd911",
+    "retained_oracle_sha256": "39f483c2d181b76fc44b4319bc924878cce125838a0ddc013dffe0525a780438",
+    "private_artifact_identities_checked": 274,
+    "sealed_existing_objects_checked": 264,
+    "clean_manifest_files_checked": 760,
+    "stable_chronological_arm_seals": 4,
+    "fresh_original_calls": 21,
+    "fresh_original_instruction_starts": 290,
+    "retained_original_calls": 21,
+    "retained_original_instruction_starts": 345,
+    "oracle_reproductions_byte_identical": true,
+    "optimized_python_controls_passed": 5,
+    "defect_models_reviewed": 7
+  },
+  "supported_scope": [
+    "one immutable reciprocal real human-manager binding",
+    "direct selector and resolver, slots 0 and 1",
+    "one ordered registry +0x9a69 byte write; repeated selection still writes",
+    "logical registry slot stride 7885; no plan-byte reads",
+    "zero RNG consumption",
+    "unchanged existing profile, session naming and version-3 save format"
+  ],
+  "limitations": [
+    "actual clean-data file consumption remains unknown",
+    "sparse captured regions only; uncaptured runtime state not qualified",
+    "capture noninterference is limited to the declared 14-day save endpoint",
+    "outer getter guard difference does not extend this direct command contract",
+    "registry lifecycle, appointments, other slots, plan contents, original UI and match effects unsupported",
+    "no original-process parity or original-save compatibility"
+  ],
+  "implementation_acceptance": {
+    "browser_receipt": {
+      "file": "fresh-human-admission-browser-v1.json",
+      "bytes": 5842,
+      "sha256": "fc1a6c260e47f504940dec4fd7a1bc38fb895215c297280325fef422ab334a47"
+    },
+    "storage_receipt": {
+      "file": "fresh-human-admission-storage-v1.json",
+      "bytes": 4603,
+      "sha256": "21e23ffec1995dd6da0bb91a3f0342d42cf5c15cd9c4e785ced4909d8d459865"
+    },
+    "native_browser_operations": 204,
+    "all_previous_159_operations_unchanged": true,
+    "all_previous_five_storage_profiles_unchanged": true,
+    "admitted_storage_fixtures": 6,
+    "workspace_rust_tests_passed_serially": 71,
+    "initial_parallel_workspace_run": {
+      "status": "failed",
+      "unchanged_runtime_timing_assertions": [
+        "timeout_kills_a_descendant_that_escaped_the_process_group",
+        "timeout_kills_the_entire_process_group",
+        "escaped_descendant_cannot_hold_pipes_or_survive_success"
+      ],
+      "assertion": "elapsed < 5 seconds",
+      "follow_up": "same tests and entire workspace passed serially; source and deadlines unchanged"
+    },
+    "checks": [
+      "workspace Clippy with warnings denied",
+      "Rust formatting",
+      "native/WASM builds",
+      "strict TypeScript/build",
+      "actual Chromium 148",
+      "actual IndexedDB recovery/abort/corruption/same-profile races"
+    ],
+    "exact_final_head_review_and_frozen_ci": "required in delivery PR before merge"
+  },
+  "independent_review_artifacts": {
+    "private_audit": {
+      "bytes": 5430,
+      "sha256": "2d14f271951bacc36ac0c901b63473f60bba6dced6f7c8df4c2f3ef73f88aaf9"
+    },
+    "private_projection_script": {
+      "bytes": 3340,
+      "sha256": "1d520fca5fe9c6ca067d1750c2c47cf0ce9c1538a16a0b0aeb01fdf4ad507f41"
+    }
+  }
+}

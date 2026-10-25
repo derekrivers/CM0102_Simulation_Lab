@@ -160,3 +160,36 @@ R4 retained emulation/core builds, R5 separate relink/four runs, R4 fresh replay
 then coordinator integration/independent reproduction. No third worker, full
 Bosman rebuild, original launch, infrastructure or frozen-CI change occurred.
 All raw/private artifacts and historical controls are preserved.
+
+### Fresh human fixture admission review — 25 October 2026
+
+Base main `7665cec96c6390277a0e87e43b5978a880da92ec`; clean WSL checkout on
+`codex/fresh-human-admission`. Coordinator owns admission code, host acceptance
+tests and canonical documentation. One independent reviewer, GPT-6 Astra/high,
+owns the fresh provenance/domain decision before admission and exact-final-head
+review afterward; the reviewer authored neither original R4 nor R5. Coordinator
+model settings are unchanged; aggregate tokens/costs are unavailable.
+
+Acceptance: independently verify the sealed capture/build/arm/output link and
+reproduce original receipts; reconstruct the exact private canonical projection;
+admit only its reviewed fingerprint if the existing direct slots 0/1 contract is
+sufficient. Preserve retained/synthetic admissions, profile/session semantics and
+all save versions. Compare native/Chromium complete state, ordered effects,
+rejections, saves and continuation for both real human fixtures. Exercise actual
+browser close/reopen, corruption/failure recovery and same-profile fixture/session
+writer fencing. Wrong or hybrid identities must reject atomically. Raw/private
+records remain outside Git/build output. No new Bosman campaign or original
+Windows launch is needed. One heavy slot rotates from coordinator baseline to
+independent oracle reproduction, then back to integration tests. Final independent
+review, protected CI and the authorized PR/merge process remain mandatory.
+
+Independent review approved the exact additional 481-byte projection after
+separate raw extraction, complete provenance audit and byte-identical oracle
+reproduction. Implementation now passes 204 native/browser operations and actual
+persistent recovery for six fixtures, with previous 159 operation hashes and five
+stored results unchanged. Same-profile/session retained/fresh publication races
+are checked explicitly. All 71 Rust tests pass serially; the initial parallel
+supervisor timing failures are retained without changing source or thresholds.
+The [admission decision and receipts](../research/PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission)
+record the scope. Final exact-head review, CI and merge disposition follow in the
+delivery PR; no original process or new capture campaign was run.

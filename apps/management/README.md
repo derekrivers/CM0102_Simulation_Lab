@@ -74,6 +74,18 @@ include the admitted private human fixture. A separately labeled public syntheti
 human profile always runs. Fresh capture fingerprints require independent
 qualification and are not automatically admitted.
 
+The exact fresh R5 human projection is now independently reviewed and admitted
+alongside the older retained fixture. Point `HUMAN_REFERENCE_FIXTURE` at either
+private file for local preview; both use the existing direct slot command and v3
+save. Keep the files outside the build directory. Their different fixture hashes
+remain part of every save and browser checkpoint, despite matching profile names.
+
+For the complete acceptance run, keep `HUMAN_REFERENCE_FIXTURE` pointing to the
+retained fixture and set `FRESH_HUMAN_REFERENCE_FIXTURE` to the reviewed fresh
+projection when running `npm run check` and `npm run check:storage`. Both fixtures
+then run together, including same-profile import races and fresh failure recovery.
+The admission decision and limits are in `docs/research/PC_R4_HUMAN_REGISTRY.md`.
+
 Set `REFERENCE_FIXTURE` to the recovered private fixture path when running
 `npm run check` to execute the real-record native/browser corpus too. Test logs
 contain only hashes and summaries. Captured-name screenshots and exported state
