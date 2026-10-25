@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "command_count": 37,
+  "original_instruction_cases": 24,
+  "native_browser_equal": true,
+  "canonical_sha256": "9e1c1d4802e613db23226d443309d17d30a84c9d513d064b5f42592d41ec10f4",
+  "wasm_sha256": "5526af2d0711c1e3a68b22f0c612691a5a0747d0e6f3ef85ccd932d7b02193c8",
+  "browser_version": "148.0.7778.96",
+  "controls": [
+    "invalid plan/bound/club/revision/id atomic",
+    "save/load deterministic continuation",
+    "duplicate commands idempotent after reload",
+    "invalid save import preserves state",
+    "React command/save/import interaction"
+  ],
+  "limitations": [
+    "legacy profile uses fictional squad and a null manager pointer",
+    "ordinary reference profiles admit only pinned ordinary club/nonhuman manager records",
+    "retained production capture uses an older instrumented Bosman platform with no contemporaneous input-consumption seal",
+    "plan labels remain fictional; original UI, full human registry lifecycle and match effects unqualified"
+  ],
+  "reference_profiles": [
+    {
+      "origin": "synthetic-regression",
+      "fixture_sha256": "162a95a541093ebe6af32cbbb2005eaeb62ee41580e7e53e9f9283da550b941b",
+      "operations": 34,
+      "original_instruction_cases": 21,
+      "native_browser_equal": true,
+      "canonical_sha256": "8551fdd7a93468d1b873bb5f91f74e4c462dfd375573a576fc5b0696eece4eb0",
+      "ui_controls": [
+        "pending import locks mutations",
+        "sparse club selection",
+        "manager projection",
+        "second bank resolution",
+        "v2 export/import continuation",
+        "unqualified fixture preserves state"
+      ]
+    },
+    {
+      "origin": "captured-bosman",
+      "fixture_sha256": "b68bfba221cccc84a92cfa63804487e206b3858be635e988738c5fc701c29711",
+      "operations": 34,
+      "original_instruction_cases": 21,
+      "native_browser_equal": true,
+      "canonical_sha256": "cf5536a32a7e2d7c5392ae23b5f5fc6898f49c0c5757c7f1e905b5631810ee35",
+      "ui_controls": [
+        "pending import locks mutations",
+        "sparse club selection",
+        "manager projection",
+        "second bank resolution",
+        "v2 export/import continuation",
+        "unqualified fixture preserves state"
+      ]
+    }
+  ],
+  "human_profiles": [
+    {
+      "origin": "synthetic-human-regression",
+      "fixture_sha256": "c51b2e88302b512340454ce969c079c376b9ea3563ce777335556e6a449f5603",
+      "oracle": "human-registry-oracle-v1.json",
+      "oracle_sha256": "39f483c2d181b76fc44b4319bc924878cce125838a0ddc013dffe0525a780438",
+      "operations": 27,
+      "original_instruction_cases": 6,
+      "native_browser_equal": true,
+      "canonical_sha256": "fa244815fbb9446563a5052017406dc6dabe39a7b6beb7f07accd7e2ec447043",
+      "controls": [
+        "wrong slot/club/session/revision/capability",
+        "fixture tampering",
+        "v3 export/import/dedup/continuation",
+        "v1 byte roundtrip",
+        "corrupt import atomicity"
+      ],
+      "ui_controls": [
+        "capability-gated slot controls",
+        "Rust slot transition",
+        "v3 export/import and browser reload",
+        "invalid save and unqualified fixture atomicity",
+        "reset removes human capability"
+      ]
+    },
+    {
+      "origin": "captured-bosman-human-registry",
+      "fixture_sha256": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d",
+      "oracle": "human-registry-oracle-v1.json",
+      "oracle_sha256": "39f483c2d181b76fc44b4319bc924878cce125838a0ddc013dffe0525a780438",
+      "operations": 27,
+      "original_instruction_cases": 6,
+      "native_browser_equal": true,
+      "canonical_sha256": "f46d193e20fd5ffe460c52a3bbfd9aa792ee1834a46f0242cdc3257029f8d7e3",
+      "controls": [
+        "wrong slot/club/session/revision/capability",
+        "fixture tampering",
+        "v3 export/import/dedup/continuation",
+        "v1 byte roundtrip",
+        "corrupt import atomicity"
+      ],
+      "ui_controls": [
+        "capability-gated slot controls",
+        "Rust slot transition",
+        "v3 export/import and browser reload",
+        "invalid save and unqualified fixture atomicity",
+        "reset removes human capability"
+      ]
+    },
+    {
+      "origin": "captured-bosman-human-registry",
+      "fixture_sha256": "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2",
+      "oracle": "fresh-human-registry-oracle-v1.json",
+      "oracle_sha256": "39915e94bf65ca7c6586153dffa63b03160dc483119a58e8dc9e82fbc92fd911",
+      "operations": 27,
+      "original_instruction_cases": 6,
+      "native_browser_equal": true,
+      "canonical_sha256": "1224387934d13cc1acb70febc95a0eb9bd0205766b956994e9bd1e5c120b9f73",
+      "controls": [
+        "wrong slot/club/session/revision/capability",
+        "fixture tampering",
+        "v3 export/import/dedup/continuation",
+        "v1 byte roundtrip",
+        "corrupt import atomicity"
+      ],
+      "ui_controls": [
+        "capability-gated slot controls",
+        "Rust slot transition",
+        "v3 export/import and browser reload",
+        "invalid save and unqualified fixture atomicity",
+        "reset removes human capability"
+      ]
+    }
+  ],
+  "fresh_admission": {
+    "operations": 18,
+    "native_browser_equal": true,
+    "canonical_sha256": "46a4b22f6b704a1f4aaa6e8d25294321bd5d9dc65c435864dc75c36c15b15a1a",
+    "fresh_fixture_sha256": "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2",
+    "retained_fixture_sha256": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d",
+    "controls": [
+      "fresh/retained profile switch",
+      "wrong source/row/specimen/origin/initial slot",
+      "hybrid retained/fresh identity",
+      "checksum-repaired embedded fixture rejection",
+      "retained and fresh v3 byte roundtrip",
+      "fresh continuation after retained restore"
+    ]
+  },
+  "registry_profiles": [
+    {
+      "origin": "synthetic-human-regression",
+      "fixture_sha256": "f4fd4d0ddea2476728074256bb8cc3a3149c8884ed4a18ccc2716f6d471b2cd8",
+      "operations": 57,
+      "original_producer_cases": 7,
+      "original_mixed_cases": 10,
+      "native_browser_equal": true,
+      "canonical_sha256": "a3d5162f43fec2490c155b60cf7983a128afe5877805bcae987303ac27ab5e6e",
+      "controls": [
+        "producer/mixed original ordered writes and immutable DWORD",
+        "invalid value/slot/club/session/revision/capability atomicity",
+        "cross-command ID conflict",
+        "v1-v4 byte roundtrips",
+        "checksum-repaired v4 tamper rejection",
+        "capability-gated neutral UI, v4 import/export/reload and invalid fixture atomicity"
+      ]
+    },
+    {
+      "origin": "captured-bosman-human-registry",
+      "fixture_sha256": "cc7e3483d1ba7dfd36516f500362f20c63fd23a703f26e9cf20490f0251b616f",
+      "operations": 57,
+      "original_producer_cases": 7,
+      "original_mixed_cases": 10,
+      "native_browser_equal": true,
+      "canonical_sha256": "5c87502099fac5962d7d992770930c46fd53c222b29bb46fe364b4856b851057",
+      "controls": [
+        "producer/mixed original ordered writes and immutable DWORD",
+        "invalid value/slot/club/session/revision/capability atomicity",
+        "cross-command ID conflict",
+        "v1-v4 byte roundtrips",
+        "checksum-repaired v4 tamper rejection",
+        "capability-gated neutral UI, v4 import/export/reload and invalid fixture atomicity"
+      ]
+    },
+    {
+      "origin": "captured-bosman-human-registry",
+      "fixture_sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+      "operations": 57,
+      "original_producer_cases": 7,
+      "original_mixed_cases": 10,
+      "native_browser_equal": true,
+      "canonical_sha256": "6c8749c4f5d2fd62b65edfdbf7f0dc696eb40c490084fb89d9b38cd790723f7f",
+      "controls": [
+        "producer/mixed original ordered writes and immutable DWORD",
+        "invalid value/slot/club/session/revision/capability atomicity",
+        "cross-command ID conflict",
+        "v1-v4 byte roundtrips",
+        "checksum-repaired v4 tamper rejection",
+        "capability-gated neutral UI, v4 import/export/reload and invalid fixture atomicity"
+      ]
+    }
+  ],
+  "total_operations": 375
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "base_main": "8bd8368e6f4099633a58f31bcb2a80fbedac852d",
+  "decision": "admit only independently projected and qualified schema-2 fingerprints for fixed option 2, values 0/1",
+  "world_save_version": 4,
+  "automatic_migration": false,
+  "private_admission_audit": {
+    "file": "admission-audit.json",
+    "bytes": 7581,
+    "sha256": "bb07eb75dd59b60408c8ed99bb1e2e29afaa5e914bc334d9d2ec6d7438fcc1ee"
+  },
+  "independent_projection": {
+    "file": "independent_projection.py",
+    "bytes": 4269,
+    "sha256": "611712d2188271e2db9b03098eadd7ef15686917584132dd23a274c68960318a"
+  },
+  "fixtures": [
+    {
+      "source": "retained",
+      "bytes": 540,
+      "sha256": "cc7e3483d1ba7dfd36516f500362f20c63fd23a703f26e9cf20490f0251b616f",
+      "raw_projection_independently_reviewed": true
+    },
+    {
+      "source": "fresh",
+      "bytes": 540,
+      "sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+      "raw_projection_independently_reviewed": true
+    },
+    {
+      "source": "synthetic-regression",
+      "bytes": 527,
+      "sha256": "f4fd4d0ddea2476728074256bb8cc3a3149c8884ed4a18ccc2716f6d471b2cd8",
+      "real_state_authority": false
+    }
+  ],
+  "artifacts": {
+    "human-registry-producer-oracle-v1.json": {
+      "bytes": 49598,
+      "sha256": "15a41f8c213b01cc1774fc49e018af60ad251529058c2759d921bdcdb9069bfb"
+    },
+    "fresh-human-registry-producer-oracle-v1.json": {
+      "bytes": 49682,
+      "sha256": "8410886bcdc5c9b9e9c808cb28da8d2b27e157278de7cd214f78b5da28a551d4"
+    },
+    "human-registry-producer-browser-v1.json": {
+      "bytes": 8153,
+      "sha256": "0d7358f8ffe79ffe97bf4aa25fc35953663499ce9e49d45f551dd59ba8d9ba45"
+    },
+    "human-registry-producer-storage-v1.json": {
+      "bytes": 7603,
+      "sha256": "1b3065f2e0450a55aa0b6c8d2158f18f0f4fe94c45a209cd22557354d289699d"
+    }
+  },
+  "validation": {
+    "rust_tests": 79,
+    "management_tests_including_compile_fail": 24,
+    "workspace_test_threads": 1,
+    "native_browser_operations": 375,
+    "persistent_browser_fixtures": 9,
+    "legacy_204_operations_unchanged": true,
+    "legacy_six_stored_results_unchanged": true,
+    "fmt_clippy_native_wasm_typescript_build": "passed",
+    "qualification_attempt_failure": "Initial overstrict selector call boundary failed; retained in qualification documentation and audit. No fixture or successful receipt produced.",
+    "new_integration_failures": []
+  },
+  "limitations": [
+    "Fixed option 2 boolean only; gameplay meaning unknown",
+    "No implicit outer getter, original UI, lifecycle, appointment, match or original save claim",
+    "Retained capture lacks contemporary consumption seal; fresh actual file opens/consumption remains unobserved",
+    "Quota/SecurityError injections do not qualify actual disk exhaustion or physical-media durability",
+    "Original Windows process not launched; Bosman comparison remains not-run"
+  ],
+  "review": "Independent raw projection and official oracle reproduction approved these exact admissions; final integrated exact-head review and frozen checks recorded in delivery PR",
+  "qualifier_sha256": "7d7071079182aac8c5d06f5e55eedb3ef0d89b1e68a0fa79bf161282a20acc5b"
+}

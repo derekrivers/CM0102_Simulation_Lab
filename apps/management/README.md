@@ -4,7 +4,8 @@ Rust owns state in one dedicated WASM worker; React submits commands and renders
 projections. The default squad and all plan labels are fictional. A reviewed private fixture
 additionally admits three actual ordinary-club/nonhuman-manager records and
 qualified first/second bank resolution. A separately admitted human profile supports
-direct registry slot selection; other human-manager workflows remain unavailable. This is not a
+direct registry slot selection. A separate v4 profile adds a qualified fixed
+registry option-2 byte producer. Other human-manager workflows remain unavailable. This is not a
 reproduction of an original UI handler, a full tactics engine or a playable game.
 
 From the repository root, with the pinned toolchain:
@@ -85,6 +86,20 @@ retained fixture and set `FRESH_HUMAN_REFERENCE_FIXTURE` to the reviewed fresh
 projection when running `npm run check` and `npm run check:storage`. Both fixtures
 then run together, including same-profile import races and fresh failure recovery.
 The admission decision and limits are in `docs/research/PC_R4_HUMAN_REGISTRY.md`.
+
+For the additional producer, use **Import club fixture** with an independently
+admitted schema-2 registry wrapper. The v4 view offers **Apply registry option 2**
+for byte values 0/1, alongside **Apply slot**, and displays the immutable captured
+guard. The setting's gameplay meaning remains unqualified. Commands share Rust
+revision/retry history and persist through the existing browser checkpoint path.
+This profile uses explicit v4 saves; v1/v2/v3 load and exact re-export remain
+supported without automatic migration. See `docs/research/HUMAN_REGISTRY_PRODUCER.md`.
+
+The public synthetic v4 fixture always runs in both check suites. Set
+`REGISTRY_REFERENCE_FIXTURE` and `FRESH_REGISTRY_REFERENCE_FIXTURE` to the private
+reviewed retained/fresh wrappers to include both real profiles, original producer
+and mixed-command corpora, browser process recovery and publication fencing.
+These paths are test inputs; private files remain outside the build output.
 
 Set `REFERENCE_FIXTURE` to the recovered private fixture path when running
 `npm run check` to execute the real-record native/browser corpus too. Test logs

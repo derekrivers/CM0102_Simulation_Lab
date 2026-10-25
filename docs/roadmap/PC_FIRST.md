@@ -201,3 +201,44 @@ independent final review with no findings; all four frozen checks passed, includ
 default parallel Rust tests. The additional fingerprint is now admitted. The
 initial local parallel failure remains in the evidence record; no limits or CI
 were weakened. Remaining fidelity work stays in the existing progress register.
+
+### Additional human registry producer — 25 October 2026
+
+Base `8bd8368e6f4099633a58f31bcb2a80fbedac852d`. Coordinator owns Rust,
+compatibility, integration and acceptance; existing R4 investigator owns new
+official-instruction qualification in a separate worktree; existing R5 worker
+owns thin browser controls and recovery tests. Existing assigned routing is
+retained; coordinator settings and unavailable cost totals are not inferred.
+One heavy slot starts with original-instruction qualification, then rotates to
+coordinator builds/browser verification. Independent final review is mandatory.
+
+Qualify `005feb60` with fixed option 2 and explicit boolean values against both
+existing real captures. Check complete admitted state, every ordered write,
+ABI, repeated writes, mixed slot continuation, RNG and discriminating controls.
+Only independently reviewed whole-fixture fingerprints may be admitted. Freeze
+fixture schema 2 as `{schema_version,human,guard_9a01,option_two}`: the embedded
+human fixture is unchanged, guard is the observed immutable DWORD (0/1), option
+is the observed initial byte (0/1). New world/save v4 owns both commands with
+shared revision/deduplication and replay validation. Profile is
+`<origin>-human-registry-producer-v1`, session `<origin>-registry-session-v1`.
+Existing v1/v2/v3 saves keep exact serialization and semantics, with no automatic
+migration. New `import_registry_reference` and `registry_option_command` expose
+only admitted state and fixed option 2; existing `human_command` selects slots
+in v4. Native/Chromium equality, actual durable recovery, rejected/corrupt saves,
+publication fencing and exact legacy results are required before reviewed merge.
+Neutral option labels preserve unknown gameplay meaning. No outer getter is
+invoked implicitly; no new capture campaign, original launch, lifecycle,
+appointment, plan decoding or match claim is included.
+
+Both real producer oracles now pass 37 calls/186 distinct starts each, reproduced
+byte for byte by an independent reviewer who reconstructed the exact wrappers
+without the existing parsers. Only those two hashes and a separately labeled
+synthetic wrapper are admitted. Twelve controls discriminate; three unsupported
+original probes remain censored. The initial overstrict selector harness failure
+is retained. Production v4 passes 375 native/Chromium operations, actual recovery
+for nine fixtures, mixed retries, corruption/abort and retained/fresh writer
+fencing. Previous 204 response hashes and six stored results remain exact.
+All 79 Rust tests pass serially, plus fmt/Clippy/native/WASM/TypeScript/build.
+The [bounded decision and receipts](../research/HUMAN_REGISTRY_PRODUCER.md)
+record scope and private audit identities. Final independent exact-head review,
+frozen checks and merge disposition follow in the delivery PR.

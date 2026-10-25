@@ -1,0 +1,2082 @@
+{
+  "schema_version": 1,
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "emulator": "unicorn 2.1.4",
+  "decoder": "capstone 5.0.7",
+  "method": "official entry-to-return instructions; real initialized binding; no code patches or stubbed callees",
+  "capture": {
+    "source_capture_sha256": "302921d53add894761acb6ef425d930f8b83ff0a344efdf61c45fa94d1f5cfa8",
+    "image_sha256": "ae11ce3ef6267ad55be6aa6387f676704b1bb8a6310507db6c5ccfe494d45c3a",
+    "heap_sha256": "30ee2baefad8f57f8760f30abc076586f2d13339bb1629f75346a5dcbc1357a0",
+    "platform_revision": "f9583098d39c77ac6982a5aa9daec56d74454531"
+  },
+  "supported_domain": {
+    "producer_entry": "005feb60",
+    "fixed_option": 2,
+    "values": [
+      0,
+      1
+    ],
+    "nonnull_reciprocal_ordinary_human_binding": true,
+    "initial_guard_dword_9a01": 1,
+    "initial_option_byte_9b25": 0,
+    "initial_slot_byte_9a69": 0,
+    "registry_rows": 16,
+    "registry_stride": 42735,
+    "guard_is_immutable": true,
+    "outer_getter_invoked": false
+  },
+  "private_fixture": {
+    "sha256": "cc7e3483d1ba7dfd36516f500362f20c63fd23a703f26e9cf20490f0251b616f",
+    "bytes": 540,
+    "inner_sha256": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d",
+    "registry_row_sha256": "5acfb13b37df041f03bf4a887abde1ac6f9ec4928709ab24112e545a2945f21a",
+    "production_admission": "pending independent review; not self-admitted"
+  },
+  "instruction_ranges": [
+    {
+      "entry": "005feb60",
+      "start": "005feb60",
+      "end_exclusive": "005fed42",
+      "sha256": "ff7c17b2d6aebfffc964a52147a4801aa9fa44522cf40e54b7ffb813c04caadb"
+    },
+    {
+      "entry": "005fbe20",
+      "start": "005fbe20",
+      "end_exclusive": "005fc004",
+      "sha256": "e87b1fc03afd62601885171d5fbd539960c1893220b2689a28969a26b10cb41b"
+    },
+    {
+      "entry": "005fbd00",
+      "start": "005fbd00",
+      "end_exclusive": "005fbe11",
+      "sha256": "a3b0cb5213631502268653449c723a1e3924f3b50e57c37f0fa27ddb591be06a"
+    },
+    {
+      "entry": "005409b0",
+      "start": "005409b0",
+      "end_exclusive": "00540a4c",
+      "sha256": "884811ef44ef43b428dedf6a6ed9eca60c94572d928b25c879871046bead0455"
+    },
+    {
+      "entry": "0053b900",
+      "start": "0053b900",
+      "end_exclusive": "0053b99f",
+      "sha256": "9e1991a802fbd9f8f648d69697664d3a9b680097b7bfc878d9a6508c96cadad3"
+    }
+  ],
+  "successful_calls": 37,
+  "successful_instruction_starts": 186,
+  "call_evidence": {
+    "005feb60": [
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005feb60",
+        "ordered_writes": [
+          {
+            "registry_offset": 39717,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 4,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 41,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      }
+    ],
+    "005fbe20": [
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 96,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 89,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 96,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 96,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 89,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 96,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 89,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 96,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 0
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 89,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      },
+      {
+        "entry": "005fbe20",
+        "ordered_writes": [
+          {
+            "registry_offset": 39529,
+            "width": 1,
+            "value": 1
+          }
+        ],
+        "read_count": 7,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "nation_count",
+            "width": 4
+          },
+          {
+            "field": "club_id",
+            "width": 4
+          },
+          {
+            "field": "club_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          }
+        ],
+        "instruction_starts": 96,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": false
+      }
+    ],
+    "005fbd00": [
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      },
+      {
+        "entry": "005fbd00",
+        "ordered_writes": [],
+        "read_count": 5,
+        "stack_cleanup_checked": true,
+        "return_checked": true,
+        "callee_saved_registers_checked": true,
+        "rng_draws": 0,
+        "ordered_non_stack_reads": [
+          {
+            "field": "manager_id",
+            "width": 4
+          },
+          {
+            "field": "staff_count",
+            "width": 4
+          },
+          {
+            "field": "registry_count",
+            "width": 4
+          },
+          {
+            "field": "registry_base",
+            "width": 4
+          },
+          {
+            "field": "selected_slot",
+            "width": 1
+          }
+        ],
+        "instruction_starts": 35,
+        "no_system_instruction": true,
+        "only_qualified_original_calls": true,
+        "no_call_instruction": true
+      }
+    ]
+  },
+  "producer_cases": [
+    {
+      "value": 0,
+      "previous_value": 0,
+      "new_value": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "value": 0,
+      "previous_value": 0,
+      "new_value": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "value": 1,
+      "previous_value": 0,
+      "new_value": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "value": 1,
+      "previous_value": 1,
+      "new_value": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "value": 0,
+      "previous_value": 1,
+      "new_value": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "value": 1,
+      "previous_value": 0,
+      "new_value": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "value": 0,
+      "previous_value": 1,
+      "new_value": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    }
+  ],
+  "mixed_cases": [
+    {
+      "kind": "RegistryOptionTwoSet",
+      "previous_slot": 0,
+      "selected_slot": 0,
+      "previous_value": 0,
+      "option_two": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0,
+      "value": 1
+    },
+    {
+      "kind": "HumanSlotSelected",
+      "previous_slot": 0,
+      "selected_slot": 1,
+      "previous_value": 1,
+      "option_two": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0,
+      "slot": 1
+    },
+    {
+      "kind": "RegistryOptionTwoSet",
+      "previous_slot": 1,
+      "selected_slot": 1,
+      "previous_value": 1,
+      "option_two": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0,
+      "value": 0
+    },
+    {
+      "kind": "HumanSlotSelected",
+      "previous_slot": 1,
+      "selected_slot": 0,
+      "previous_value": 0,
+      "option_two": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0,
+      "slot": 0
+    },
+    {
+      "kind": "RegistryOptionTwoSet",
+      "previous_slot": 0,
+      "selected_slot": 0,
+      "previous_value": 0,
+      "option_two": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0,
+      "value": 0
+    },
+    {
+      "kind": "HumanSlotSelected",
+      "previous_slot": 0,
+      "selected_slot": 1,
+      "previous_value": 0,
+      "option_two": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0,
+      "slot": 1
+    },
+    {
+      "kind": "RegistryOptionTwoSet",
+      "previous_slot": 1,
+      "selected_slot": 1,
+      "previous_value": 0,
+      "option_two": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0,
+      "value": 1
+    },
+    {
+      "kind": "HumanSlotSelected",
+      "previous_slot": 1,
+      "selected_slot": 1,
+      "previous_value": 1,
+      "option_two": 1,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0,
+      "slot": 1
+    },
+    {
+      "kind": "RegistryOptionTwoSet",
+      "previous_slot": 1,
+      "selected_slot": 1,
+      "previous_value": 1,
+      "option_two": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39717,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0,
+      "value": 0
+    },
+    {
+      "kind": "HumanSlotSelected",
+      "previous_slot": 1,
+      "selected_slot": 0,
+      "previous_value": 0,
+      "option_two": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0,
+      "slot": 0
+    }
+  ],
+  "checkpoint_continuation": {
+    "equal": true,
+    "prefix": [
+      [
+        "RegistryOptionTwoSet",
+        1
+      ],
+      [
+        "HumanSlotSelected",
+        1
+      ]
+    ],
+    "suffix": [
+      [
+        "RegistryOptionTwoSet",
+        0
+      ],
+      [
+        "HumanSlotSelected",
+        0
+      ],
+      [
+        "RegistryOptionTwoSet",
+        0
+      ],
+      [
+        "HumanSlotSelected",
+        1
+      ]
+    ],
+    "entire_captured_state_equal": true,
+    "ordered_effects_equal": true,
+    "original_savegame_claim": false
+  },
+  "captured_state_bytes": 108564672,
+  "complete_captured_state_and_official_image_checked_after_every_supported_command": true,
+  "supported_rng_draws": 0,
+  "defect_controls": {
+    "wrong-offset": 7,
+    "wrong-row": 7,
+    "word-instead-of-byte": 7,
+    "inverted-value": 7,
+    "omitted-write": 7,
+    "elided-repeated-value-write": 3,
+    "extra-rng-draw": 7,
+    "reordered-mixed-writes": 1,
+    "option-command-changes-slot": 5,
+    "slot-command-changes-option": 5,
+    "immutable-guard-corruption": 1,
+    "unsupported-host-value-before-execution": 3
+  },
+  "unsupported_original_probes": [
+    {
+      "name": "null-manager-current-context",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "first_boundary": "unqualified non-stack read",
+      "partial_ordered_writes": []
+    },
+    {
+      "name": "nonhuman-manager-diagnostics",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "first_boundary": "unqualified non-stack read",
+      "partial_ordered_writes": []
+    },
+    {
+      "name": "option-three-larger-path",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "first_boundary": "unqualified non-stack read",
+      "partial_ordered_writes": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Boolean fixed option2 only; no gameplay meaning assigned",
+    "Explicit manager and initialized registry only; no lifecycle or appointment claim",
+    "No outer getter/UI handler, original savegame or full-game parity claim",
+    "Typed host rejection is not original rejection parity; original stores the low byte",
+    "Stack scratch is synthetic ABI setup; full captured regions and loaded official image remain checked",
+    "Historical capture lacks contemporaneous consumption seal"
+  ]
+}

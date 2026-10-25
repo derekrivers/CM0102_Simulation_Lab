@@ -164,10 +164,13 @@ impl HumanWorld {
         })
     }
     pub fn location(&self) -> HumanSlotLocation {
+        Self::slot_location(self.fixture.registry_index, self.selected_slot)
+    }
+    pub(crate) fn slot_location(registry_index: u32, slot: u8) -> HumanSlotLocation {
         HumanSlotLocation {
-            registry_index: self.fixture.registry_index,
-            slot: self.selected_slot,
-            byte_offset: u32::from(self.selected_slot) * 7885,
+            registry_index,
+            slot,
+            byte_offset: u32::from(slot) * 7885,
         }
     }
     pub fn apply(&mut self, command: HumanCommand) -> Result<HumanEvent, String> {
