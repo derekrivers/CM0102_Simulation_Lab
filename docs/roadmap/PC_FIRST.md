@@ -248,3 +248,53 @@ at `37c511dc2ec6ca0e173b36a900b09411e1da952b`. Independent final review
 approved exact head `c53692921af108d37be3493cd934dfb7ddcdebd3` with no findings;
 all four frozen checks passed before merge, including default parallel Rust CI.
 No original process, new Bosman campaign or verification-policy change occurred.
+
+
+## R7/R8/R9 bounded batch - 25 October 2026
+
+Started from fetched main 12a35b3863528edba15e4dccd687ea1d90a8e44f with no
+intervening commits, clean WSL checkouts and the retained detached review left
+untouched. Separate worktrees isolated research, shared core/browser integration
+and private experiments. Two initial workers were followed by one bounded
+integration/review worker; no nested spawning or overlapping heavy campaigns.
+
+| Lane | Actual selection | Delivered boundary / review |
+| --- | --- | --- |
+| R7 | GPT-6 Astra/high | Connected qualifier and v5 Rust core; R8 pre-execution review, lead raw admission, independent lead/Astra/Sol core review |
+| R8 | GPT-6.1 Sol/medium | New option-3 diagnostics and empty-mapping research; independent R7 Astra exact-source/evidence review |
+| Browser + R9 review | GPT-6 Astra/high | Explicit lookup and additive persistent negatives; independent R7/lead UI review, independent pre/post R9 review |
+| Lead | Current session; model identifier/effort unavailable | R9 experimental observer, independent R7 projection admission, programme integration/delivery |
+
+No model substitution was required for the three explicit worker selections.
+Aggregate token/billing usage is unavailable; no measured cost optimum or savings
+are claimed. One heavy slot rotated across emulator, compile, Bosman and browser
+campaigns; small source/identity/control work ran alongside it.
+
+[R7](../research/PC_R7_EFFECTIVE_PLAN.md) qualifies both actual initialized
+branches, including retained ordinary first-bank slot-0 fallback and fresh
+guard-zero registry selection. Two independently extracted exact real projections
+and a separately labeled synthetic fixture admit an explicit v5 operation, shared
+three-command history, tagged branch/location and deterministic replay. v1-v4
+retain exact semantics/bytes. General bank mappings/lifecycle and gameplay remain
+open. Actual native/Chromium acceptance passes 552 operations, preserving prior
+375 results; actual persistent recovery passes twelve profiles, preserving all
+nine prior results and adding both requested invalid-head cases.
+
+[R8](../research/PC_R8_OPTION_THREE.md) retains initial eight calls, four censored
+with partial writes. Separately reviewed eight calls qualify option3 values 0/1
+only for the actual sixteen-empty-mapping inputs, including original ABI, complete
+captured/image bytes, ordered effects, repeats and checkpoint continuation.
+Production option3 remains unavailable; nonempty/staff-linked/plan paths remain
+unqualified.
+
+[R9](../research/PC_R9_FILE_USE.md) records two failed observation campaigns.
+The first exposed legitimate original stack re-execution; the reviewed follow-up
+completed all four runs with exact R5 endpoint and declared-capture equality but
+dropped 17,968 records in each observed trace at the frozen cap. Clean-tree
+file-use provenance remains unknown. Only reviewed failure reports/receipts are
+delivered to main; unsuccessful observer source remains on its experimental
+branch. A future bounded aggregation/compression design requires separate review.
+
+The whole-game objective and P02/P04 gates remain open. No original Windows game
+process or deployment occurred. Final exact-head review, checks and merge identity
+are recorded in programme progress and the delivery PR.

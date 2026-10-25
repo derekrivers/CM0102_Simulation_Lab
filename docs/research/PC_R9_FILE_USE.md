@@ -154,3 +154,12 @@ before a new noninterference campaign; do not raise limits or aggregate away
 failures after execution. The measured four-arm cost is about six minutes, in
 addition to observer design, independent review and controls. No wider completion
 estimate follows from this failed campaign.
+
+Independent Astra/high [post-run review](evidence/pc-r9-independent-review-v1.json)
+rehashes all 153 initial and 275 follow-up private artifact seals, actual binaries/
+libraries, all 760 clean files, raw trace footers, saves/captures and source
+revisions. It approves the truthful failed-result record, not clean-tree file-use
+qualification. Its initial audit's incorrect contiguous-sequence assumption is
+retained and corrected explicitly: shorter records can fit after longer records
+are dropped. Exact increasing sequence/footer accounting confirms incomplete
+observation; no game run or comparison threshold changed.

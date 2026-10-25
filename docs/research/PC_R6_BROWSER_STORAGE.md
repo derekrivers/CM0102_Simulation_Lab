@@ -125,3 +125,19 @@ while retaining all previous 375 canonical results. The
 [validation record](evidence/pc-r7-integrated-validation-v1.json) retains exact
 source/artifact identities, commands, timing and the initial supervisor-test
 timing failure followed by successful isolated and full serial reruns.
+
+## Connected v5 recovery acceptance
+
+The [R7 storage receipt](evidence/pc-r7-storage-v1.json) now passes all twelve
+admitted profiles through actual persistent Chromium close/reopen. All nine v4-era
+stored results and recovery sections remain exact. The explicit lookup persists
+its revision/event even on the no-write ordinary fallback; three-command retries,
+native continuation, real aborted publication and same-profile/session
+retained/fresh fencing pass. Both invalid-head cases above also pass in the full
+suite. Host storage schema/recovery rules remain unchanged.
+
+The [matching 552-operation browser receipt](evidence/pc-r7-browser-v1.json) and
+[integrated validation](evidence/pc-r7-integrated-validation-v1.json) retain exact
+source/tool/WASM identities and timings. Historical three-, six- and nine-profile
+receipts remain unchanged; this is an additive result, not a rewrite of their
+scope. Physical disk exhaustion/power-loss behavior remains unqualified.

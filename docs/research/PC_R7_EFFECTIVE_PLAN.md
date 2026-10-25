@@ -151,3 +151,32 @@ v1–v5 roundtrips/continuation. The private-world compile-fail boundary is test
 runtime correction. These are targeted core checks; actual WASM/browser execution,
 workspace-wide checks, durable recovery and final independent review are separate
 integration gates and are not inferred from a WASM build.
+
+## Integrated native, actual WASM and durable browser result
+
+[Browser acceptance](evidence/pc-r7-browser-v1.json) passes 552 native/Chromium
+operations: all prior 375 canonical results remain unchanged, plus 59 operations
+for each of three v5 fixtures. Both real captures and the labeled synthetic
+fixture execute original connected cases, all three mixed commands/retries,
+atomic invalid action/import/replay controls, exact v1-v5 roundtrips and
+continuation. React explicitly invokes lookup and displays its actual tagged
+return/branch, labels the result historical after later commands, and keeps
+rendering/control selection/state queries pure. Capability removal is tested.
+
+[Persistent acceptance](evidence/pc-r7-storage-v1.json) closes/reopens actual
+Chromium for twelve profiles, preserving all nine previous profile results.
+It verifies no-write fallback publication, full v5 history/retry continuation,
+corrupt-current fallback, visible real transaction abort with accepted memory
+retained, and delayed/stale same-profile retained/fresh fencing. Both additional
+invalid-head cases pass under the unchanged R6 semantics. API-injected
+denial/quota and physical-storage limitations remain separate.
+
+The [integrated validation record](evidence/pc-r7-integrated-validation-v1.json)
+seals commands, exact source/artifacts/tools/logs and durations. All 86 workspace
+Rust tests pass serially, fmt and denied-warning workspace Clippy pass, native
+and release WASM builds pass, and strict TypeScript/build pass. An initial
+unchanged supervisor timing assertion failed; its log is retained. Isolated
+process tests and the full serial rerun passed with no source/threshold changes.
+Browser and storage suites ran sequentially in 18.21 and 19.01 seconds. Final
+exact-head review and protected-check/merge identities belong to the delivery
+record; these gates do not qualify other managers, mappings, lifecycle or matches.
