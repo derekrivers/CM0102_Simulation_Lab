@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "command_count": 37,
+  "original_instruction_cases": 24,
+  "native_browser_equal": true,
+  "canonical_sha256": "9e1c1d4802e613db23226d443309d17d30a84c9d513d064b5f42592d41ec10f4",
+  "wasm_sha256": "1b0a01f314518fb848bbbedd2c82907145cb44b05138ca5571965515f189fdb2",
+  "browser_version": "148.0.7778.96",
+  "controls": [
+    "invalid plan/bound/club/revision/id atomic",
+    "save/load deterministic continuation",
+    "duplicate commands idempotent after reload",
+    "invalid save import preserves state",
+    "React command/save/import interaction"
+  ],
+  "limitations": [
+    "legacy profile uses fictional squad and a null manager pointer",
+    "reference profiles admit only pinned ordinary club/nonhuman manager records",
+    "retained capture uses an older instrumented Bosman platform with no contemporaneous input-consumption seal",
+    "plan labels remain fictional; no original UI binding, human registry or match effects"
+  ],
+  "reference_profiles": [
+    {
+      "origin": "synthetic-regression",
+      "fixture_sha256": "162a95a541093ebe6af32cbbb2005eaeb62ee41580e7e53e9f9283da550b941b",
+      "operations": 34,
+      "original_instruction_cases": 21,
+      "native_browser_equal": true,
+      "canonical_sha256": "8551fdd7a93468d1b873bb5f91f74e4c462dfd375573a576fc5b0696eece4eb0",
+      "ui_controls": [
+        "pending import locks mutations",
+        "sparse club selection",
+        "manager projection",
+        "second bank resolution",
+        "v2 export/import continuation",
+        "unqualified fixture preserves state"
+      ]
+    },
+    {
+      "origin": "captured-bosman",
+      "fixture_sha256": "b68bfba221cccc84a92cfa63804487e206b3858be635e988738c5fc701c29711",
+      "operations": 34,
+      "original_instruction_cases": 21,
+      "native_browser_equal": true,
+      "canonical_sha256": "cf5536a32a7e2d7c5392ae23b5f5fc6898f49c0c5757c7f1e905b5631810ee35",
+      "ui_controls": [
+        "pending import locks mutations",
+        "sparse club selection",
+        "manager projection",
+        "second bank resolution",
+        "v2 export/import continuation",
+        "unqualified fixture preserves state"
+      ]
+    }
+  ],
+  "implementation_revision": "a039a4f60327f58a2770397b8f2ded17346d5b0c",
+  "total_operations": 105,
+  "oracle_sha256": "6256819aeb474975aa103ed45eff70d2ebec33f4c212527f8258ecc7b2dbafc5",
+  "node_version": "22.22.2",
+  "rust_checks": [
+    "workspace tests",
+    "formatting",
+    "Clippy all targets with warnings denied",
+    "workspace build",
+    "WASM release build"
+  ],
+  "browser_checks": [
+    "TypeScript strict typecheck",
+    "build",
+    "actual Chromium worker execution",
+    "UI interactions",
+    "delayed import locks mutations"
+  ],
+  "test_harness_sha256": {
+    "check-browser.cjs": "9f7068dabd3367d9611f52906161b5c41fa786bfd4b1d8fee17cf66b720774f5",
+    "check-reference.cjs": "e98d2b008cac3cb997343b8718b3df62ecc437a991e7ee0d06d9c236f89244ae"
+  },
+  "independent_oracle_reproduction": {
+    "optimized_python": true,
+    "byte_identical": true,
+    "extractor_controls_passed": 5
+  }
+}

@@ -108,3 +108,15 @@ loading has a private decode type plus full replay validation. The direct
 mutation compile-fail check, all Rust behavioral tests, strict TypeScript
 checking and builds pass. R1/R2 remain separate crates/host modules; no second
 production rules implementation was introduced.
+
+
+## Subsequent real club/manager extension
+
+[Manager-bound qualification](MANAGER_BOUND_PLAN.md) and
+[private-input recovery](PC_R3_CAPTURE_INPUT.md) extend this original increment.
+The field at `club+0xcf` is a manager staff pointer; the earlier word "owner"
+was a hypothesis. The legacy profile string keeps its old spelling for save
+compatibility. The new profile admits three reviewed nonhuman-manager ordinary
+clubs from retained Bosman state and implements bank/index resolution through
+Rust. It does not qualify human management or original UI handlers. See
+[PR #33](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/33).

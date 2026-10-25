@@ -77,3 +77,33 @@ Routing follows AGENTS.md with bounded implementation workers; stronger review i
 ## Accepted increment evidence
 
 [R1](../research/PC_R1_RNG.md), [R2](../research/PC_R2_RECOVERY.md), and [R3](../research/PC_R3_MANAGEMENT.md) retain scoped contracts and receipts. Delivery [PR #32](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/32) records exact-head review, CI and merge disposition. R3 selects a tactical-plan index on a preinitialized null-owner fixture, not an original UI binding or match-plan contents. Conditional private-capture/Windows gates above were not needed and remain unqualified. Independent review used GPT-6 Astra/high; both implementation workers used GPT-6.1 Sol/medium. No exact token/billing totals are exposed.
+
+## Next bounded increment — real club/owner qualification
+
+Base main `5e6db1279abda43d88b751831b6b3ae43a304429`, refreshed before work.
+The coordinator owns integration, management core/UI changes and shared status.
+Worker A (GPT-6 Astra/high) owns original-path and field-identity research on
+`codex/pc-owner-evidence` in a separate WSL worktree. Worker B (GPT-6.1 Sol/medium)
+owns bounded private-input/capture recovery and sanitized provenance on
+`codex/pc-owner-inputs`. No public fixture or workflow extension is promoted
+until the specimen, state ownership, required callees and acceptance domain are
+established. One heavy build/emulation/replay at a time; no original Windows
+process launch or new infrastructure. Public labels remain hypotheses until
+verified. Raw records, captures and proprietary data remain private. Independent
+exact-revision review follows implementation; models are chosen by task risk,
+with compact handoffs and no repeated full-history worker context.
+
+
+### Manager-bound increment outcome
+
+Real private-state recovery and original-instruction bank qualification are
+implemented in [PR #33](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/33).
+The earlier "owner" label is corrected to manager staff pointer. Three ordinary
+clubs with nonhuman managers are admitted through fingerprint-bound input;
+public synthetic regression data remains distinct. Rust/browser equality covers
+105 operations, both banks and version-2 continuation, while version-1 saves
+remain byte compatible. Inputs are served only by the local preview on explicit
+request and never copied into build output. See the existing
+[manager-bound contract](../research/MANAGER_BOUND_PLAN.md) and
+[progress](../status/PROGRESS.md). Human registry/appointments, original UI,
+plan-content decoding, matches and original saves remain unqualified.
