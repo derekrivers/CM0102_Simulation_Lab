@@ -2,6 +2,10 @@
 
 Status: one reviewed four-arm campaign completed and failed its observer-policy gate. File-use provenance remains unknown. The frozen design below belongs to exact experimental source 1007f45; its executed archive and all failures are retained privately. Prior R9 failures are immutable.
 
+## Preserved pre-execution contract (executed source 1007f45)
+
+The future-tense execution gates in this section record the earlier freeze; the current failed result follows below.
+
 The claim is affirmative Linux Bosman host-API file observation, never an original
 Windows process result or a whole-kernel-I/O census. Successful open, positive
 read delivery and mmap establishment are separate. mmap does not establish page
