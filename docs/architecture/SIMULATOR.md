@@ -1,5 +1,7 @@
 # Simulator and continuous research lab
 
+> Long-term architecture reference. The active PC plan limits immediate work to bounded local slices; this design is not a request to build all services.
+
 ## Upstream foundation
 
 The first worker executes [Max Evans’s Bosman Edition](https://github.com/maxevans60/cm0102-bosman-edition). Its observations are attached to the inventory imported from [Max Evans’s function map](https://github.com/maxevans60/cm0102-function-map). Follow [the integration contract](../research/UPSTREAM_INTEGRATION.md); source pins, original binary identity and adapter capability checks are mandatory.
@@ -101,4 +103,4 @@ LLM usage defaults disabled until provider, monthly ceiling and permitted inputs
 
 ## Implementation contracts
 
-Use [reconstruction method](RECONSTRUCTION_METHOD.md), [runtime contracts](RUNTIME_CONTRACTS.md), [verification plan](../research/VERIFICATION_PLAN.md) and the [bootstrap checkpoints](../roadmap/BOOTSTRAP.md) to turn these decisions into bounded executable work.
+Use [reconstruction method](RECONSTRUCTION_METHOD.md), [runtime contracts](RUNTIME_CONTRACTS.md), [verification plan](../research/VERIFICATION_PLAN.md) and the [active PC delivery plan](../roadmap/PC_FIRST.md) to turn these decisions into bounded executable work.

@@ -1,6 +1,6 @@
 # Non-negotiables
 
-Status: proposed programme contract, incorporating the user's explicit Rust and whole-game decisions. Gate exceptions require a recorded decision and visible scope change; passing tests must never silently redefine fidelity.
+Status: accepted programme boundaries, retained by the PC-first reset on 25 October 2026. Gate exceptions require a recorded decision and visible scope change; passing tests must never silently redefine fidelity.
 
 1. **Whole game.** A match runner, holiday simulator or menu mock-up is not completion. Every baseline feature belongs in the scope register, including UI, persistence, setup, management and competition-specific behaviour.
 2. **Rust owns game behaviour.** Game rules, calendar, RNG, AI, financial calculations and state transitions live in Rust. React/TypeScript renders views and sends commands; it cannot maintain a competing version of rules. Python is research glue, not a second production engine.

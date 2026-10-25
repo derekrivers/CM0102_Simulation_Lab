@@ -1,36 +1,44 @@
-# Whole-game reconstruction roadmap
+# Roadmap
 
-## Foundational upstream projects
+Updated 25 October 2026. **The next implementation target is a verified Rust RNG slice on the PC.** The full objective remains a faithful, playable and extensible reconstruction of the entire game.
 
-This project builds on Max Evans's existing work:
+## Current delivery sequence
 
-- [cm0102-bosman-edition](https://github.com/maxevans60/cm0102-bosman-edition): our initial native execution backend, recompiler/runtime reference and source of reusable headless and differential test infrastructure.
-- [cm0102-function-map](https://github.com/maxevans60/cm0102-function-map): our starting function/global inventory, names, provenance and call/data relationship clues. Import it in P00; add our evidence rather than starting a blank map.
-
-[Upstream integration](docs/research/UPSTREAM_INTEGRATION.md) specifies pins, exact inputs, adapters, test reuse, map ingestion and upgrade qualification. The original executable remains the behavioural reference. Neither upstream project is treated as automatically complete or infallible.
-
-**Outcome:** a faithful, playable and extensible reconstruction of the entire CM01/02 game. **Rust** implements the game and simulator; **React/TypeScript** implements the browser interface. The PC is the primary local build, reference-execution and experiment host for calibration and early reconstruction. The continuous VPS laboratory is later durability and throughput capacity, not a prerequisite for local B2/B3 work.
-
-Planning base: `b702984020767bd36095dc231354a77a97a9c2ff`. This is a standalone project roadmap. All phases are planned; nothing here claims a built simulator or deployed VPS.
-
-| Phase | Outcome | Depends on |
+| Target | Status | Acceptance |
 |---|---|---|
-| P00 | [Baseline and programme contract](docs/roadmap/phase-00.md) | — |
-| P01 | [Reliable headless laboratory](docs/roadmap/phase-01.md) | P00 |
-| P02 | [Calibrated references and replay](docs/roadmap/phase-02.md) | P00 |
-| P03 | [Continuous evidence and function mapping](docs/roadmap/phase-03.md) | P01, P02 |
-| P04 | [Rust foundation and browser vertical slice](docs/roadmap/phase-04.md) | P02 |
-| P05 | [People and club management](docs/roadmap/phase-05.md) | P04 |
-| P06 | [Detailed and quick match reconstruction](docs/roadmap/phase-06.md) | P04 |
-| P07 | [Competitions and complete world lifecycle](docs/roadmap/phase-07.md) | P05, P06 |
-| P08 | [Complete playable application](docs/roadmap/phase-08.md) | P07 |
-| P09 | [Whole-game fidelity and compatibility release](docs/roadmap/phase-09.md) | P08 |
-| P10 | [Extensible game and sustained development](docs/roadmap/phase-10.md) | P09 |
+| PC-R0: recover research evidence | Complete for the selected input | Reversal checks passed; fresh official-instruction RNG outputs match retained hashes |
+| PC-R1: CRT and small-bound RNG | Next | 1,024 CRT steps + 2,570 bounded calls; all exposed state matches; native and actual WASM execution; checkpoint continuation |
+| PC-R2: lab/reference recovery | Open, selected work alongside PC-R1 | Working WSL toolchain, fresh bounded Bosman replay, scoped evidence ledger and necessary Windows qualification |
+| PC-R3: stateful management workflow | Planned | An evidenced Rust command with rejection cases, browser interaction, native/browser equality and save/reload |
 
-P00 establishes the inventory and inputs. P01 builds reliable operations while P02 calibrates references locally. P04 proves the shared native/browser core after P02, in parallel with P03 continuous research; Jev never blocks Rust development. P05 and P06 are genuine parallel implementation lanes, converging in P07. UI and persistence work begin in P04 and accompany every slice; P08 completes the experience. P09 closes the original scope. P10 delivers extended gameplay. Extension interfaces are designed early, but feature development cannot silently alter the faithful baseline.
+The [active PC delivery contract](docs/roadmap/PC_FIRST.md) contains the task checklists, dependencies, exclusions and stop conditions. [Progress](docs/status/PROGRESS.md) records results. [Reversal integration](docs/research/REVERSAL.md) pins the reusable research and distinguishes official instruction emulation from a different GDI specimen's live evidence.
 
-See [implementation sequence and gates](docs/roadmap/implementation-roadmap.md), [simulator design](docs/architecture/SIMULATOR.md), [VPS operation](docs/operations/VPS.md), [Jev trial](docs/architecture/JEV.md), and [non-negotiables](docs/NON_NEGOTIABLES.md).
+Use Windows for the reviewed reference route, WSL for Linux lab/build work, and a portable Rust core for native/WASM behaviour. Numerical work can start from adequate local original-instruction evidence without completing all P02 calibration. This scoped exception does not close formal P02/P04 gates or authorize live execution.
 
-No calendar completion date is credible before the P01/P02 throughput and compatibility work. Use gate-based commitments; re-estimate after the first original-referenced Rust slices. Continuous compute accelerates observations, not necessarily semantic understanding or reviewer throughput.
+## Whole-game scope retained
 
-Start with the [bootstrap checkpoints](docs/roadmap/BOOTSTRAP.md). The [pre-implementation review](docs/reviews/PRE_IMPLEMENTATION_REVIEW.md) records the substantive gaps found and their resolution.
+These contracts describe programme scope and eventual exit gates. Their phase numbers are not today's ordered task queue, and none is claimed fully closed.
+
+| Phase | Scope | Current position |
+|---|---|---|
+| [P00](docs/roadmap/phase-00.md) | Baseline, inputs and scope | Substantial inventory/input work demonstrated; remaining scope/gate review open |
+| [P01](docs/roadmap/phase-01.md) | Reliable headless laboratory | Bounded local execution demonstrated; durable service deferred |
+| [P02](docs/roadmap/phase-02.md) | Calibrated references and replay | Synthetic comparator and scoped original-instruction evidence; original-process calibration open |
+| [P03](docs/roadmap/phase-03.md) | Continuous evidence and mapping | Deferred continuous campaigns; targeted research continues |
+| [P04](docs/roadmap/phase-04.md) | Rust foundation and browser slice | Begins with PC-R1; PC-R3 provides the first player workflow |
+| [P05](docs/roadmap/phase-05.md) | People and club management | Later |
+| [P06](docs/roadmap/phase-06.md) | Detailed and quick matches | Later, alongside P05 after relevant foundation |
+| [P07](docs/roadmap/phase-07.md) | Competitions and world lifecycle | After P05/P06 |
+| [P08](docs/roadmap/phase-08.md) | Complete playable application | After world integration |
+| [P09](docs/roadmap/phase-09.md) | Whole-game fidelity and compatibility | After playable scope and full evidence |
+| [P10](docs/roadmap/phase-10.md) | Deliberate extensions | After faithful baseline; compatibility interfaces planned earlier |
+
+Scope includes setup, databases/assets, players/staff, contracts/transfers, finances, training, matches, competition rules, news, saves, navigation and supported play modes. Rust owns all game rules. A match runner, function atlas or static UI is not completion.
+
+## Deferred work and re-evaluation
+
+VPS capacity purchases, 24/72-hour campaigns, distributed workers, PostgreSQL deployment, dashboards and Jev trials are not immediate dependencies. Retained designs are reference material, not instructions to implement them now. Existing dormant Windows launcher retirement needs a separate reviewed verification-policy transition; do not bypass its guards.
+
+After two focused setup sessions without useful execution, diagnose and reassess before expanding infrastructure. Replan a feature when original evidence contradicts its contract, state cannot replay, or unresolved dependencies overwhelm its boundary. Measure accepted behaviours and demonstrated workflows, not mapped-function or PR counts. Estimate broader delivery after several completed slices.
+
+[Non-negotiables](docs/NON_NEGOTIABLES.md), [delivery rules](docs/runbooks/delivery.md) and the [historical index](docs/history/README.md) preserve fidelity, provenance and the earlier decisions.

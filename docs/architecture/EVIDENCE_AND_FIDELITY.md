@@ -62,4 +62,4 @@ Hypothesis: a particular renewal decision depends on player age and contract dur
 
 ## Implementation contracts
 
-Use [reconstruction method](RECONSTRUCTION_METHOD.md), [runtime contracts](RUNTIME_CONTRACTS.md), [verification plan](../research/VERIFICATION_PLAN.md) and the [bootstrap checkpoints](../roadmap/BOOTSTRAP.md) to turn these decisions into bounded executable work.
+Use [reconstruction method](RECONSTRUCTION_METHOD.md), [runtime contracts](RUNTIME_CONTRACTS.md), [verification plan](../research/VERIFICATION_PLAN.md) and the [active PC delivery plan](../roadmap/PC_FIRST.md) to turn these decisions into bounded executable work.

@@ -1,5 +1,7 @@
 # Jev for research triage
 
+> Deferred proposal. No Jev service, trial or expenditure is scheduled; the active PC plan takes priority.
+
 Decision: include a bounded evaluation in P3; promote to optional production routing only if it improves our measured research workflow. Rust still owns simulation, scheduling, verification and all game behaviour. A TypeSafe service outage must not stop deterministic experiments.
 
 ## Verified capability and fit
