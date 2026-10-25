@@ -4,6 +4,7 @@ import argparse
 import datetime
 import json
 import os
+import signal
 from pathlib import Path
 import subprocess
 import sys
@@ -166,8 +167,25 @@ def main():
     elif args.command == "restart":
         if not service_active():
             raise ValueError("No worker is active. Use resume to recover a stopped campaign.")
-        subprocess.run(["systemctl", "--user", "kill", "--kill-whom=main",
-                        "--signal=SIGKILL", UNIT], check=True)
+        from core import snapshot, connect, transaction, event
+        data = snapshot(root, campaign)
+        workers = [item for item in data["events"] if item["kind"] == "worker-started"]
+        current = subprocess.check_output(["systemctl", "--user", "show", "--property=MainPID", "--value", UNIT], text=True).strip()
+        if not workers or current != str(workers[-1]["detail"].get("pid")):
+            raise ValueError("The active worker belongs to another campaign. No process was signalled.")
+        pid = int(current)
+        descriptor = os.pidfd_open(pid)
+        try:
+            command = Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0")
+            if str(REPO / "tools/lab/core.py").encode() not in command or campaign.encode() not in command:
+                raise ValueError("Worker command identity differs. No process was signalled.")
+            db = connect(root)
+            with transaction(db):
+                event(db, campaign, "restart-requested", {"pid": pid, "source": "operator-or-frozen-drill"})
+            db.close()
+            signal.pidfd_send_signal(descriptor, signal.SIGKILL)
+        finally:
+            os.close(descriptor)
         print("Injected worker termination; systemd will clean descendants and restart it.")
 
 

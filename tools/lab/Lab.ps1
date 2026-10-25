@@ -75,7 +75,7 @@ if ($Action -eq 'Menu') {
                 if ($LASTEXITCODE -ne 0) { throw 'Report generation failed.' }
                 $windowsReport = & wsl.exe -d $settings.distro -u $settings.user -- /usr/bin/wslpath -w $report.Trim()
                 if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the report path.' }
-                Start-Process -FilePath $windowsReport.Trim() -WindowStyle Hidden
+                Start-Process -FilePath $windowsReport.Trim()
             }
             '8' { Invoke-Lab @('replay',(Read-Host 'Logical job ID from report')) }
             '0' { exit 0 }
@@ -98,7 +98,7 @@ if ($Action -eq 'Report') {
     if ($LASTEXITCODE -ne 0) { throw 'Report generation failed.' }
     $windowsReport = & wsl.exe -d $settings.distro -u $settings.user -- /usr/bin/wslpath -w $report.Trim()
     if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the report path.' }
-    Start-Process -FilePath $windowsReport.Trim() -WindowStyle Hidden
+    Start-Process -FilePath $windowsReport.Trim()
     Write-Host $windowsReport.Trim()
 } else {
     Invoke-Lab $labArgs
