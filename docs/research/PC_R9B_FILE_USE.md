@@ -1,8 +1,6 @@
 # PC-R9b bounded file-use provenance repair (experimental)
 
-Status: design freeze candidate; no native observer build or game campaign authorized
-or executed at this revision. This file and all `pc_r9b*` code stay experimental
-until independent exact-source/evidence review. Prior R9 failures are immutable.
+Status: one reviewed four-arm campaign completed and failed its observer-policy gate. File-use provenance remains unknown. The frozen design below belongs to exact experimental source 1007f45; its executed archive and all failures are retained privately. Prior R9 failures are immutable.
 
 The claim is affirmative Linux Bosman host-API file observation, never an original
 Windows process result or a whole-kernel-I/O census. Successful open, positive
@@ -104,3 +102,64 @@ the next pread binds the replacement. Separate nested-API and preexisting-thread
 controls exercise exact counts and TSYNC/census rejection. Eleven controls pass;
 one initial signal-control helper compile failure is retained privately, corrected
 without weakening `-Werror` or any acceptance threshold.
+## Executed bounded result: retained observer-policy failure
+
+Independent B review approved exact [1007f45fc5f6267ee283ffc804754d39cf8c9f9a](https://github.com/derekrivers/CM0102_Simulation_Lab/commit/1007f45fc5f6267ee283ffc804754d39cf8c9f9a)
+after independently repeating eleven mechanism controls. Lead then allocated the
+single heavy slot for one observer build and one frozen four-arm campaign. The
+26,232-byte library has SHA-256
+`667cf38d6b99f05018025b79ed249e84e3ed21c7f0e0d293722d334811c757f4`.
+The compiler was Ubuntu cc 13.3.0; compile/seal elapsed 0.465 seconds. Frozen
+sources, exact commands/environment, compiler/build receipts and all outputs
+remain in fresh private directories. No original Windows process was launched.
+
+The [sanitized failed receipt](evidence/pc-r9b-attempt1-failed-policy-v1.json)
+records 368.100230688 seconds between the campaign's contemporaneous seals:
+
+| Arm | Actual seconds | Execution | Observation |
+| --- | ---: | --- | --- |
+| Baseline | 83.136259 | reached 14-day endpoint | disabled |
+| R5 derivative, file observer absent | 83.290129 | reached 14-day endpoint | disabled |
+| Observed A | 99.873491 | SIGSYS, exit -31 | incomplete |
+| Observed B | 91.602489 | SIGSYS, exit -31 | incomplete |
+
+Two of four executions succeeded; zero of two observations are complete. Both
+observed processes failed under the explicit single-task policy. SIGSYS alone
+does not identify the forbidden syscall or library route, so no specific SDL,
+clone or fork cause is asserted. Neither observed arm produced its endpoint save
+or R5 sparse capture. Each retained trace is exactly 55 bytes, SHA-256
+`3ac738bbbcbb6da661af58288b1d7c3f29141747d61eb02f159ae2f0b450da21`,
+containing the header and policy line only. There is no aggregate table or footer.
+Because aggregation flushes at the destructor, operation/byte/error counters and
+file observations are **unknown**, never zero. Missing footer correctly rejects
+completeness. No limit or policy changed and no repeat campaign was run.
+
+The two actual successful saves exactly equal each other and retained R5:
+18,975,625 bytes, SHA-256
+`8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11`.
+The disabled derivative's complete 3,849,184-byte capture exactly equals retained
+R5, SHA-256
+`014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40`.
+These are successful-subset comparisons only. Four-arm endpoint and captured-range
+noninterference fail because the observed outputs are absent. Full live-state,
+clean-file consumption, mapped-page access and original-process parity remain
+unqualified; original/Bosman comparison remains not-run.
+
+Source, observer/build/tool identities, the ldd-reported 49 dependencies and all
+760 clean manifest members remained stable through every before/after arm seal.
+Independent A artifact review rehashed all 155 private artifact seals, actual
+manifest members and descriptor identities, five executed source files and all
+eight chronological arm seals. It independently parsed the two actual traces
+without importing the producer parser and compared complete save/capture bytes.
+Final report-head review and its sanitized audit receipt are separate gates.
+
+The precise blocker is incompatibility of this single-task observation policy
+with an unidentified forbidden syscall on the frozen platform route. Bounded
+aggregation mechanisms pass synthetic controls but have no complete actual
+file-use observation. The observer, driver and controls remain on the
+[experimental branch](https://github.com/derekrivers/CM0102_Simulation_Lab/tree/codex/pc-r9b);
+main may receive only independently reviewed truthful reports and receipts.
+Reproduction requires the exact linked experimental source, rather than absent
+main-tree scripts. Any diagnosis or new experiment requires its own frozen
+source, lifecycle/identity justification, budget and independent review; this
+allocation authorizes no follow-up. All prior and current failed paths remain.

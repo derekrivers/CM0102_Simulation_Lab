@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "source_revision": "1007f45fc5f6267ee283ffc804754d39cf8c9f9a",
+  "experimental_branch": "codex/pc-r9b",
+  "execution_status": "failed",
+  "observation_completeness": "failed",
+  "clean_tree_file_use_provenance": "unknown",
+  "original_bosman_comparison_verdict": "not-run",
+  "original_windows_process_launched": false,
+  "successful_executions": 2,
+  "attempted_executions": 4,
+  "complete_observations": 0,
+  "attempted_observations": 2,
+  "endpoint_noninterference": false,
+  "captured_ranges_noninterference": false,
+  "successful_baseline_disabled_saves_equal_r5": true,
+  "disabled_complete_capture_equal_r5": true,
+  "observer_aggregate_counters": "unknown; destructor not reached",
+  "forbidden_syscall_identity": "unknown; SIGSYS alone does not identify syscall",
+  "failure": "single-task observer policy terminated both observed arms with SIGSYS; no completion footer, endpoint save or sparse capture",
+  "identities_stable": true,
+  "sealed_elapsed_seconds": 368.100230688,
+  "results": [
+    {
+      "arm": "baseline",
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 83.13625912499265,
+      "execution_status": "succeeded",
+      "exit_code": 0,
+      "identities_stable": true,
+      "observation_completeness": "disabled",
+      "reason": "completed-target",
+      "save": {
+        "bytes": 18975625,
+        "sha256": "8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11"
+      }
+    },
+    {
+      "arm": "disabled",
+      "capture": {
+        "bytes": 3849184,
+        "sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40"
+      },
+      "capture_complete": true,
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 83.2901294070034,
+      "execution_status": "succeeded",
+      "exit_code": 0,
+      "identities_stable": true,
+      "observation_completeness": "disabled",
+      "reason": "completed-target",
+      "save": {
+        "bytes": 18975625,
+        "sha256": "8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11"
+      }
+    },
+    {
+      "arm": "enabled-a",
+      "capture_complete": false,
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 99.87349135101249,
+      "execution_status": "failed",
+      "exit_code": -31,
+      "identities_stable": true,
+      "observation_completeness": "failed",
+      "observation_error_type": "ValueError",
+      "reason": "missing-endpoint",
+      "trace": {
+        "bytes": 55,
+        "sha256": "3ac738bbbcbb6da661af58288b1d7c3f29141747d61eb02f159ae2f0b450da21"
+      }
+    },
+    {
+      "arm": "enabled-b",
+      "capture_complete": false,
+      "comparison_verdict": "not-run",
+      "elapsed_seconds": 91.60248856899852,
+      "execution_status": "failed",
+      "exit_code": -31,
+      "identities_stable": true,
+      "observation_completeness": "failed",
+      "observation_error_type": "ValueError",
+      "reason": "missing-endpoint",
+      "trace": {
+        "bytes": 55,
+        "sha256": "3ac738bbbcbb6da661af58288b1d7c3f29141747d61eb02f159ae2f0b450da21"
+      }
+    }
+  ],
+  "limits": {
+    "abnormal_details": 1024,
+    "address_space": 6442450944,
+    "aggregate_rows": 2048,
+    "counter_bits": 64,
+    "cpu_seconds": 300,
+    "each_stream": 1048576,
+    "file_bytes": 67108864,
+    "identity_policy": "tsync-single-task-no-clone-v1",
+    "path_bytes": 1024,
+    "trace_bytes": 16777216,
+    "wall_seconds": 240
+  },
+  "clean_inputs": {
+    "file_count": 760,
+    "manifest": {
+      "bytes": 72879,
+      "sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6"
+    },
+    "specimen": {
+      "bytes": 7192576,
+      "sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86"
+    }
+  },
+  "bosman_source": {
+    "revision": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "tree": "81f376f62451203eaa32f7539f1d6a741b3f2099"
+  },
+  "source_bundle": {
+    "docs/research/PC_R9B_FILE_USE.md": {
+      "bytes": 7897,
+      "sha256": "5591b748240aa8d0391b339e4cc15aa8b03d86e7188c42eff2f5c6905a464d27"
+    },
+    "scripts/pc_r9b_aggregate.py": {
+      "bytes": 7947,
+      "sha256": "613857cc1ffba0674e0c7a259a607b022c872ac5b6673b8daf3f381cb92d9c39"
+    },
+    "scripts/pc_r9b_controls.py": {
+      "bytes": 14542,
+      "sha256": "4270365bf9a69afc0e70f94e634dfa6ab6c7b01ba7282743674a9a82868dab5e"
+    },
+    "scripts/pc_r9b_file_observer.c": {
+      "bytes": 11715,
+      "sha256": "106a2e835f8a300ae3089808c5b8eb7731d45a5c0e0b5385a681fed8c376b925"
+    },
+    "scripts/pc_r9b_file_use.py": {
+      "bytes": 13919,
+      "sha256": "9c4581a9b81d8f171a0eeea146c31f29cf94197a2b45f598ca8eaec7a7921d2d"
+    }
+  },
+  "observer_library": {
+    "bytes": 26232,
+    "sha256": "667cf38d6b99f05018025b79ed249e84e3ed21c7f0e0d293722d334811c757f4"
+  },
+  "compiler": {
+    "bytes": 1023032,
+    "sha256": "1b99826121ae6682a634e5efe09bd3e3df58ce58e0b28f849114ab5b89139c26"
+  },
+  "compiler_version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "runtime_dependency_scope": "ldd-reported transitive DT_NEEDED only; later dlopen modules not inventoried",
+  "independent_pre_execution_review": {
+    "sha256": "e938e56b8d0b4f979138064f37fb76eb5712a3bd302e97e8faac661cfed418e4",
+    "bytes": 2181
+  },
+  "private_receipt": {
+    "sha256": "62ac0159b1650851758e8538633eabea2597424476d55f42d6db8f37572414b9",
+    "bytes": 21735
+  },
+  "sealed_private_artifact_count": 155,
+  "next_experiment": "none authorized; requires separately frozen diagnosis, controls, budget and independent review"
+}
