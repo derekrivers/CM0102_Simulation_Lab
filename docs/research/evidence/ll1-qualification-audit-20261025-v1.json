@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "kind": "qualification-interim-audit-v1",
+  "decision": "incomplete",
+  "reviewer": "qualification_review independent agent",
+  "observed_at_utc": "2026-10-25T15:56:30.689845+00:00",
+  "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+  "source_clean": true,
+  "campaign_id": "ll1-24h-20261025",
+  "manifest_sha256": "0ac601252e55b485f5305d433c5f6c68c9d11e64cf07034f2488907061c3d711",
+  "manifest_canonical_hash_verified": true,
+  "manifest_publication_matches_database": true,
+  "manifest_file_sha256": "29eca8b874654a7c082100bad2a6839a560bcf9c9ea875532d0a9874fcaa0564",
+  "read_method": "SQLite mode=ro consistent read transaction; independent streaming artifact SHA-256; no production CLI/import, report refresh, signal, configuration or replay",
+  "snapshot_canonical_sha256": "0b11baf6eac56c8609b9e3fc7623913b69cef31214d87996ee01b2d38e1cee53",
+  "state": "running",
+  "stop_reason": null,
+  "observation_qualified": 1,
+  "horizon_seconds": 86400,
+  "observation_elapsed_seconds": 3584.024958782,
+  "remaining_observation_seconds": 82815.975041218,
+  "active_seconds": 182.6596052829991,
+  "idle_seconds": 3347.447909595139,
+  "unaccounted_orchestration_restart_seconds": 53.91744390386157,
+  "residual_interpretation": "Elapsed minus active minus idle includes orchestration, publication, polling and restart intervals. It is not all restart downtime and is not credited as active or idle.",
+  "boot_identity_matches": true,
+  "last_tick_age_seconds_at_read": 1.429146556998603,
+  "jobs": [
+    {
+      "job_id": "001-rng-native-wasm-v1",
+      "state": "succeeded",
+      "attempts": 1,
+      "execution_status": "succeeded",
+      "comparison_verdict": "equal"
+    },
+    {
+      "job_id": "002-original-r10-regression-v1",
+      "state": "succeeded",
+      "attempts": 1,
+      "execution_status": "succeeded",
+      "comparison_verdict": "equal"
+    },
+    {
+      "job_id": "003-bosman-same-save-v1",
+      "state": "succeeded",
+      "attempts": 2,
+      "execution_status": "succeeded",
+      "comparison_verdict": "not-run"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_id": "653d1fe72df2429eb051ace27ebcf91c",
+      "job_id": "001-rng-native-wasm-v1",
+      "ordinal": 1,
+      "execution_status": "succeeded",
+      "comparison_verdict": "equal",
+      "reason": null,
+      "publication_state": "published",
+      "result_sha256": "47f5fcc9d66b2d9235f0ab1240805607a2dcea8ce8577089fd3e9febeb50c47d",
+      "artifact_count": 11,
+      "artifact_bytes": 172178,
+      "every_inventory_entry_verified": true,
+      "complete_inventory_verified": true,
+      "published_result_matches_database": true,
+      "elapsed_wall_seconds": 0.7347061634063721,
+      "cpu_seconds_delta": 0.471956,
+      "service_lifetime_peak_bytes": 63651840,
+      "oom_kills": 0,
+      "terminal_service_pids": 1
+    },
+    {
+      "attempt_id": "84be418d2751467bb4c96add61a800cc",
+      "job_id": "002-original-r10-regression-v1",
+      "ordinal": 1,
+      "execution_status": "succeeded",
+      "comparison_verdict": "equal",
+      "reason": null,
+      "publication_state": "published",
+      "result_sha256": "8a5308e96db62ef2ff546f03e676a7bc52bafe8f8f413ce226044012df5a9401",
+      "artifact_count": 10,
+      "artifact_bytes": 116571,
+      "every_inventory_entry_verified": true,
+      "complete_inventory_verified": true,
+      "published_result_matches_database": true,
+      "elapsed_wall_seconds": 14.083940267562866,
+      "cpu_seconds_delta": 13.978265,
+      "service_lifetime_peak_bytes": 969220096,
+      "oom_kills": 0,
+      "terminal_service_pids": 1
+    },
+    {
+      "attempt_id": "90265f1c2ad94131a5bcf531361b437e",
+      "job_id": "003-bosman-same-save-v1",
+      "ordinal": 1,
+      "execution_status": "infrastructure_failed",
+      "comparison_verdict": "not-run",
+      "reason": "worker-interrupted",
+      "publication_state": "published",
+      "result_sha256": "3ed54cd7867e240e9ba70c57b0898fd86d7d72ad534eacecd345e500d6ff7e9f",
+      "artifact_count": 14,
+      "artifact_bytes": 29279,
+      "every_inventory_entry_verified": true,
+      "complete_inventory_verified": true,
+      "published_result_matches_database": true,
+      "elapsed_wall_seconds": 35.75259065628052,
+      "resources": "unavailable: worker died before final sample; no zero imputation"
+    },
+    {
+      "attempt_id": "66f47bca7a304f65bc31132eef38e5ad",
+      "job_id": "003-bosman-same-save-v1",
+      "ordinal": 2,
+      "execution_status": "succeeded",
+      "comparison_verdict": "not-run",
+      "reason": null,
+      "publication_state": "published",
+      "result_sha256": "1d2ef4c6594e0fb3be6924b75f5005fa3405640aa4df80ff704304418bdf39f7",
+      "artifact_count": 13,
+      "artifact_bytes": 27160,
+      "every_inventory_entry_verified": true,
+      "complete_inventory_verified": true,
+      "published_result_matches_database": true,
+      "elapsed_wall_seconds": 137.0387511253357,
+      "cpu_seconds_delta": 119.901387,
+      "service_lifetime_peak_bytes": 489807872,
+      "oom_kills": 0,
+      "terminal_service_pids": 1
+    }
+  ],
+  "event_counts": {
+    "queued": 3,
+    "worker-started": 2,
+    "claimed": 4,
+    "finished": 4,
+    "restart-requested": 1,
+    "recovered": 1,
+    "idle-observation": 1
+  },
+  "recovery_events": [
+    {
+      "kind": "worker-started",
+      "time": 1792940205.2690854,
+      "job_id": null,
+      "attempt_id": null,
+      "detail": {
+        "cgroup": {
+          "cpu_max": [
+            "100000",
+            "100000"
+          ],
+          "memory_max": "2147483648",
+          "path": "/user.slice/user-1000.slice/user@1000.service/app.slice/cm0102-local-lab.service",
+          "pids_max": "128"
+        },
+        "pid": 273953
+      }
+    },
+    {
+      "kind": "restart-requested",
+      "time": 1792940252.761678,
+      "job_id": null,
+      "attempt_id": null,
+      "detail": {
+        "pid": 273953,
+        "source": "operator-or-frozen-drill"
+      }
+    },
+    {
+      "kind": "recovered",
+      "time": 1792940256.0303833,
+      "job_id": "003-bosman-same-save-v1",
+      "attempt_id": "90265f1c2ad94131a5bcf531361b437e",
+      "detail": {}
+    },
+    {
+      "kind": "worker-started",
+      "time": 1792940256.0762084,
+      "job_id": null,
+      "attempt_id": null,
+      "detail": {
+        "cgroup": {
+          "cpu_max": [
+            "100000",
+            "100000"
+          ],
+          "memory_max": "2147483648",
+          "path": "/user.slice/user-1000.slice/user@1000.service/app.slice/cm0102-local-lab.service",
+          "pids_max": "128"
+        },
+        "pid": 274055
+      }
+    },
+    {
+      "kind": "idle-observation",
+      "time": 1792940393.1932044,
+      "job_id": null,
+      "attempt_id": null,
+      "detail": {
+        "remaining_seconds": 86212.068882134
+      }
+    }
+  ],
+  "service": {
+    "Restart": "on-failure",
+    "RestartUSec": "3s",
+    "MainPID": "274055",
+    "NRestarts": "1",
+    "CPUQuotaPerSecUSec": "1s",
+    "MemoryMax": "2147483648",
+    "MemorySwapMax": "0",
+    "TasksMax": "128",
+    "KillMode": "control-group",
+    "ActiveState": "active",
+    "SubState": "running"
+  },
+  "host_holder": {
+    "record_sha256": "1aa2f50e67da0336fae5e8350083eae5c820988e795e33f95a3f6fff6c0a26c6",
+    "state": "running",
+    "worker_active": true,
+    "heartbeat_age_seconds": 1.970926284790039,
+    "pid_alive": true
+  },
+  "pins": {
+    "unique_pin_count": 90,
+    "all_verified": true,
+    "mismatched_basenames": []
+  },
+  "retained_receipts": [
+    {
+      "name": "service-acceptance.json",
+      "sha256": "78e127f892e0f1ff85b83afc7b608f088ccb1aa172afc029bc6d978c13be3818",
+      "outcome": "passed",
+      "case_count": 8
+    },
+    {
+      "name": "ll1-24h-v1-freeze.json",
+      "sha256": "c0dbb69e7cc6f5cf048c38baf045239a5ff7bfca8a297196508961bb34da4836",
+      "outcome": null,
+      "case_count": 0
+    }
+  ],
+  "rng_replay_target": {
+    "canonical_bytes": 75952,
+    "native_sha256": "1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16",
+    "wasm_sha256": "1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16",
+    "negative_control_mismatches": [
+      1023,
+      61,
+      2447,
+      123
+    ]
+  },
+  "report_snapshot": {
+    "state": "running",
+    "observation_elapsed_seconds": 3564.764584413002,
+    "sha256": "b590761d24ee6505dbad04a8e59ea69193b3a194278486839dd628a444df1561",
+    "note": "Periodic report can lag live read-only DB snapshot; no report was regenerated."
+  },
+  "integrity_errors": [],
+  "actual_horizon_completed": false,
+  "post_horizon_replay_run": false,
+  "independent_final_acceptance": false,
+  "heavy_slot_released": false,
+  "not_before_london": "2026-10-26T14:56:45.250062+00:00",
+  "limitations": [
+    "Interrupted Bosman attempt has no final CPU/memory sample; retained as unknown.",
+    "Current heartbeat and boot state are point-in-time observations; final review must repeat.",
+    "No current snapshot can attest future uninterrupted observation.",
+    "Full P01/P03 and original-process comparison remain open."
+  ],
+  "retained_service_drill_audit": {
+    "receipt_sha256": "78e127f892e0f1ff85b83afc7b608f088ccb1aa172afc029bc6d978c13be3818",
+    "receipt_source_revision": "ca6d465871d971d0b35e8afaa08925f04cc1e073",
+    "outcome": "passed",
+    "cases": [
+      "systemd-kill-restart-and-cross-root-exclusion",
+      "selected-result-replay",
+      "bounded-output",
+      "bounded-stall",
+      "bounded-elapsed",
+      "bounded-disk",
+      "cancellation-descendant-cleanup",
+      "real-publication-failure-and-reconciliation"
+    ],
+    "retained_attempts_checked": 10,
+    "complete_inventory_and_publication_errors": []
+  },
+  "restart_request_to_recovered_wall_seconds": 3.268705368041992,
+  "restart_timing_note": "Durable recovered event minus restart-requested event; wall timestamps, not a continuous monotonic heartbeat-gap measurement."
+}
