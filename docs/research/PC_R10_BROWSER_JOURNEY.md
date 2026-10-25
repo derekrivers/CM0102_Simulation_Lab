@@ -69,3 +69,27 @@ No Rust source changes means new storage semantics are not claimed. Original
 process/file-use, original saved games, real squad, lineup assignment, plan
 contents and match effects remain unqualified. Executed results and exact source/
 artifact identities are recorded separately after validation.
+
+## Executed bounded result
+
+Exact source `89c0c52` passed fresh native/release-WASM builds and strict
+TypeScript/build. The new journey helper passed all seven cases (four route
+controls plus synthetic/retained/fresh) in 18.46 seconds, including real persistent
+process close/reopen and native continuation. Fresh WASM is exactly the delivered
+R7 `50c8d50d4a24869e6fc9980c357ef5cef113c3ccbbab0c21a7e3829dd511a0ee`.
+
+The unchanged full browser suite passed 552 operations in 14.61 seconds and the
+unchanged storage suite passed twelve profiles in 23.76 seconds, including both
+invalid-head cases. Both complete parsed receipt objects exactly equal the
+previous R7 receipts: all 552 operations/twelve profile objects and earlier
+375/nine subsets remain unchanged. No canonical expected result was rewritten.
+[Journey receipt](evidence/pc-r10-browser-journey-v1.json) and
+[validation seals](evidence/pc-r10-browser-validation-v1.json) retain exact
+source/artifacts, commands, times and private log identities. Build times were
+not individually measured. Two shell CRLF transport failures occurred before
+runner execution; they are retained and do not count as executed acceptance
+failures. No acceptance runner failed or product correction was needed.
+
+Independent exact-head review and delivery disposition are separate gates. The
+real squad/lineup milestone remains incomplete; future input/action/admission
+gates above remain required.

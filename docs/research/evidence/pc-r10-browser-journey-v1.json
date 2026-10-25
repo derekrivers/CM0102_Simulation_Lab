@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "retained_and_fresh_executed": true,
+  "elapsed_seconds": 17.431,
+  "wasm_sha256": "50c8d50d4a24869e6fc9980c357ef5cef113c3ccbbab0c21a7e3829dd511a0ee",
+  "cases": [
+    {
+      "case": "missing",
+      "atomic": true
+    },
+    {
+      "case": "relative",
+      "atomic": true
+    },
+    {
+      "case": "invalid",
+      "atomic": true
+    },
+    {
+      "case": "oversized",
+      "atomic": true
+    },
+    {
+      "case": "synthetic",
+      "fixture_sha256": "950b8ed556adc847a9f81d302278e624286b98f5fde03a9f29204be08ca11584",
+      "native_wasm_equal": true,
+      "process_reopen": true,
+      "continued_revision": 2
+    },
+    {
+      "case": "retained",
+      "fixture_sha256": "25464b62ef384947465583f38824091d0aeb1a76a901b3e6f9a74f4e08e80aa9",
+      "native_wasm_equal": true,
+      "process_reopen": true,
+      "continued_revision": 2
+    },
+    {
+      "case": "fresh",
+      "fixture_sha256": "e7304d465638b1cfccb0ac337f38fd72f364a47632b494a96f4ba6771de4391f",
+      "native_wasm_equal": true,
+      "process_reopen": true,
+      "continued_revision": 2
+    }
+  ],
+  "scope": "Existing v5 setup/explicit lookup/save/reopen/continuation; no qualified squad or lineup action. Existing corruption/abort/fencing acceptance remains separate."
+}

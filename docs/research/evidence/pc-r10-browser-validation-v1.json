@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "acceptance_source_revision": "89c0c5215ced1bd94c014c2fc776700bf29a2d73",
+  "base_revision": "33e415f712e315548ccec9c7f63afd6bc7b33266",
+  "source_unchanged_during_gates": true,
+  "rust_source_unchanged_from_base": true,
+  "native_and_release_wasm_freshly_built": true,
+  "private_attempt": "pc-r10-browser-2a30553-a1",
+  "logs_and_receipts": {
+    "native-build.log": {
+      "bytes": 763,
+      "sha256": "28df136adebe9ee834c27bda8be1f34e4de7057ed686562dbd61acd9eaece642"
+    },
+    "wasm-build.log": {
+      "bytes": 720,
+      "sha256": "225213ebcc65f4f52038382969f15a07424e5904f298190348af8f4c8510d394"
+    },
+    "typecheck.log": {
+      "bytes": 63,
+      "sha256": "165cc8de1ae7e98819048be3d571d50dccf550375993f86dfd612642ecaf8c4c"
+    },
+    "build.log": {
+      "bytes": 61,
+      "sha256": "4122dcf7eb82d3e3229e74967f4fec4f9797df9edc75fdb63f92f078f3ad60b8"
+    },
+    "journey-89c0c52.log": {
+      "bytes": 1027,
+      "sha256": "0706e56cc356234f7c7a87a43f3bdd054e5c18c19572c70e3489e8436591d841"
+    },
+    "browser-89c0c52.log": {
+      "bytes": 8504,
+      "sha256": "2d698f76ffb1583ce34e06288592ffbb1a6e9c1d21ba5cb1b9e52cd36f392a00"
+    },
+    "storage-89c0c52.log": {
+      "bytes": 9770,
+      "sha256": "5c0891723508a50e76d90e38a59a4b82f36b62e0ae3cea3d70e68ce6a13fc830"
+    },
+    "browser-receipt.json": {
+      "bytes": 10279,
+      "sha256": "16598ed52a58d46758ff187564c7357f1d265405f8af790c6023ea2a2b557bc5"
+    },
+    "storage-receipt.json": {
+      "bytes": 11206,
+      "sha256": "e489316ab205df2041bc968786fafc78ae8b6f7b181b8bc0925f49246519c777"
+    },
+    "journey-receipt.json": {
+      "bytes": 1279,
+      "sha256": "26364d9057705b944cd9f4cd95a922fb89213f5860ba2606dc668283696b418e"
+    },
+    "command-setup-failures.txt": {
+      "bytes": 287,
+      "sha256": "76c7fb3056b9e543b5147533aad98add658ba4086e55536fd98af83a90c23cc2"
+    }
+  },
+  "native_corpus": {
+    "bytes": 13347040,
+    "sha256": "dd88318a2d756efb9c282527498f3208c88b8d42b9c8c5acc66531958c830f4d"
+  },
+  "wasm": {
+    "bytes": 738416,
+    "sha256": "50c8d50d4a24869e6fc9980c357ef5cef113c3ccbbab0c21a7e3829dd511a0ee"
+  },
+  "app_js": {
+    "bytes": 240227,
+    "sha256": "4bcaadae50f72997de59d983cd1eec1752b8281f6f25fdd74958d46db9a62589"
+  },
+  "browser_version": "148.0.7778.96",
+  "commands": [
+    "cargo build -p cm-management --bin management-corpus",
+    "cargo build -p cm-management --target wasm32-unknown-unknown --release",
+    "npm run typecheck",
+    "npm run build",
+    "node check-browser-journey.cjs",
+    "node check-browser.cjs",
+    "node check-storage.cjs"
+  ],
+  "all_seven_private_fixture_environments_set": true,
+  "journey_seconds": 18.46,
+  "browser_seconds": 14.61,
+  "storage_seconds": 23.76,
+  "build_elapsed_seconds": null,
+  "build_elapsed_note": "Build success logs retained; individual elapsed durations were not measured.",
+  "browser_operations": 552,
+  "persistent_storage_profiles": 12,
+  "complete_prior_browser_receipt_object_equal": true,
+  "complete_prior_storage_receipt_object_equal": true,
+  "prior_receipts": [
+    "pc-r7-browser-v1.json",
+    "pc-r7-storage-v1.json"
+  ],
+  "canonical_expected_results_rewritten": false,
+  "command_setup_failures": 2,
+  "acceptance_runner_failures": 0,
+  "limitations": [
+    "Existing v5 workflow only; no real squad or lineup action admitted.",
+    "No Rust/save/storage semantics changed; workspace Rust gates belong to integrated delivery.",
+    "No original Windows process, original saves, original-process or full-game claim.",
+    "Two shell transport setup failures occurred before runner execution and are retained explicitly."
+  ]
+}
