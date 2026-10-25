@@ -75,3 +75,30 @@ Sol/medium owns R8. A separate worker reviews this frozen experiment before
 execution and the artifacts afterward. No nested agents; one heavy job at a time.
 At most one four-arm campaign is initially admitted; a failure requires diagnosis
 and a separately retained bounded follow-up. Token/billing totals are unavailable.
+
+## Retained first failure and reviewed follow-up
+
+The first four-arm campaign at exact source 5cb1e0b is retained privately as
+pc-r9-file-use-5cb1e0b-a1. Baseline and disabled reached their endpoints in
+83.29 and 83.07 seconds. Both observed arms exited 124 after about 0.02 seconds,
+with incomplete two-operation traces and no endpoint/capture. Their observation
+completeness and noninterference verdicts failed; no file-use result is promoted.
+
+Pinned host/posix.c raise_stack runs as an original startup constructor. It raises
+the stack limit, sets RECOMP_STACK_SET=1, opens/reads its command line and re-execs
+/proc/self/exe. The observer's first constructor created its exclusive trace;
+the legitimate second image could not create it again. Independent source and
+retained trace review confirmed that exact boundary. The failure is an observer
+lifecycle defect, not an original/Bosman parity result.
+
+One separately retained four-arm follow-up is authorized after exact-source
+independent review. Only observed arms explicitly set PC_R9_WAIT_FOR_STACK_REEXEC.
+When that flag is present and original RECOMP_STACK_SET is absent, the observer
+defers activation and creates no trace. The unchanged original stack re-exec
+then activates the observer in its second image. Missing expected re-exec yields
+missing trace and a failed completeness verdict. No first trace is deleted,
+reopened or appended; no original source, stack limits or RECOMP_STACK_SET value
+is modified by the observer/driver. The observation interval is explicitly the
+post-stack-reexec constructor-to-destructor interval. Pre-reexec I/O remains
+outside scope. A synthetic control reproduces ungated exit124 then verifies the
+gated re-exec's exclusive complete trace and actual positive read evidence.

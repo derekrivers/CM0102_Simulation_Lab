@@ -12,10 +12,16 @@ PROGRAM = r"""
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 int main(int argc, char **argv) {
   if (argc != 4) return 2;
+  if (getenv("PC_R9_CONTROL_REEXEC") && !getenv("RECOMP_STACK_SET")) {
+    setenv("RECOMP_STACK_SET", "1", 1);
+    execv(argv[0], argv);
+    return 11;
+  }
   char b[4];
   int a = open(argv[1], O_RDONLY);
   if (a < 0) return 3;
@@ -112,6 +118,23 @@ class FileUseControls(unittest.TestCase):
         content[-1] = 'PCR9DONE\t999\t0\t0'
         with self.assertRaises(ValueError):
             use.parse_trace(self.modified('\n'.join(content)+'\n'), self.members)
+
+    def test_original_style_reexec_is_explicitly_deferred(self):
+        args = [str(self.root/'control'), str(self.root/'read-file'),
+                str(self.root/'mapped-file'), str(self.root/'linked')]
+        env = dict(os.environ, LD_PRELOAD=str(self.root/'observer.so'),
+                   PC_R9_CONTROL_REEXEC='1')
+        env.pop('RECOMP_STACK_SET', None)
+        first = self.root/'reexec-ungated.tsv'
+        env['PC_R9_TRACE'] = str(first)
+        self.assertEqual(subprocess.run(args, env=env).returncode, 124)
+        with self.assertRaises(ValueError):
+            use.parse_trace(first, self.members)
+        second = self.root/'reexec-gated.tsv'
+        env['PC_R9_TRACE'] = str(second)
+        env['PC_R9_WAIT_FOR_STACK_REEXEC'] = '1'
+        self.assertEqual(subprocess.run(args, env=env).returncode, 0)
+        self.assertEqual(use.parse_trace(second, self.members)['positive_read_manifest_files'], 1)
 
     def test_noninterference_mismatches_never_pass(self):
         records = [{'save': {'sha256': use.SAVE}, 'capture_complete': True,

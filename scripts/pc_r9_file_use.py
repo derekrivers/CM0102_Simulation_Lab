@@ -206,6 +206,7 @@ def run(a):
         if name.startswith('enabled'):
             env['LD_PRELOAD'] = str(a.library/'observer.so')
             env['PC_R9_TRACE'] = str(work/'trace.tsv')
+            env['PC_R9_WAIT_FOR_STACK_REEXEC'] = '1'
         pre = seal(a)
         r5.write(work/'seal-before.json', {'sealed_unix_time_ns': time.time_ns(), 'identity': pre})
         if pre != initial:

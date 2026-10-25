@@ -89,6 +89,10 @@ static void emit(const char *op, int fd, int success, int64_t result,
 __attribute__((constructor)) static void begin(void) {
     const char *path = getenv("PC_R9_TRACE");
     if (!path) return;
+    /* Pinned Bosman raises its stack and re-execs before main. Observe only
+     * the post-reexec image when explicitly requested; never reopen a trace. */
+    if (getenv("PC_R9_WAIT_FOR_STACK_REEXEC") && !getenv("RECOMP_STACK_SET"))
+        return;
     trace_fd = (int)syscall(SYS_openat, AT_FDCWD, path,
                            O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW, 0600);
     if (trace_fd < 0) _exit(124);
