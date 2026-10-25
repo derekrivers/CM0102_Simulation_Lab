@@ -85,14 +85,29 @@ deduplication; old 105 cases and v1/v2 compatibility remain unchanged. Browser
 persistence now recovers all five admitted profiles with exact native continuation.
 [R4 evidence](../research/PC_R4_HUMAN_REGISTRY.md) and
 [R6 storage](../research/PC_R6_BROWSER_STORAGE.md) retain receipts and limits.
-Independent final-head UI review/CI/merge are tracked in the R4 delivery PR.
+R4 delivery merged in [PR #35](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/35),
+merge `8fa4af9e5bfe6e96a81ef58c8e75fc377b2b9f98`. Final head
+`454eb70c58b5c12beed15a5f7632a3514ad11dd3` passed all four frozen checks.
+Coordinator and Sol/medium independently reviewed worker-authored core/oracles;
+Astra/high independently reviewed coordinator-authored UI/storage integration.
+No final findings remain; the earlier misleading legacy limitation was corrected.
 
 R5 separately executed the reviewed minimal observer: four bounded 14-day arms
 completed in 339.91 seconds with contemporary seals. All four endpoint saves
 match exactly, and two complete sparse human-state captures match byte for byte.
-Independent official-instruction replay passes on that captured read set. R5's
-tooling/receipt delivery remains separate; actual data opens were not independently
-observed and consumption remains unknown. No original Windows process ran.
+Independent official-instruction replay passes on that captured read set. The
+[R5 contract/receipt](../research/PC_R5_CAPTURE.md) retain exact source, derivative,
+tools, clean inputs, commands, configuration, timing and output identities. Eight
+failure controls pass, including closed-stream hang, incomplete extents, overlap,
+output limits and invalid pointers. Coordinator reviewed observer/driver `e36b516`
+before execution, then independently verified the actual private/public artifacts,
+all seals and fresh oracle/build/capture link. Only the console privacy summary
+changed after execution; the executed source identity is retained explicitly.
+[PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36) records final
+review, CI and merge disposition; its branch refreshed after PR #35 and repeated
+the affected eight controls. Actual data opens were not independently observed;
+consumption remains unknown and comparison remains not-run. Endpoint equality
+does not claim whole-runtime noninterference. No original Windows process ran.
 
 ## Remaining engineering
 

@@ -119,3 +119,11 @@ artifact inventory. The executed driver remains the exact reviewed revision
 commands, logs, native pointers, record names, full input tables and build
 locators remain in the external private area. Public output contains structural
 counts, artifact identities and scoped outcomes only.
+
+Coordinator independently verified the actual private/public artifact identities,
+all four before/after seal intervals and output hashes, the executed driver's Git
+blob identity, and the fresh original oracle's build/capture link. All checks
+passed. The branch refreshed onto the R4 merge and repeated the eight affected
+controls. Delivery [PR #36](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/36)
+records independent exact-final-head review, all four frozen checks and merge
+disposition. This does not rerun or relabel the already sealed experiment.
