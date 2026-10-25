@@ -573,7 +573,7 @@ namespace Cm0102.SyntheticLauncherRuntime
             internal IntPtr Status;
             internal IntPtr Information;
         }
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]
         private struct ByHandleFileInformation
         {
             internal uint FileAttributes; internal long CreationTime;

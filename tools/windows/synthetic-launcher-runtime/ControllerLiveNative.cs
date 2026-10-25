@@ -2133,7 +2133,7 @@ namespace Cm0102.SyntheticLauncherRuntime
             {
                 if (!ExactCreatedOutputObject(handle, leaf)) return false;
                 FileDispositionInformation information = new FileDispositionInformation();
-                information.DeleteFile = true;
+                information.DeleteFile = 1;
                 int size = Marshal.SizeOf(typeof(FileDispositionInformation));
                 IntPtr buffer = Marshal.AllocHGlobal(size);
                 try
@@ -2250,8 +2250,8 @@ namespace Cm0102.SyntheticLauncherRuntime
         [StructLayout(LayoutKind.Sequential)] private struct UnicodeString { internal ushort Length; internal ushort MaximumLength; internal IntPtr Buffer; }
         [StructLayout(LayoutKind.Sequential)] private struct ObjectAttributes { internal int Length; internal IntPtr RootDirectory; internal IntPtr ObjectName; internal uint Attributes; internal IntPtr SecurityDescriptor; internal IntPtr SecurityQualityOfService; }
         [StructLayout(LayoutKind.Sequential)] private struct IoStatusBlock { internal IntPtr Status; internal IntPtr Information; }
-        [StructLayout(LayoutKind.Sequential)] private struct FileDispositionInformation { [MarshalAs(UnmanagedType.Bool)] internal bool DeleteFile; }
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential)] private struct FileDispositionInformation { internal byte DeleteFile; }
+        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]
         private struct ByHandleFileInformation
         {
             internal uint FileAttributes; internal long CreationTime;
@@ -2260,7 +2260,7 @@ namespace Cm0102.SyntheticLauncherRuntime
             internal uint FileSizeLow; internal uint NumberOfLinks;
             internal uint FileIndexHigh; internal uint FileIndexLow;
         }
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, CharSet = CharSet.Unicode)]
         private struct FindData
         {
             internal uint FileAttributes; internal long CreationTime;

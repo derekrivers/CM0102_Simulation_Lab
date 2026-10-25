@@ -771,7 +771,7 @@ namespace Cm0102.SyntheticLauncherRuntime
         private static bool DeleteHeldObject(IntPtr handle)
         {
             FileDispositionInformation disposition = new FileDispositionInformation();
-            disposition.DeleteFile = true;
+            disposition.DeleteFile = 1;
             int size = Marshal.SizeOf(typeof(FileDispositionInformation));
             IntPtr buffer = Marshal.AllocHGlobal(size);
             try
@@ -838,7 +838,8 @@ namespace Cm0102.SyntheticLauncherRuntime
                 FileIdDescriptor descriptor = new FileIdDescriptor();
                 descriptor.Size = (uint)Marshal.SizeOf(typeof(FileIdDescriptor));
                 descriptor.Type = 0;
-                descriptor.FileId = unchecked((long)(((ulong)identity.FileIndexHigh << 32) |
+                descriptor.Identifier.Unused = 0;
+                descriptor.Identifier.FileId = unchecked((long)(((ulong)identity.FileIndexHigh << 32) |
                     identity.FileIndexLow));
                 IntPtr reopened = OpenFileById(volume, ref descriptor, 0, 7, IntPtr.Zero,
                     0x00200000);
@@ -1347,9 +1348,9 @@ namespace Cm0102.SyntheticLauncherRuntime
         [StructLayout(LayoutKind.Sequential)]
         private struct FileDispositionInformation
         {
-            [MarshalAs(UnmanagedType.Bool)] internal bool DeleteFile;
+            internal byte DeleteFile;
         }
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]
         private struct ByHandleFileInformation
         {
             internal uint FileAttributes; internal long CreationTime;
@@ -1358,12 +1359,18 @@ namespace Cm0102.SyntheticLauncherRuntime
             internal uint FileSizeLow; internal uint NumberOfLinks;
             internal uint FileIndexHigh; internal uint FileIndexLow;
         }
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 24)]
         private struct FileIdDescriptor
         {
-            internal uint Size; internal int Type; internal long FileId;
+            internal uint Size; internal int Type; internal FileIdUnion Identifier;
         }
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        private struct FileIdUnion
+        {
+            [FieldOffset(0)] internal long FileId;
+            [FieldOffset(8)] internal long Unused;
+        }
+        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, CharSet = CharSet.Unicode)]
         private struct FindData
         {
             internal uint FileAttributes; internal long CreationTime;

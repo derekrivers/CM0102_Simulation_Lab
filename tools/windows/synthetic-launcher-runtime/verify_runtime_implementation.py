@@ -118,18 +118,18 @@ FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
         "6269a4390bdf64cf9c36043036f77a3d91710ac35949bbc5526264caf831185a"),
     QUALIFICATION_HELPER_PATH: (81360,
         "f097b28eea2489f1486c0b0fdf5a3bc3578911367593528263ac8320bcc162e4"),
-    RUNTIME_ROOT + "/ControllerBootstrapNative.cs": (30201,
-        "a8c63a24c0f89414d5e0d8250f39b5f3249da5453ee53f8f25a7466cf2b254a6"),
+    RUNTIME_ROOT + "/ControllerBootstrapNative.cs": (30222,
+        "de174615f335a2c8b2aa2b7589c34f2878d62c5a324714f5471657bc34f24a0a"),
     RUNTIME_ROOT + "/ControllerEntry.cs": (4471,
         "2b043ebeca5d4b8823757f30c6f9fb6fa44367c814ba701be589a8ac2ece675a"),
-    RUNTIME_ROOT + "/ControllerLiveNative.cs": (125813,
-        "abebd005d885855bd94a760eb3dbd494a3f54fd74e216a3c8ba40e3834fcd053"),
-    RUNTIME_ROOT + "/LockedPreflightBootstrapNative.cs": (30301,
-        "126e9e8f467681b06eecbe56ec42ed960a5693bc01b66e2363c3b7c8a7a718c7"),
+    RUNTIME_ROOT + "/ControllerLiveNative.cs": (125821,
+        "9097669a668e2f43c6d4a4072b08d081218b4faa764317bd0ab28f1ec476d6bd"),
+    RUNTIME_ROOT + "/LockedPreflightBootstrapNative.cs": (30322,
+        "48a75648ca5d736a65da0c0e2b7d277ee363b2edcb126534fbc68def6fb44dba"),
     RUNTIME_ROOT + "/LockedPreflightEntry.cs": (4689,
         "d093a9bcf33a858a7427d92972bf1bc1f93e45987ccac4828d5c7632d3e0b4c1"),
-    RUNTIME_ROOT + "/LockedPreflightLiveNative.cs": (31653,
-        "61cf3e70a621872e148a8a6af436d8f52cd1f4f236fc849e613a38662e85f662"),
+    RUNTIME_ROOT + "/LockedPreflightLiveNative.cs": (31674,
+        "d21c0d46be6b96b0099bacc37b56c87120366329fea426cf1a2c0737f8d9d39b"),
     RUNTIME_ROOT + "/README.md": (5146,
         "320da6620a2a53cb12bf666364a4b78b9ccb0560e9992c92d4f265f6beb68427"),
     RUNTIME_ROOT + "/RuntimeCanonicalData.cs": (55581,
@@ -138,24 +138,24 @@ FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
         "48b76d9002855bf60452ed00a3366582a0d8d02c8d0b72347a978a5b0faa3985"),
     RUNTIME_ROOT + "/RuntimeGateTests.cs": (60649,
         "85058d63859f3f639064f92ac42a409d381bf21552e97886657a4df1e7e01e52"),
-    RUNTIME_ROOT + "/SupervisorBootstrapNative.cs": (30201,
-        "dd9efa8e3e17f8b760ca7253b62870f9a76c98db715098b7dd1e9035b39fb60d"),
+    RUNTIME_ROOT + "/SupervisorBootstrapNative.cs": (30222,
+        "8ea8bf22e4337e06572371652f372fa2b67fba06c92388c67f101561ba122ae0"),
     RUNTIME_ROOT + "/SupervisorEntry.cs": (4419,
         "a6d66688d653523010f8660f789e4a8632526bfe09282de4a3b7a998b428e7c6"),
-    RUNTIME_ROOT + "/SupervisorLiveNative.cs": (77135,
-        "9070b8df8113bd1c9535e9ff6e896886253387f59db49610f1fcd712f13502c3"),
-    RUNTIME_ROOT + "/TimeoutChildBootstrapNative.cs": (29083,
-        "7001aa567556a7784210ef3657c461de8a72611e5de199cfb774189c04c05ad1"),
+    RUNTIME_ROOT + "/SupervisorLiveNative.cs": (77448,
+        "3d3f02cc7300f71492843710a7ea79588d2f506cd4e9918b1a04283b2950e7ac"),
+    RUNTIME_ROOT + "/TimeoutChildBootstrapNative.cs": (29104,
+        "445ba313b6c664b0164cf6adfda2af318e2cefa3aa2720303348977eb3262324"),
     RUNTIME_ROOT + "/TimeoutChildEntry.cs": (4615,
         "804a58cb30df30c5a1aff5ff51edf7e8cf28aca9d31d38c98a8123f9b048723f"),
     RUNTIME_ROOT + "/TimeoutChildLiveNative.cs": (2639,
         "6ee874a22cc1e346234e26c31f14d4d7f85fcfcd866a3cd67e2b9312298106d4"),
-    RUNTIME_ROOT + "/TimeoutFixtureBootstrapNative.cs": (30281,
-        "def39fafc7953138670f175aaa290e085f73eb36a6554d7f53a0a925acaebc8a"),
+    RUNTIME_ROOT + "/TimeoutFixtureBootstrapNative.cs": (30302,
+        "6f380c76375b2c0e853408be5fe2f0b713454ba36a05637ada56f472d8b99f1e"),
     RUNTIME_ROOT + "/TimeoutFixtureEntry.cs": (4629,
         "dee2f37a7266e824010d4e028196ed928970570384d9ae3037ef154f5c690b3a"),
-    RUNTIME_ROOT + "/TimeoutFixtureLiveNative.cs": (17943,
-        "d785c9cd9b1ad3d61cfd79e9979193493ef765714ef7f89937232e9191e6fe19"),
+    RUNTIME_ROOT + "/TimeoutFixtureLiveNative.cs": (17964,
+        "fe9bfcbbafb477bd6fe9d7e44313dac9d83fc17a6c575b1344df59cd148facec"),
     RUNTIME_ROOT + "/retained_build.py": (67082,
         "3988f14ebaa0d3b5eb4ef54609d1dd1d4e1a7cd4c8abc5d0eca11563897cbbbc"),
 }
@@ -559,6 +559,153 @@ def verify_pure_sources(sources: dict[str, str]) -> None:
             raise VerificationError("gate negative control " + marker)
 
 
+def require_native_struct(source: str, name: str, attribute: str,
+        fields: tuple[str, ...], label: str) -> None:
+    code = strip_literals(source)
+    pattern = (re.escape(attribute) + r"\s*private\s+struct\s+" +
+        re.escape(name) + r"\s*\{(?P<body>.*?)\s*\}")
+    matches = list(re.finditer(pattern, code, re.S))
+    if len(matches) != 1:
+        raise VerificationError(label + " declaration")
+    body = re.sub(r"\s+", "", matches[0].group("body"))
+    expected = re.sub(r"\s+", "", "".join(fields))
+    if body != expected:
+        raise VerificationError(label + " exact field inventory")
+
+
+def native_method_body(source: str, method: str, label: str) -> str:
+    code = strip_literals(source)
+    pattern = (r"\b(?:private|public|internal|protected)\s+"
+        r"(?:static\s+)?[A-Za-z_]\w*\s+" + re.escape(method) +
+        r"\s*\([^)]*\)\s*\{")
+    matches = list(re.finditer(pattern, code, re.S))
+    if len(matches) != 1:
+        raise VerificationError(label + " method declaration")
+    opening = code.find("{", matches[0].start(), matches[0].end())
+    depth = 0
+    for position in range(opening, len(code)):
+        if code[position] == "{":
+            depth += 1
+        elif code[position] == "}":
+            depth -= 1
+            if depth == 0:
+                return code[opening + 1:position]
+    raise VerificationError(label + " method body")
+
+
+def verify_native_abi_layouts(sources: dict[str, str]) -> None:
+    by_handle_files = (
+        "ControllerBootstrapNative.cs", "ControllerLiveNative.cs",
+        "LockedPreflightBootstrapNative.cs", "LockedPreflightLiveNative.cs",
+        "SupervisorBootstrapNative.cs", "SupervisorLiveNative.cs",
+        "TimeoutChildBootstrapNative.cs", "TimeoutFixtureBootstrapNative.cs",
+        "TimeoutFixtureLiveNative.cs",
+    )
+    by_handle_attribute = "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]"
+    by_handle_fields = (
+        "internal uint FileAttributes;", "internal long CreationTime;",
+        "internal long LastAccessTime;", "internal long LastWriteTime;",
+        "internal uint VolumeSerialNumber;", "internal uint FileSizeHigh;",
+        "internal uint FileSizeLow;", "internal uint NumberOfLinks;",
+        "internal uint FileIndexHigh;", "internal uint FileIndexLow;",
+    )
+    for name in by_handle_files:
+        require_native_struct(sources[name], "ByHandleFileInformation",
+            by_handle_attribute, by_handle_fields, name + " ByHandleFileInformation")
+
+    find_data_files = ("ControllerLiveNative.cs", "SupervisorLiveNative.cs")
+    find_data_attribute = (
+        "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, "
+        "CharSet = CharSet.Unicode)]")
+    find_data_fields = (
+        "internal uint FileAttributes;", "internal long CreationTime;",
+        "internal long LastAccessTime;", "internal long LastWriteTime;",
+        "internal uint FileSizeHigh;", "internal uint FileSizeLow;",
+        "internal uint Reserved0;", "internal uint Reserved1;",
+        "[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] internal string FileName;",
+        "[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] internal string AlternateFileName;",
+    )
+    for name in find_data_files:
+        require_native_struct(sources[name], "FindData", find_data_attribute,
+            find_data_fields, name + " FindData")
+
+    for name in find_data_files:
+        require_native_struct(sources[name], "FileDispositionInformation",
+            "[StructLayout(LayoutKind.Sequential)]", ("internal byte DeleteFile;",),
+            name + " FileDispositionInformation")
+    for name, marker in (
+            ("ControllerLiveNative.cs", "information.DeleteFile = 1;"),
+            ("SupervisorLiveNative.cs", "disposition.DeleteFile = 1;")):
+        method = "DeleteRelativeOutput" if name.startswith("Controller") else "DeleteHeldObject"
+        body = native_method_body(sources[name], method, name + " " + method)
+        field = "information.DeleteFile" if name.startswith("Controller") else \
+            "disposition.DeleteFile"
+        assignments = re.findall(r"\b" + re.escape(field) + r"\s*=\s*[^;]+;", body)
+        normalized = [re.sub(r"\s+", "", value) for value in assignments]
+        if normalized != [re.sub(r"\s+", "", marker)]:
+            raise VerificationError(name + " exact BOOLEAN assignment")
+        if not re.search(re.escape(marker).replace(r"\ ", r"\s*"), body):
+            raise VerificationError(name + " BOOLEAN assignment use")
+        marshal = "Marshal.StructureToPtr(" + ("information" if name.startswith("Controller")
+            else "disposition") + ", buffer, false);"
+        if body.find(marker) >= body.find(marshal):
+            raise VerificationError(name + " BOOLEAN assignment order")
+
+    supervisor = sources["SupervisorLiveNative.cs"]
+    require_native_struct(supervisor, "FileIdDescriptor",
+        "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 24)]",
+        ("internal uint Size;", "internal int Type;",
+            "internal FileIdUnion Identifier;"),
+        "SupervisorLiveNative.cs FileIdDescriptor")
+    require_native_struct(supervisor, "FileIdUnion",
+        "[StructLayout(LayoutKind.Explicit, Size = 16)]",
+        ("[FieldOffset(0)] internal long FileId;",
+            "[FieldOffset(8)] internal long Unused;"),
+        "SupervisorLiveNative.cs FileIdUnion")
+    file_id_body = native_method_body(supervisor, "FileIdentityAbsent",
+        "SupervisorLiveNative.cs FileIdentityAbsent")
+    if file_id_body.count("FileIdDescriptor descriptor = new FileIdDescriptor();") != 1:
+        raise VerificationError("SupervisorLiveNative.cs FileIdDescriptor construction")
+    exact_assignments = (
+        "descriptor.Size = (uint)Marshal.SizeOf(typeof(FileIdDescriptor));",
+        "descriptor.Type = 0;", "descriptor.Identifier.Unused = 0;",
+    )
+    for marker in exact_assignments:
+        if file_id_body.count(marker) != 1:
+            raise VerificationError("SupervisorLiveNative.cs FileIdDescriptor use " + marker)
+    file_id_assignments = re.findall(
+        r"descriptor\.Identifier\.FileId\s*=\s*[^;]+;", file_id_body)
+    if len(file_id_assignments) != 1 or not re.search(
+            r"descriptor\.Identifier\.FileId\s*=\s*unchecked\(\(long\)\(\(\(ulong\)"
+            r"identity\.FileIndexHigh\s*<<\s*32\)\s*\|\s*identity\.FileIndexLow\)\);",
+            file_id_body):
+        raise VerificationError("SupervisorLiveNative.cs FileId assignment")
+    if "descriptor.FileId = " in file_id_body:
+        raise VerificationError("SupervisorLiveNative.cs legacy FileIdDescriptor union")
+    open_call = re.search(
+        r"OpenFileById\(volume,\s*ref descriptor,\s*0,\s*7,\s*IntPtr\.Zero,\s*"
+        r"0x00200000\);", file_id_body)
+    if open_call is None or len(re.findall(r"OpenFileById\(volume,\s*ref descriptor,",
+            file_id_body)) != 1:
+        raise VerificationError("SupervisorLiveNative.cs FileId OpenFileById call")
+    for marker in exact_assignments:
+        marker_position = file_id_body.find(marker)
+        lhs = marker.split(" = ", 1)[0]
+        assignments = re.findall(r"\b" + re.escape(lhs) + r"\s*=\s*[^;]+;",
+            file_id_body)
+        normalized = [re.sub(r"\s+", "", value) for value in assignments]
+        if marker_position < 0 or marker_position >= open_call.start() or \
+                normalized != [re.sub(r"\s+", "", marker)]:
+            raise VerificationError("SupervisorLiveNative.cs FileId assignment use")
+    for pattern in (
+            r"descriptor\.Size\s*=", r"descriptor\.Type\s*=",
+            r"descriptor\.Identifier\.Unused\s*=",
+            r"descriptor\.Identifier\.FileId\s*="):
+        assignment = re.search(pattern, file_id_body)
+        if assignment is None or assignment.start() >= open_call.start():
+            raise VerificationError("SupervisorLiveNative.cs FileId assignment order")
+
+
 def verify_production_sources(sources: dict[str, str]) -> None:
     all_production = "\n".join(sources[name] for name in PRODUCTION_FILES)
     forbidden = (
@@ -575,6 +722,7 @@ def verify_production_sources(sources: dict[str, str]) -> None:
             re.search(r"\\(?:u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8}|x[0-9a-fA-F]{1,4})",
                 all_production):
         raise VerificationError("production unsupported source form")
+    verify_native_abi_layouts(sources)
     legacy_orchestration = (
         "RunFixedWorker", "RunFixedScenario", "RunUiRoute", "RunTimeoutRoute",
         "ObserveLockedDesktopAndPublish", "CreateFixedChildAndWait", "WaitOnly",
@@ -1389,6 +1537,174 @@ def self_test() -> None:
         except VerificationError:
             return
         raise VerificationError("accepted " + label + " mutation")
+
+    def reject_production_mutation(name: str, mutate, label: str) -> None:
+        changed = dict(production)
+        mutate(changed)
+        try:
+            verify_production_sources(changed)
+        except VerificationError:
+            return
+        raise VerificationError("accepted " + label + " mutation")
+
+    def reject_abi_decoy(name: str, old: str, new: str, label: str) -> None:
+        def mutate(changed) -> None:
+            if changed[name].count(old) != 1:
+                raise VerificationError("self-test source marker " + label)
+            changed[name] = changed[name].replace(old, new, 1) + \
+                "\n// " + old + "\n/* " + old + " */\n\"" + old + "\";\n"
+        reject_production_mutation(name, mutate, label)
+
+    def reject_abi_field_injection(name: str, struct_name: str,
+            field: str, label: str) -> None:
+        def mutate(changed) -> None:
+            source = changed[name]
+            marker = "private struct " + struct_name
+            start = source.find(marker)
+            if start < 0:
+                raise VerificationError("self-test source marker " + label)
+            opening = source.find("{", start)
+            closing = source.find("}", opening)
+            if opening < 0 or closing < 0:
+                raise VerificationError("self-test source marker " + label)
+            changed[name] = source[:closing] + "\n" + field + "\n" + source[closing:]
+        reject_production_mutation(name, mutate, label)
+
+    for name in (
+            "ControllerBootstrapNative.cs", "ControllerLiveNative.cs",
+            "LockedPreflightBootstrapNative.cs", "LockedPreflightLiveNative.cs",
+            "SupervisorBootstrapNative.cs", "SupervisorLiveNative.cs",
+            "TimeoutChildBootstrapNative.cs", "TimeoutFixtureBootstrapNative.cs",
+            "TimeoutFixtureLiveNative.cs"):
+        reject_abi_decoy(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]",
+            "[StructLayout(LayoutKind.Sequential)]",
+            name + " default FILETIME with decoys")
+        reject_abi_field_injection(name, "ByHandleFileInformation",
+            "internal uint InjectedAbiField;",
+            name + " ByHandle injected field")
+    for name in ("ControllerLiveNative.cs", "SupervisorLiveNative.cs"):
+        reject_abi_decoy(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, "
+            "CharSet = CharSet.Unicode)]",
+            "[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]",
+            name + " default FindData with decoys")
+        reject_abi_field_injection(name, "FindData", "internal uint InjectedAbiField;",
+            name + " FindData injected field")
+        reject_abi_field_injection(name, "FileDispositionInformation",
+            "internal byte InjectedAbiField;",
+            name + " FileDisposition injected field")
+    reject_abi_decoy("SupervisorLiveNative.cs", "descriptor.Identifier.Unused = 0;",
+        "descriptor.Identifier.Unused = 1;",
+        "SupervisorLiveNative nonzero padding with decoys")
+
+    def reject_executable_file_id_decoy() -> None:
+        name = "SupervisorLiveNative.cs"
+        source = production[name]
+        old = "descriptor.Identifier.Unused = 0;"
+        if source.count(old) != 1:
+            raise VerificationError("self-test source marker FileId executable decoy")
+        source = source.replace(old, "descriptor.Identifier.Unused = 1;", 1)
+        call = re.search(
+            r"OpenFileById\(volume,\s*ref descriptor,\s*0,\s*7,\s*IntPtr\.Zero,\s*"
+            r"0x00200000\);", source)
+        if call is None:
+            raise VerificationError("self-test source marker FileId executable decoy")
+        changed = dict(production)
+        changed[name] = source[:call.end()] + "\n                " + old + source[call.end():]
+        try:
+            verify_production_sources(changed)
+        except VerificationError:
+            return
+        raise VerificationError("accepted SupervisorLiveNative FileId executable decoy")
+
+    reject_executable_file_id_decoy()
+    reject_abi_field_injection("SupervisorLiveNative.cs", "FileIdDescriptor",
+        "internal uint InjectedAbiField;", "SupervisorLiveNative descriptor injected field")
+    reject_abi_field_injection("SupervisorLiveNative.cs", "FileIdUnion",
+        "[FieldOffset(8)] internal long InjectedAbiField;",
+        "SupervisorLiveNative union injected field")
+    reject_production_replacement("ControllerLiveNative.cs",
+        "information.DeleteFile = 1;", "information.DeleteFile = 0;",
+        "ControllerLiveNative BOOLEAN assignment")
+    reject_production_replacement("SupervisorLiveNative.cs",
+        "disposition.DeleteFile = 1;", "disposition.DeleteFile = 0;",
+        "SupervisorLiveNative BOOLEAN assignment")
+
+    def reject_executable_boolean_decoy(name: str, field: str, label: str) -> None:
+        def mutate(changed) -> None:
+            source = changed[name]
+            if source.count(field + " = 1;") != 1:
+                raise VerificationError("self-test source marker " + label)
+            source = source.replace(field + " = 1;", field + " = 0;", 1)
+            marshal = "Marshal.StructureToPtr(" + ("information" if
+                name.startswith("Controller") else "disposition") + ", buffer, false);"
+            assignment_position = source.find(field + " = 0;")
+            marshal_position = source.find(marshal, assignment_position)
+            if assignment_position < 0 or marshal_position < 0:
+                raise VerificationError("self-test source marker " + label)
+            changed[name] = source[:marshal_position] + marshal + "\n                " + \
+                field + " = 1;" + source[marshal_position + len(marshal):]
+        reject_production_mutation(name, mutate, label)
+
+    reject_executable_boolean_decoy("ControllerLiveNative.cs", "information.DeleteFile",
+        "ControllerLiveNative executable BOOLEAN decoy")
+    reject_executable_boolean_decoy("SupervisorLiveNative.cs", "disposition.DeleteFile",
+        "SupervisorLiveNative executable BOOLEAN decoy")
+
+    for name in (
+            "ControllerBootstrapNative.cs", "ControllerLiveNative.cs",
+            "LockedPreflightBootstrapNative.cs", "LockedPreflightLiveNative.cs",
+            "SupervisorBootstrapNative.cs", "SupervisorLiveNative.cs",
+            "TimeoutChildBootstrapNative.cs", "TimeoutFixtureBootstrapNative.cs",
+            "TimeoutFixtureLiveNative.cs"):
+        reject_production_replacement(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]",
+            "[StructLayout(LayoutKind.Sequential)]",
+            name + " original default FILETIME packing")
+        reject_production_replacement(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]",
+            "[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 52)]",
+            name + " FILETIME packing")
+        reject_production_replacement(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 52)]",
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 56)]",
+            name + " FILETIME size")
+    for name in ("ControllerLiveNative.cs", "SupervisorLiveNative.cs"):
+        reject_production_replacement(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, "
+            "CharSet = CharSet.Unicode)]",
+            "[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]",
+            name + " original default FindData packing")
+        reject_production_replacement(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, "
+            "CharSet = CharSet.Unicode)]",
+            "[StructLayout(LayoutKind.Sequential, Pack = 8, Size = 592, "
+            "CharSet = CharSet.Unicode)]",
+            name + " FindData packing")
+        reject_production_replacement(name,
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 592, "
+            "CharSet = CharSet.Unicode)]",
+            "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 600, "
+            "CharSet = CharSet.Unicode)]",
+            name + " FindData size")
+        reject_production_replacement(name, "internal byte DeleteFile;",
+            "[MarshalAs(UnmanagedType.Bool)] internal bool DeleteFile;",
+            name + " original BOOLEAN width")
+    reject_production_replacement("SupervisorLiveNative.cs",
+        "[StructLayout(LayoutKind.Explicit, Size = 16)]",
+        "[StructLayout(LayoutKind.Explicit, Size = 8)]",
+        "SupervisorLiveNative FileId union size")
+    reject_production_replacement("SupervisorLiveNative.cs",
+        "[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 24)]",
+        "[StructLayout(LayoutKind.Sequential, Size = 16)]",
+        "SupervisorLiveNative original flat FileId descriptor size")
+    reject_production_replacement("SupervisorLiveNative.cs",
+        "internal FileIdUnion Identifier;", "internal long FileId;",
+        "SupervisorLiveNative original flat FileId descriptor union")
+    reject_production_replacement("SupervisorLiveNative.cs",
+        "descriptor.Identifier.Unused = 0;", "descriptor.Identifier.Unused = 1;",
+        "SupervisorLiveNative FileId unused bytes")
 
     reject_production_replacement("SupervisorEntry.cs",
         "RuntimeScenarioEngine.Run(plan, port).ExitCode",
