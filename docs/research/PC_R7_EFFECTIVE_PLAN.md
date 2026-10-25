@@ -1,8 +1,8 @@
 # Connected effective-plan lookup: frozen R7 qualification
 
-Status: original qualification and exact projection admission passed; production integration under review. Existing v1–v4
-contracts and evidence are immutable. New production work requires this original
-qualification and independent admission of each exact new projection.
+Status: the bounded initialized domain is qualified and integrated; protected
+delivery is recorded in programme progress. Existing v1-v4 contracts and evidence
+remain immutable. The frozen pre-execution contract below is preserved.
 
 ## Supported state and interface
 
