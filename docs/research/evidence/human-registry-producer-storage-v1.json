@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "browser_version": "148.0.7778.96",
+  "profiles": [
+    {
+      "profile": "synthetic-null-owner-plan-selection-v1",
+      "fixture_sha256": "fef559036350141bb253cfdfd3011076b9bc985666c26aed961b2804b4e66f58",
+      "save_sha256": "597376f974217c059e7e29610268ad601e4984569aef32e113503a5fda870ffd",
+      "recovered_state_sha256": "7928ef35feb8fe359e67dfd78f39cd36dd91725171f16d5e2cf65501f170112f",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "synthetic-regression-ordinary-club-bank-v1",
+      "fixture_sha256": "162a95a541093ebe6af32cbbb2005eaeb62ee41580e7e53e9f9283da550b941b",
+      "save_sha256": "f7d4e40adbd626c0dc6846deed7a074671ced5421b7425a6a6a6c439deace72a",
+      "recovered_state_sha256": "0baed8cfa6613fd6ef00c2c26a299bbdcf2f2bb08f4463cd6d42ceb0c473ad89",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "captured-bosman-ordinary-club-bank-v1",
+      "fixture_sha256": "b68bfba221cccc84a92cfa63804487e206b3858be635e988738c5fc701c29711",
+      "save_sha256": "f437e9f1e4535e443b4b84e3c2917722cac09c517bbc6ce61b4230f299c663d6",
+      "recovered_state_sha256": "35063a27230c58793491301dc1f9acb64a836191e142261c5e293f9a577ddc86",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "synthetic-human-regression-direct-human-slot-v1",
+      "fixture_sha256": "c51b2e88302b512340454ce969c079c376b9ea3563ce777335556e6a449f5603",
+      "save_sha256": "a029f41cb8395ba25d2c52b0db5b54884d29e6a73e97c9ebd49628ec39ed9511",
+      "recovered_state_sha256": "69767d7400465ae6b8e60263b5d3e5627fbf47d342bf7b3817e482ed5ad04539",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "captured-bosman-human-registry-direct-human-slot-v1",
+      "fixture_sha256": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d",
+      "save_sha256": "dcee84f82c0f76768009b6922781800e502324c00ea61c27324b721114ada601",
+      "recovered_state_sha256": "f3c9f8f4f31a9c1a228801db1f164fe05cc72760f8a88b1ea969de3dc3cf2d2b",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "captured-bosman-human-registry-direct-human-slot-v1",
+      "fixture_sha256": "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2",
+      "save_sha256": "9009a64f62e226f86aab280c95c8efa1956b936ea60e1432cd710b36af5e7704",
+      "recovered_state_sha256": "56d2b8def37a9cc13d3cfdc5db23ecf5f051cb5e34b012be97aa401ed8b1c489",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "synthetic-human-regression-human-registry-producer-v1",
+      "fixture_sha256": "f4fd4d0ddea2476728074256bb8cc3a3149c8884ed4a18ccc2716f6d471b2cd8",
+      "save_sha256": "49795e99f3235cd3218aaf3500465c713710514d15cadf0cb4e56889691e6a40",
+      "recovered_state_sha256": "fb8d38391dc3e9d1088c88cdb07ba77bae0f3383af87f9ab793ab83a04f84690",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "captured-bosman-human-registry-human-registry-producer-v1",
+      "fixture_sha256": "cc7e3483d1ba7dfd36516f500362f20c63fd23a703f26e9cf20490f0251b616f",
+      "save_sha256": "4d2c76b760a6508ef0260bc58af7acbfd6fbc6282efea23eefa3f8d8dd74a8fd",
+      "recovered_state_sha256": "86e9d50791820b7962a76dba30d7513245c4fe779028023a3a57744072542eb1",
+      "native_continuation_equal": true
+    },
+    {
+      "profile": "captured-bosman-human-registry-human-registry-producer-v1",
+      "fixture_sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+      "save_sha256": "a69d8455603e3359f597b7bdbe829904f7d34fa7aa3f2b35c6fd743273262d20",
+      "recovered_state_sha256": "b4365bf87efc175c6f07a9e5f4529b2bb590f77caa74e30647501865a42806dc",
+      "native_continuation_equal": true
+    }
+  ],
+  "controls": [
+    "persistent browser process close/reopen; exact native state/events/dedup/save/continuation for every current profile",
+    "invalid import preserves memory and committed bytes",
+    "corrupt save, unsupported Rust save and mismatched identity recover previous valid checkpoint",
+    "actual transaction abort preserves previous head and unsaved command is absent after reload",
+    "injected QuotaExceededError aborts real transaction and preserves committed head",
+    "injected storage SecurityError is visible and preserves real IndexedDB head",
+    "worker termination during actual uncommitted IndexedDB write rolls back",
+    "delayed command/import/reset publication is serialized across host sessions and profiles",
+    "concurrent stale tab cannot replace a newer committed checkpoint",
+    "transient initial-open failure followed by another tab session change cannot rebind a publication retry"
+  ],
+  "limitations": [
+    "SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage",
+    "Chromium CDP quota override reported quota=1 but admitted tested IndexedDB writes; actual disk exhaustion was not qualified",
+    "origin-local browser transaction guarantees; no physical-media/power-loss claim",
+    "raw private saves and profile remain only in ignored local test output"
+  ],
+  "wasm_sha256": "5526af2d0711c1e3a68b22f0c612691a5a0747d0e6f3ef85ccd932d7b02193c8",
+  "fresh_admission": {
+    "fresh_fixture_sha256": "15697cfbb10725a20c50a8bb290ff8fe85fd05c572d8f7302d4ddbc95e842dc2",
+    "retained_fixture_sha256": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d",
+    "controls": [
+      "fresh corrupt-current fallback and visible actual transaction-abort failure preserve previous checkpoint and native in-memory state",
+      "delayed retained command completes before fresh same-profile import; fresh fixture and new host session survive reload",
+      "same-profile and same-Rust-session stale tab cannot overwrite a newer different-fixture import"
+    ]
+  },
+  "registry_producer": {
+    "profiles": [
+      {
+        "fixture_sha256": "f4fd4d0ddea2476728074256bb8cc3a3149c8884ed4a18ccc2716f6d471b2cd8",
+        "profile": "synthetic-human-regression-human-registry-producer-v1",
+        "recovered_state_sha256": "2d5b6e52025705f14011cec0e23ce1e9568ba4ffd6b410e5eaa952e2ee37d573",
+        "mixed_dedup_equal": true,
+        "actual_abort_preserved": true
+      },
+      {
+        "fixture_sha256": "cc7e3483d1ba7dfd36516f500362f20c63fd23a703f26e9cf20490f0251b616f",
+        "profile": "captured-bosman-human-registry-human-registry-producer-v1",
+        "recovered_state_sha256": "e467469a1dabcf2a31e2daf7bb07750b80632f9ca83bc301eea265f91845d2f3",
+        "mixed_dedup_equal": true,
+        "actual_abort_preserved": true
+      },
+      {
+        "fixture_sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+        "profile": "captured-bosman-human-registry-human-registry-producer-v1",
+        "recovered_state_sha256": "75ec27bedc9d13600677e598306489b1a3777c6fd18dca1b3a6f7379cbe4e54e",
+        "mixed_dedup_equal": true,
+        "actual_abort_preserved": true
+      }
+    ],
+    "controls": [
+      "each v4 fixture: mixed command deduplication and cross-command conflict, corrupt-current fallback, visible actual transaction abort and native unsaved state",
+      "retained/fresh v4 shared profile/session: delayed producer/import serialization and stale producer tab fencing"
+    ],
+    "same_profile_fencing": {
+      "retained_fixture_sha256": "cc7e3483d1ba7dfd36516f500362f20c63fd23a703f26e9cf20490f0251b616f",
+      "fresh_fixture_sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+      "delayed_import_equal": true,
+      "stale_producer_fenced": true
+    }
+  }
+}

@@ -87,3 +87,40 @@ the [fresh receipt](evidence/fresh-human-registry-producer-oracle-v1.json) is
 Their pending-admission fields retain the generation-time authority; this separate
 review approves only the exact fingerprints above. Private projection/audit files
 remain outside Git, as do real exported states and raw captured bytes.
+
+The [admission decision](evidence/human-registry-producer-admission-v1.json)
+binds the private audit (7,581 bytes, SHA-256
+`bb07eb75dd59b60408c8ed99bb1e2e29afaa5e914bc334d9d2ec6d7438fcc1ee`)
+and independent projection source (4,269 bytes, SHA-256
+`611712d2188271e2db9b03098eadd7ef15686917584132dd23a274c68960318a`).
+Reproduction commands, original ABI/read admission and retained failed attempt
+are in [the qualification report](HUMAN_REGISTRY_PRODUCER_QUALIFICATION.md).
+
+## Integrated acceptance
+
+[Browser acceptance](evidence/human-registry-producer-browser-v1.json) passes
+375 exact native/actual-Chromium operations: the previous 204 response hashes are
+unchanged, plus 57 each for synthetic, retained and fresh v4 fixtures. New cases
+check complete original ordered effects, immutable guard, mixed continuation,
+cross-command retry conflicts, unsupported old-profile capability, checksum-
+repaired state/history corruption and exact v1/v2/v3/v4 round trips. React
+import/apply/export/reload and capability removal pass for all three v4 fixtures.
+
+[Recovery acceptance](evidence/human-registry-producer-storage-v1.json) closes
+and reopens actual persistent Chromium for all nine fixtures, preserving exact
+saves, state/events/records and retries for both command types before native
+continuation. All six prior stored results are unchanged. Each v4 fixture also
+passes corrupt-current fallback and an actual aborted IndexedDB transaction,
+with visible accepted-but-unsaved state matching native execution and absent
+after reload. Retained/fresh shared-profile/session delayed imports and stale
+producer tabs remain fenced. Existing denial/quota injections, interrupted
+publication and other host recovery controls pass with their previous limits.
+
+All 79 Rust tests pass with one test thread, including 24 management checks and
+the new world construction boundary. Formatting, denied-warning workspace
+Clippy, native/WASM builds, strict TypeScript and browser builds pass. No new
+integration failure occurred. The earlier qualifier setup failure remains
+explicit. WASM SHA-256 is
+`5526af2d0711c1e3a68b22f0c612691a5a0747d0e6f3ef85ccd932d7b02193c8`.
+Exact-final-head independent review, protected checks and merge disposition are
+recorded in the delivery PR. No workflows, locks or runtime policies changed.

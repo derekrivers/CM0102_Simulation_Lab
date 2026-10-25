@@ -145,9 +145,35 @@ CI policy changed. The additional exact fixture is admitted with no open deliver
 dependency; fidelity exclusions below remain unchanged.
 Evidence: [scope and browser/recovery receipts](../research/PC_R4_HUMAN_REGISTRY.md#independently-reviewed-fresh-fixture-admission).
 
+## Additional human registry producer
+
+Independent qualification and raw projection review approves the exact retained
+and fresh schema-2 wrappers plus a separately labeled synthetic regression. The
+additional fixed option-2 producer writes one byte at `+0x9b25` for values 0/1,
+including repeats, while preserving the selected slot, immutable DWORD guard and
+other captured state. Both official oracles pass 37 calls/186 distinct starts,
+ABI and complete-state checks, mixed checkpoint continuation and twelve defect
+controls; three unsupported probes and the initial harness failure remain explicit.
+
+Rust owns an additive v4 world/save with both commands, shared revision/retry
+history and full replay validation. Existing v1/v2/v3 saves retain exact behavior
+and bytes without migration. Thin admitted-profile browser controls persist through
+the existing storage contract. All 375 native/Chromium operations match; previous
+204 hashes and six stored results remain exact. Actual browser close/reopen and
+native continuation pass across nine fixtures, plus v4 corruption fallback,
+visible actual transaction abort and same-profile retained/fresh writer fencing.
+All 79 Rust tests pass serially, formatting/Clippy/native/WASM/TypeScript/build
+pass, and no integration failure occurred. Frozen CI is unchanged.
+
+The [decision, independent audit identities and receipts](../research/HUMAN_REGISTRY_PRODUCER.md)
+retain the exact scope: neutral option meaning, initialized binding only, no
+implicit outer lookup, original UI/lifecycle/appointment/match/original-save claim.
+No original process or new Bosman campaign ran. Independent final-head review,
+protected checks and merge disposition are recorded in the delivery PR.
+
 ## Remaining engineering
 
-1. Direct human registry selection is qualified for the retained and freshly captured pinned initialized bindings. General registry construction/load/reuse, appointments, remaining slots and original UI/match effects remain unsupported. A next bounded increment may qualify one additional state producer.
+1. Direct human registry selection and the fixed option-2 byte producer are qualified for the retained and freshly captured pinned initialized bindings. General registry construction/load/reuse, appointments, remaining slots/options and original UI/match effects remain unsupported. Next bounded research can qualify a further producer or dependency without assuming gameplay semantics.
 2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched.
 3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
 4. Browser checkpoint recovery is bounded and tested; cgroup/lease/resource fencing, durable orchestration, physical-storage exhaustion and unattended campaigns remain unqualified.

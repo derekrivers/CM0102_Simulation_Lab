@@ -229,3 +229,16 @@ publication fencing and exact legacy results are required before reviewed merge.
 Neutral option labels preserve unknown gameplay meaning. No outer getter is
 invoked implicitly; no new capture campaign, original launch, lifecycle,
 appointment, plan decoding or match claim is included.
+
+Both real producer oracles now pass 37 calls/186 distinct starts each, reproduced
+byte for byte by an independent reviewer who reconstructed the exact wrappers
+without the existing parsers. Only those two hashes and a separately labeled
+synthetic wrapper are admitted. Twelve controls discriminate; three unsupported
+original probes remain censored. The initial overstrict selector harness failure
+is retained. Production v4 passes 375 native/Chromium operations, actual recovery
+for nine fixtures, mixed retries, corruption/abort and retained/fresh writer
+fencing. Previous 204 response hashes and six stored results remain exact.
+All 79 Rust tests pass serially, plus fmt/Clippy/native/WASM/TypeScript/build.
+The [bounded decision and receipts](../research/HUMAN_REGISTRY_PRODUCER.md)
+record scope and private audit identities. Final independent exact-head review,
+frozen checks and merge disposition follow in the delivery PR.
