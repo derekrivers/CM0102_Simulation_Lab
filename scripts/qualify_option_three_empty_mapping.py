@@ -3,6 +3,7 @@
 import argparse
 import copy
 import json
+import time
 from pathlib import Path
 from qualify_option_three_dependencies import DependencyOracle, capstone, unicorn, sys
 from qualify_human_registry import (Snapshot, locate, checked, canonical, digest,
@@ -94,6 +95,7 @@ def generate(binary, capture, source, build_receipt, attempts):
         attempt = {'value': value, 'execution_status': 'started'}
         attempts.append(attempt)
         expected = effects(value, source)
+        started = time.monotonic()
         try:
             _, result = oracle.call(0x5feb60, [3, value, state['manager']], state['registry'],
                 [(state['row']+w['registry_offset'], w['width']) for w in expected],
@@ -101,7 +103,10 @@ def generate(binary, capture, source, build_receipt, attempts):
         finally:
             attempt.update(ordered_partial_effects=copy.deepcopy(oracle.writes),
                 first_boundary=copy.deepcopy(oracle.boundary),
-                last_pc=f'{oracle.pc:08x}' if oracle.pc is not None else None)
+                last_pc=f'{oracle.pc:08x}' if oracle.pc is not None else None,
+                decoded_instruction=oracle.decoded,
+                ordered_admitted_reads=copy.deepcopy(oracle.ordered_reads),
+                emulation_elapsed_seconds=time.monotonic()-started)
         for write in expected:
             for i, byte in enumerate(write['value'].to_bytes(write['width'], 'little')):
                 changed[write['registry_offset']+i] = byte
@@ -172,13 +177,20 @@ if __name__ == '__main__':
     p.add_argument('output', type=Path); p.add_argument('--source', choices=('retained', 'fresh'), required=True)
     p.add_argument('--build-receipt', type=Path)
     a = p.parse_args()
-    with a.output.open('x', encoding='utf8') as output:
+    timing_path = a.output.with_name(a.output.name+'.timing.json')
+    require(not a.output.exists() and not timing_path.exists(), 'output exists')
+    with a.output.open('x', encoding='utf8') as output, timing_path.open('x', encoding='utf8') as timing:
         attempts = []
+        started = time.monotonic()
         try:
             receipt = generate(a.binary, a.capture, a.source, a.build_receipt, attempts)
         except Exception as error:
             output.write(json.dumps({'execution_status': 'failed', 'error_type': type(error).__name__,
                 'attempts': attempts, 'comparison_verdict': 'not-comparable'}, indent=2)+'\n')
             raise SystemExit('failed; sanitized attempt retained') from None
-        output.write(json.dumps(receipt, indent=2)+'\n')
+        else:
+            output.write(json.dumps(receipt, indent=2)+'\n')
+        finally:
+            timing.write(json.dumps({'host_generate_elapsed_seconds': time.monotonic()-started,
+                'attempts': attempts}, indent=2)+'\n')
     print(json.dumps({'source': a.source, 'calls': 4, 'receipt_sha256': digest(a.output.read_bytes())}))

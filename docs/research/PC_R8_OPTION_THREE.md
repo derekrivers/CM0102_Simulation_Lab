@@ -102,3 +102,24 @@ verifier used on observations. No production admission follows. Nonempty slots,
 staff-linked lifetimes, plan numeric branches and broader options remain excluded.
 
 Pending independent source review and heavy-slot allocation for this expansion.
+
+The expansion writes separate exclusive `.timing.json` sidecars with measured
+per-call emulation and overall host-generation elapsed durations. Timing is host
+instrumentation, never deterministic game state or part of the equality verdict.
+Unexpected failures retain decoded instruction, PC, admitted reads and every
+ordered partial effect. All private attempt files remain preserved.
+
+## Initial campaign receipt identities
+
+Executed source 5928e7d, Python optimized mode, Unicorn 2.1.4/Capstone 5.0.7:
+
+| Input | Calls | Host elapsed | Sanitized receipt SHA-256 |
+| --- | ---: | ---: | --- |
+| Retained | 4 | 4.67 s | `04a20da3250238a1b7e2d2664d4c28d855c2889f634a17870d341afe85bd2f23` |
+| Fresh | 4 | 0.76 s | `97e036f3c8405949e00c9ea9deb506d7bff92581464341f94d2a2bb88719838a` |
+
+Receipts: [retained](evidence/pc-r8-option3-retained-boundary-v1.json) and
+[fresh](evidence/pc-r8-option3-fresh-boundary-v1.json). All four value-zero calls
+returned; all four value-one calls censored at their frozen boundaries. Failed
+harness attempts: zero. Each receipt seals the unchanged imported source files,
+Python/module hashes, official specimen and existing capture identities.

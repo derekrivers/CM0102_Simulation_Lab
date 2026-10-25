@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "source": "fresh",
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "source_dependencies": {
+    "qualify_option_three_dependencies.py": "ac0bb646255625fa5c6f73a155c9d09f1d2496ac3fbcd571a49857c5cc88ca50",
+    "qualify_human_registry.py": "c26600217794ebaf39759fe0408b7d51bfef2a10f612c82fbe7b62676ffa3a39",
+    "qualify_human_registry_producer.py": "7d7071079182aac8c5d06f5e55eedb3ef0d89b1e68a0fa79bf161282a20acc5b",
+    "qualify_fresh_human_registry.py": "f4eb18bf72a1621e38c8bf05fcabe5fc6005ddf52f92136f952dc23869080ecd",
+    "qualify_manager_bound_plan.py": "3fd127ff7aa71b3f16f78daabcd7977d0dbcb4b8bdcd6815bf2312413b5b18d2"
+  },
+  "upstream_lock_sha256": "887ad560eb21bee7f3a6c1c4c87c80d91331190ae60854e7bd9dfd616bba1d75",
+  "tools": {
+    "python": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "capstone_module": "6f8a27fe069aa89a46974e189b5365d56eb5e02c2fd581d2fbfad7fbba51549f",
+    "unicorn_module": "9ad32123bca674cf205c308fd4d0d2a4db877c9dc2afac4feab7c84c8cf7043b"
+  },
+  "capture": {
+    "source_capture_sha256": "014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40",
+    "build_receipt_sha256": "4c7b536403fb545303de05350bebb262126382cea65025b843da1c55a43c0bf5"
+  },
+  "wrapper_sha256": "e5411188dcb8fe67187930a56c7c224294182bdcef3b684d34d0b8456ee94a5b",
+  "emulator": "unicorn 2.1.4",
+  "decoder": "capstone 5.0.7",
+  "calls": [
+    {
+      "admission": "strict-producer",
+      "value": 0,
+      "execution_status": "succeeded",
+      "comparison_verdict": "matched-bounded-effects",
+      "first_boundary": null,
+      "ordered_partial_effects": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "ordered_admitted_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": 43,
+      "return_and_abi_checked": true,
+      "complete_captured_state_and_image_checked": true,
+      "rng_draws": 0
+    },
+    {
+      "admission": "strict-producer",
+      "value": 1,
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "first_boundary": {
+        "kind": "read",
+        "pc": "005fec2e",
+        "instruction": "mov eax, dword ptr [edx + 0x39]",
+        "region_category": "manager-club-field",
+        "access_width": 4
+      },
+      "ordered_partial_effects": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "ordered_admitted_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": 38,
+      "return_and_abi_checked": false,
+      "complete_captured_state_and_image_checked": true,
+      "rng_draws": null
+    },
+    {
+      "admission": "connected-r4",
+      "value": 0,
+      "execution_status": "succeeded",
+      "comparison_verdict": "matched-bounded-effects",
+      "first_boundary": null,
+      "ordered_partial_effects": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "ordered_admitted_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        }
+      ],
+      "instruction_starts": 43,
+      "return_and_abi_checked": true,
+      "complete_captured_state_and_image_checked": true,
+      "rng_draws": 0
+    },
+    {
+      "admission": "connected-r4",
+      "value": 1,
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "first_boundary": {
+        "kind": "instruction",
+        "pc": "008968f0",
+        "instruction": "mov eax, dword ptr [esp + 4]",
+        "region_category": "unqualified-resolver-code",
+        "access_width": null
+      },
+      "ordered_partial_effects": [
+        {
+          "registry_offset": 39718,
+          "width": 1,
+          "value": 1
+        },
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "ordered_admitted_reads": [
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        },
+        {
+          "field": "manager_id",
+          "width": 4
+        },
+        {
+          "field": "staff_count",
+          "width": 4
+        },
+        {
+          "field": "registry_count",
+          "width": 4
+        },
+        {
+          "field": "registry_base",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 1
+        },
+        {
+          "field": "manager_club",
+          "width": 4
+        },
+        {
+          "field": "existing-r4-outer-field",
+          "width": 4
+        }
+      ],
+      "instruction_starts": 283,
+      "return_and_abi_checked": false,
+      "complete_captured_state_and_image_checked": true,
+      "rng_draws": null
+    }
+  ],
+  "defect_controls": {
+    "lost-initial-partial-write": true,
+    "wrong-width": true,
+    "wrong-pc": true,
+    "wrong-region": true,
+    "wrong-instruction": true,
+    "false-completed-abi": true,
+    "false-completed-execution": true,
+    "lost-outer-selector-write": true
+  },
+  "budget": {
+    "calls": 4,
+    "instruction_limit_per_call": 3000,
+    "emulator_timeout_microseconds_per_call": 100000
+  },
+  "immutable_inputs": true,
+  "production_admission": "none",
+  "nonzero_entry_to_return_qualified": false,
+  "continuation_qualified": false,
+  "limitations": [
+    "No original process or UI/gameplay claim",
+    "No lifetime/general-manager or nonzero completion/RNG claim",
+    "Static downstream dependencies are not executed qualification"
+  ]
+}
