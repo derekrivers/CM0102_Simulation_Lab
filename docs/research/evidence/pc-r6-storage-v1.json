@@ -33,7 +33,8 @@
     "injected storage SecurityError is visible and preserves real IndexedDB head",
     "worker termination during actual uncommitted IndexedDB write rolls back",
     "delayed command/import/reset publication is serialized across host sessions and profiles",
-    "concurrent stale tab cannot replace a newer committed checkpoint"
+    "concurrent stale tab cannot replace a newer committed checkpoint",
+    "transient initial-open failure followed by another tab session change cannot rebind a publication retry"
   ],
   "limitations": [
     "SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage",
