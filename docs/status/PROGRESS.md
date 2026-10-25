@@ -4,6 +4,27 @@ Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FI
 
 ## Demonstrated evidence
 
+### Owner-directed lab delivery — started 25 October 2026
+
+Fetched main remains `ca6d465` (after PRs #44/#45); no later changes were
+discarded. Work is isolated in `codex/unattended-local-lab` on the WSL native
+filesystem. The immediate programme priority is now the five local lab packages
+in the active plan. Complete squad/lineup implementation, R9b provenance and
+whole-game fidelity remain open. No full P01/P03 closure is claimed.
+
+Initial measured WSL envelope: 11,960 MiB total RAM, 11,244 MiB available,
+16 logical CPUs, approximately 930 GiB free on the native filesystem. User
+systemd and a transient CPUQuota=100%, MemoryMax=2 GiB, TasksMax=128 service
+were exercised successfully. Initial production limits will be conservative
+and frozen before pilot execution, with one heavy build/simulation at a time.
+
+Lead owns programme, integration, Windows entry point and local reports;
+two workers own core/recovery and approved workload adapters respectively.
+Workers inherit the lead's configured model; exact model identifier and billing
+totals are unavailable in this interface. Each author requires complementary
+independent review of the exact integrated revision and relevant evidence.
+Private inputs and all existing historical worktrees remain preserved.
+
 | Area | What is established | Limit |
 |---|---|---|
 | B0 inventory | Deterministic importer; 11,747 function starts, 6,863 named rows and 4,428 globals; PE-backed address validation | Names are hypotheses, not verified game semantics |
