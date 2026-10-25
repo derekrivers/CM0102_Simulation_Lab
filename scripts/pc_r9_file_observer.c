@@ -38,7 +38,7 @@ DECL(void *, mmap, (void *, size_t, int, int, int, off_t));
 DECL(void *, mmap64, (void *, size_t, int, int, int, off64_t));
 #define RESOLVE(n) do { if (!real_##n) *(void **)(&real_##n) = dlsym(RTLD_NEXT, #n); if (!real_##n) _exit(125); } while (0)
 
-static void hexpath(char *out, size_t cap, const char *path) {
+static int hexpath(char *out, size_t cap, const char *path) {
     static const char h[] = "0123456789abcdef";
     size_t i = 0;
     if (path) for (; path[i] && i * 2 + 2 < cap; ++i) {
@@ -46,6 +46,7 @@ static void hexpath(char *out, size_t cap, const char *path) {
         out[i*2] = h[c >> 4]; out[i*2+1] = h[c & 15];
     }
     out[i*2] = 0;
+    return path && path[i] != 0;
 }
 static void emit(const char *op, int fd, int success, int64_t result,
                  uint64_t requested, int saved_errno, const char *supplied) {
@@ -64,9 +65,10 @@ static void emit(const char *op, int fd, int success, int64_t result,
             identity_ok = 1;
         }
     }
-    hexpath(target_hex, sizeof target_hex, target);
-    hexpath(supplied_hex, sizeof supplied_hex, supplied);
+    int truncated = hexpath(target_hex, sizeof target_hex, target);
+    truncated |= hexpath(supplied_hex, sizeof supplied_hex, supplied);
     pthread_mutex_lock(&lock);
+    if (truncated || (fd >= 0 && !identity_ok)) ++errors;
     char line[18000];
     int len = snprintf(line, sizeof line,
         "%" PRIu64 "\t%s\t%d\t%" PRId64 "\t%" PRIu64 "\t%d\t%d\t%" PRIu64 "\t%" PRIu64 "\t%" PRId64 "\t%s\t%s\n",

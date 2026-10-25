@@ -113,6 +113,14 @@ class FileUseControls(unittest.TestCase):
         with self.assertRaises(ValueError):
             use.parse_trace(self.modified('\n'.join(content)+'\n'), self.members)
 
+    def test_overlong_supplied_path_invalidates_trace(self):
+        p = self.root/'overlong.tsv'
+        env = dict(os.environ, LD_PRELOAD=str(self.root/'observer.so'), PC_R9_TRACE=str(p))
+        result = subprocess.run([str(self.root/'control'), '/'+'x'*5000, 'b', 'c'], env=env)
+        self.assertEqual(result.returncode, 3)
+        with self.assertRaises(ValueError):
+            use.parse_trace(p, self.members)
+
     def test_trace_reuse_fails_without_overwrite(self):
         old = self.trace.read_bytes()
         env = dict(os.environ, LD_PRELOAD=str(self.root/'observer.so'), PC_R9_TRACE=str(self.trace))

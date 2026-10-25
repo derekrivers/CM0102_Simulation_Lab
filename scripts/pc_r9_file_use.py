@@ -75,12 +75,12 @@ def parse_trace(path, members):
             p = Path(supplied)
             symlink = any(x.is_symlink() for x in (p, *p.parents))
             supplied_symlinks += bool(symlink)
-        if matched and ok:
-            if op in OPENS:
+        if matched:
+            if op in OPENS and ok:
                 opened.add(target)
             if op in READS and returned > 0:
                 read.add(target)
-            if op in MAPS:
+            if op in MAPS and ok:
                 mapped.add(target)
         private.append({'sequence': seq, 'operation': op, 'success': bool(ok),
             'resolved_target': target, 'supplied_path': supplied,
@@ -96,7 +96,7 @@ def parse_trace(path, members):
         'failed_operations': failures, 'identity_mismatches': identity_mismatch,
         'outside_manifest_operations': outside, 'unresolved_successes': unresolved,
         'absolute_supplied_symlinks_at_analysis': supplied_symlinks,
-        'api_boundary_complete': True,
+        'observer_active_interval_complete': True,
         'all_kernel_io_observed': False,
         'semantic_use_of_every_byte_proven': False,
         'mapped_pages_read_proven': False,
@@ -126,6 +126,10 @@ def build(a):
 
 
 def seal(a):
+    expected = json.loads(Path(__file__).parents[1].joinpath(
+        'docs/research/evidence/pc-r5-capture-v1.json').read_text())
+    if r5.identity(a.observed/'build-receipt.json') != expected['build']['private_build_receipt']:
+        raise ValueError('unsealed R5 build receipt')
     receipt = json.loads((a.observed/'build-receipt.json').read_text())
     if r5.identity(a.observed/'cm0102_observed')['sha256'] != OBSERVED:
         raise ValueError('wrong retained R5 derivative')
@@ -151,7 +155,10 @@ def seal(a):
         'library': r5.identity(a.library/'observer.so'),
         'driver': r5.identity(__file__), 'r5_driver': r5.identity(r5.__file__),
         'python': r5.identity(Path(sys.executable).resolve()),
-        'smoke': r5.identity(a.source/'tests/smoke/smoke_run.py')}
+        'smoke': r5.identity(a.source/'tests/smoke/smoke_run.py'),
+        'host_file_route': r5.identity(a.source/'src/recomp_rt/host/posix.c'),
+        'libc': r5.identity(Path('/lib/x86_64-linux-gnu/libc.so.6').resolve()),
+        'loader': r5.identity(Path('/lib64/ld-linux-x86-64.so.2').resolve())}
 
 
 def run(a):
@@ -226,7 +233,7 @@ def run(a):
                 record['trace'] = r5.identity(work/'trace.tsv')
                 record['observation'] = {k: v for k, v in summary.items()
                     if k not in ('events', 'read_manifest_identities')}
-                record['observation_completeness'] = 'complete-at-declared-api-boundary'
+                record['observation_completeness'] = 'complete-at-observer-active-api-boundary'
             except (ValueError, OSError):
                 record['observation_completeness'] = 'failed'
         post = seal(a)
@@ -243,11 +250,11 @@ def run(a):
         x.get('capture', {}).get('sha256') == CAPTURE for x in records[1:])
     observations = records[2:]
     complete = all(x['observation_completeness'] ==
-        'complete-at-declared-api-boundary' for x in observations)
+        'complete-at-observer-active-api-boundary' for x in observations)
     positive = complete and all(x['observation']['positive_read_manifest_files'] > 0 and
         x['observation']['identity_mismatches'] == 0 for x in observations)
     report = {'schema_version': 1, 'execution_status': 'succeeded' if successful else 'failed',
-        'observation_completeness': 'complete-at-declared-api-boundary' if complete else 'failed',
+        'observation_completeness': 'complete-at-observer-active-api-boundary' if complete else 'failed',
         'endpoint_noninterference': endpoint_equal, 'captured_ranges_noninterference': captured_equal,
         'positive_manifest_file_reads_observed': positive, 'all_kernel_io_observed': False,
         'semantic_use_of_every_byte_proven': False, 'mapped_pages_read_proven': False,

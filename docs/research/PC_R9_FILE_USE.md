@@ -9,19 +9,25 @@ existing build, R5 observer or old artifacts. The instrumented process is Linux
 Bosman, never the original Windows executable.
 
 The observer wraps open/open64/openat/openat64, fopen/fopen64, read/pread/pread64,
-fread/fread_unlocked and mmap/mmap64. Successful operations record the descriptor's
-actual resolved /proc/self/fd target and fstat device/inode/size, requested count,
+fread/fread_unlocked and mmap/mmap64. Operations inspect the live descriptor immediately after the API returns and
+record its resolved /proc/self/fd target and fstat device/inode/size, requested count,
 returned count, operation, sequence and errno for failures. Requested open paths
 and failed operations are retained privately. No file content is logged.
-Positive read results prove bytes delivered through that API; a successful open
+Positive read counts (including counts accompanied by a stream error) prove
+complete items delivered through that API; a successful open
 alone does not. mmap success proves a mapping was established, not that its pages
 were read. No claim covers semantic use of every byte or unwrapped/direct-system-
 call/internal-libc I/O. Observations are affirmative evidence within this stated
-interposition boundary, not a census of all kernel file activity.
+interposition boundary during the constructor-to-destructor observer-active
+interval, not a census of all kernel file activity. Loader I/O before/after that
+interval is outside scope. Descriptor inspection is not atomic with a concurrent
+close/reuse from another thread: that wider lifetime race is unqualified. The
+pinned runtime source is inspected for the observed serial game file route; no
+claim of general concurrent descriptor-lifetime safety follows.
 
 An original clean manifest member is bound only when resolved path, device/inode,
 size and SHA-256 identity agree with the contemporaneously sealed clean inventory.
-All other successes, failures, symlink paths, escapes and identity mismatches stay
+All other successes, failures, symlink observations at analysis time, escapes and identity mismatches stay
 in the private trace/summary. Public evidence publishes only aggregate structural
 counts and artifact hashes. It never publishes raw paths, names, proprietary bytes
 or traces. Missing/invalid footer, dropped/truncated records or observer failure
