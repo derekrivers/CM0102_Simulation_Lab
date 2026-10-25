@@ -56,20 +56,22 @@ wsl -d Ubuntu -u derek -- python3 '/mnt/c/Users/derek/OneDrive/Documents/ChatGPT
 at this reviewed revision. Do not run Setup to redirect the existing launcher
 while qualification/replay still uses its accepted target.
 
-These candidate launch names are recognized but **deliberately reject** before
-private input access or job creation; they are not delivered approved profiles:
+Ordinary candidate `start` names still **deliberately reject** before private
+input access or job creation:
 
 ```sh
 python3 tools/lab/lab.py --root /PRIVATE/NEW-STATE start research-anomalies
 python3 tools/lab/lab.py --root /PRIVATE/NEW-STATE start research-consumers
 ```
 
-The rejection exists in both the profile factory and per-job validator, so an
-arbitrary manifest cannot bypass it. There is no LAB-007 launch command. A later
-independently reviewed release must resolve the actual gates, bind exact inputs,
-tools and source in a new native-WSL execution checkout/configuration, enforce the
-structural limits, reserve worst-case disk growth and provide the approved
-pilot route before enabling either profile. A configuration flag cannot enable it.
+The [operational admission procedure](LAB_005_006_OPERATIONAL_V1.md) now provides
+`freeze` for the separate native-WSL checkout and private configuration. It binds
+exact inputs/tools/source, applies the structural ceilings and physically reserves
+pilot/retry/replay disk capacity without configuring or executing a job. After
+independent exact-revision and actual-manifest review, `admit` additionally requires
+the accepted completed qualification and selected RNG replay evidence. Global
+and per-job validation enforce the same gates, so an arbitrary manifest or a
+configuration flag cannot bypass them. There is no LAB-007 launch command.
 
 The existing supported report and replay interfaces remain:
 
@@ -78,9 +80,9 @@ python3 tools/lab/lab.py --root /PRIVATE/STATE report CAMPAIGN
 python3 tools/lab/lab.py --root /PRIVATE/STATE replay JOB --campaign CAMPAIGN
 ```
 
-For a released LAB-005 profile the expected job identity is
+For a frozen LAB-005 profile the job identity is
 `001-research-squad-anomalies-v1`; for LAB-006 it is
-`001-research-member-consumers-v1`. These identities are future release targets,
+`001-research-member-consumers-v1`. These identities are frozen execution targets,
 not existing results. No LAB-005/006 result is currently replayable. Run the
 qualification's existing report/replay only from its preserved accepted checkout
 and configuration, with replay after actual horizon completion. Replay must

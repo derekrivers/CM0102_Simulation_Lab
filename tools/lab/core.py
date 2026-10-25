@@ -581,6 +581,8 @@ def execute(db, attempt, manifest, job, repo, adapter, config, slot_fd):
         check_global(manifest, repo)
         check_pins(job.get("pins", []), repo)
         adapter.validate_job(manifest, job, Path(repo), config=config)
+        if hasattr(adapter, 'reserve_attempt'):
+            adapter.reserve_attempt(manifest, attempt)
         prepared = adapter.prepare(manifest, job, directory, Path(repo), config=config)
     except (ValueError, OSError, KeyError, TypeError) as error:
         return {"execution_status": "rejected", "comparison_verdict": "not-run", "reason": "preflight: " + str(error), "details": {}}

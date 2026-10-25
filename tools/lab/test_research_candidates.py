@@ -30,13 +30,13 @@ class CandidateAdmission(unittest.TestCase):
                 with self.subTest(profile=profile):
                     with self.assertRaisesRegex(ValueError, 'Research release blocked'):
                         w.build_profile(profile, {}, ROOT, 'blocked')
-                    with self.assertRaisesRegex(ValueError, 'Research release blocked'):
+                    with self.assertRaisesRegex(ValueError, 'Research admission'):
                         w.validate_job({}, {'template_id': candidate['template'], 'parameters': {}}, ROOT, {})
 
     def test_cannot_bypass_gate_with_parameters_or_claimed_approval(self):
         for candidate in w.RESEARCH_CANDIDATES.values():
             job = {'template_id': candidate['template'], 'parameters': {'approved': True}}
-            with self.assertRaisesRegex(ValueError, 'Research release blocked'):
+            with self.assertRaisesRegex(ValueError, 'Research admission'):
                 w.validate_job({'approved': True}, job, ROOT, {'approved': True})
         with self.assertRaisesRegex(ValueError, 'unapproved template'):
             w.validate_job({}, {'template_id': 'research-assignment-matrix-v1'}, ROOT, {})

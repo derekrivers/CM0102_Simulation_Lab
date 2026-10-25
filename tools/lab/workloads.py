@@ -1,5 +1,6 @@
 """Frozen approved workload adapters; manifest arguments never become shell commands."""
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -11,17 +12,30 @@ import time
 TEMPLATES = {'synthetic-progress-v1', 'rng-native-wasm-v1', 'original-r10-regression-v1',
              'bosman-same-save-v1', 'research-squad-members-v1',
              'research-squad-anomalies-v1', 'research-member-consumers-v1'}
-# These adapters are implemented candidates, not released execution profiles.
-# Changing this gate requires an exact independently reviewed release revision.
+# Ordinary start remains blocked. Only frozen, independently reviewed pilot
+# manifests with accepted qualification evidence can enter the controlled route.
 RESEARCH_CANDIDATES = {
     'research-anomalies': {'campaign': 'LAB-005', 'template': 'research-squad-anomalies-v1',
                            'protocol': 'docs/research/LAB_005_V1.md'},
     'research-consumers': {'campaign': 'LAB-006', 'template': 'research-member-consumers-v1',
                           'protocol': 'docs/research/LAB_006_V1.md'},
 }
-RESEARCH_RELEASE_BLOCKER = ('Research release blocked: active qualification and its post-horizon '
-                            'replay/review must finish; exact source/protocol review, bounded pilot, '
-                            'resource measurement and selected-result replay remain required.')
+RESEARCH_RELEASE_BLOCKER = ('Research release blocked: use freeze then admit with exact operational '
+                            'review and completed qualification/replay acceptance. Pilot resource '
+                            'measurement and selected-result raw review follow admission.')
+
+
+def admission_module():
+    # Also works under python -I, which excludes the script directory from sys.path.
+    spec = importlib.util.spec_from_file_location('research_admission', Path(__file__).with_name('admission.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def is_research(manifest):
+    return any(job.get('template_id') in {c['template'] for c in RESEARCH_CANDIDATES.values()}
+               for job in manifest.get('jobs', []) if isinstance(job, dict))
 
 
 def ensure_released_profile(profile):
@@ -134,6 +148,8 @@ def _pin_map(manifest, job=None):
 def validate(manifest, repo_root, config=None):
     """Global policy; bad individual jobs are accounted as rejected."""
     require(manifest.get('schema_version') == 1, 'unsupported manifest schema')
+    if is_research(manifest):
+        admission_module().validate(manifest, repo_root)
     require(manifest.get('provenance', {}).get('config_sha256') == _config_digest(config),
             'local configuration changed; freeze a new campaign')
     pins = _pin_map(manifest)
@@ -146,7 +162,8 @@ def validate_job(manifest, job, repo_root, config=None):
     template, params = job.get('template_id'), job.get('parameters', {})
     require(template in TEMPLATES, 'unapproved template')
     if template in {item['template'] for item in RESEARCH_CANDIDATES.values()}:
-        raise ValueError(RESEARCH_RELEASE_BLOCKER)
+        admission_module().validate(manifest, repo_root)
+        require(job == manifest['jobs'][0], 'research job differs from frozen pilot')
     require(isinstance(params, dict), 'parameters must be object')
     if template == 'synthetic-progress-v1':
         require(set(params) <= {'steps','delay_ms','mode'}, 'unknown synthetic parameter')
@@ -158,11 +175,13 @@ def validate_job(manifest, job, repo_root, config=None):
     pins = _pin_map(manifest, job)
     for path in _files(template, config, Path(repo_root).resolve()):
         require(path.is_file() and str(path) in pins and pins[str(path)] == sha(path), 'template input/tool not pinned')
-    if template in ('original-r10-regression-v1','research-squad-members-v1'):
+    if template in ('original-r10-regression-v1','research-squad-members-v1','research-squad-anomalies-v1'):
         capture = _path(config,'retained_capture')
         require(sha(capture/'image.bin')==IMAGE_SHA and sha(capture/'heap.bin')==HEAP_SHA, 'unapproved retained capture')
         if template=='original-r10-regression-v1':
             require(sha(_path(config,'original_executable'))==SPECIMEN_SHA, 'unapproved original specimen')
+    if template == 'research-member-consumers-v1':
+        require(sha(_path(config,'original_executable'))==SPECIMEN_SHA, 'unapproved original specimen')
     if template=='bosman-same-save-v1':
         request=json.loads(_path(config,'bosman_request').read_text())
         commands=request.get('commands',[])
@@ -205,12 +224,30 @@ def result(manifest,job,attempt_dir,returncode):
     except (ValueError,KeyError,TypeError):
         return {'execution_status':'infrastructure_failed','comparison_verdict':'not-comparable','details':{'reason':'invalid workload endpoint'}}
 
-def build_profile(profile,config,repo_root,campaign_id):
+def build_profile(profile,config,repo_root,campaign_id,*,research_state_root=None):
     repo=Path(repo_root).resolve()
-    ensure_released_profile(profile)
+    if research_state_root is None:
+        ensure_released_profile(profile)
+    if profile in RESEARCH_CANDIDATES:
+        revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
+        admission_module().clean_source(repo, revision)
+        inputs = [(_path(config, 'retained_capture')/'image.bin', 12000000),
+                  (_path(config, 'retained_capture')/'heap.bin', 120000000)] if profile == 'research-anomalies' else [
+                      (_path(config, 'original_executable'), 7192576)]
+        for path, ceiling in inputs:
+            require(path.is_file() and not path.is_symlink() and 0 < path.stat().st_size <= ceiling,
+                    'unsupported research input object or size')
+        if profile == 'research-consumers':
+            require(inputs[0][0].stat().st_size == 7192576, 'unapproved specimen size')
+            capstone_version = subprocess.check_output([str(_path(config, 'oracle_python')), '-I', '-c',
+                                                        'import capstone; print(capstone.__version__)'], text=True).strip()
+            require(capstone_version == '5.0.7', 'qualified disassembler version must be 5.0.7')
+        python_version = subprocess.check_output([str(_path(config, 'python')), '--version'], text=True).strip()
+        require(python_version.startswith('Python 3.12.'), 'qualified Python 3.12 required')
     choices={'synthetic':['synthetic-progress-v1'],
              'regression':['rng-native-wasm-v1','original-r10-regression-v1','bosman-same-save-v1'],
-             'research-squad':['research-squad-members-v1']}
+             'research-squad':['research-squad-members-v1'],
+             **{name: [item['template']] for name, item in RESEARCH_CANDIDATES.items()}}
     require(profile in choices,'unknown approved profile')
     jobs=[]
     for index,template in enumerate(choices[profile]):
@@ -218,14 +255,14 @@ def build_profile(profile,config,repo_root,campaign_id):
         jobs.append({'job_id':f'{index+1:03d}-{template}','template_id':template,'parameters':({'steps':100,'delay_ms':100,'mode':'normal'} if template=='synthetic-progress-v1' else {}),
                      'pins':[{'path':str(p),'sha256':sha(p)} for p in paths]})
     revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
-    global_paths=[repo/'tools/lab'/name for name in ('core.py','workloads.py','lab.py','report.py','hold.py','Hold-Lab.ps1','Lab.ps1','Lab.cmd')]
+    global_paths=[repo/'tools/lab'/name for name in ('core.py','workloads.py','admission.py','lab.py','report.py','hold.py','Hold-Lab.ps1','Lab.ps1','Lab.cmd')]
     worktree=subprocess.check_output(['/usr/bin/git','status','--porcelain'],cwd=repo,text=True)
     diff=subprocess.check_output(['/usr/bin/git','diff','--binary','HEAD'],cwd=repo)
     versions={'git':subprocess.check_output(['/usr/bin/git','--version'],text=True).strip()}
     for key in ('python','node','oracle_python'):
         if key=='python' or key in config:
             versions[key]=subprocess.check_output([str(_path(config,key)),'--version'],text=True,stderr=subprocess.STDOUT).strip()
-    return {'schema_version':1,'campaign_id':campaign_id,'profile_id':profile,'source_revision':revision,
+    manifest = {'schema_version':1,'campaign_id':campaign_id,'profile_id':profile,'source_revision':revision,
             'pins':[{'path':str(p),'sha256':sha(p)} for p in global_paths if p.is_file()],'jobs':jobs,
             'limits':{'max_jobs':len(jobs),'elapsed_seconds':1800,'stall_seconds':660,
                       'output_bytes':2*1024**2,'disk_bytes':512*1024**2,'min_free_bytes':1024**3,'max_attempts':2},
@@ -234,6 +271,29 @@ def build_profile(profile,config,repo_root,campaign_id):
                           'source_worktree_status':worktree,'source_diff_sha256':hashlib.sha256(diff).hexdigest(),
                           'tool_versions':versions,'scope':'approved templates; no automatic evidence promotion',
                           'research_protocol':'docs/research/LOCAL_LAB_RESEARCH_V1.md' if profile=='research-squad' else None}}
+    if profile in RESEARCH_CANDIDATES:
+        admission = admission_module()
+        admission.clean_source(repo, revision)
+        manifest['limits'] = dict(admission.LIMITS)
+        manifest['observation_seconds'] = 0
+        manifest['provenance']['research_protocol'] = RESEARCH_CANDIDATES[profile]['protocol']
+        manifest['provenance']['research_state_root'] = str(Path(research_state_root).resolve())
+        if profile == 'research-consumers':
+            manifest['provenance']['tool_versions']['capstone'] = capstone_version
+        admission.validate_shape(manifest)
+        # Freeze reads and hashes private files, but never invokes the decoder.
+        if profile == 'research-anomalies':
+            capture = _path(config, 'retained_capture')
+            require(sha(capture/'image.bin') == IMAGE_SHA and sha(capture/'heap.bin') == HEAP_SHA,
+                    'unapproved retained capture')
+        else:
+            require(sha(_path(config,'original_executable')) == SPECIMEN_SHA, 'unapproved original specimen')
+    return manifest
+
+
+def reserve_attempt(manifest, attempt):
+    if is_research(manifest):
+        return admission_module().reservation(manifest, attempt=attempt)
 
 def _progress(attempt,sequence):
     temp=attempt/'progress.tmp'
@@ -441,7 +501,7 @@ def _execute(task):
             require(len(observations['controls'])==6 and all(observations['controls'].values()),'research controls did not discriminate')
             outcome.update(execution_status='succeeded',comparison_verdict='not-run',details=observations)
         elif template in ('research-squad-anomalies-v1', 'research-member-consumers-v1'):
-            # validate_job above fails closed until a separately reviewed release.
+            # validate_job above requires immutable operational/qualification receipts.
             number = '005' if template == 'research-squad-anomalies-v1' else '006'
             interpreter = 'python' if number == '005' else 'oracle_python'
             input_key = 'retained_capture' if number == '005' else 'original_executable'
