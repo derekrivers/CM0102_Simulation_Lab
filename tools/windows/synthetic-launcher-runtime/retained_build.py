@@ -609,8 +609,8 @@ def il_instructions(helper, raw: bytes, sections: list[tuple[int, int, int, int]
         set(range(0x46, 0x6F)) | {0x76, 0x7A} | set(range(0x82, 0x8C)) | \
         {0x8E} | set(range(0x90, 0xA3)) | set(range(0xB3, 0xBB)) | \
         {0xC3} | set(range(0xD1, 0xDD)) | {0xDC, 0xDF, 0xE0}
-    one = set(range(0x0E, 0x14)) | {0x1F} | set(range(0x2B, 0x38))
-    four = {0x20, 0x22} | set(range(0x38, 0x45))
+    one = set(range(0x0E, 0x14)) | {0x1F, 0xDE} | set(range(0x2B, 0x38))
+    four = {0x20, 0x22, 0xDD} | set(range(0x38, 0x45))
     eight = {0x21, 0x23}
     token = {0x27, 0x28, 0x29, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75,
         0x79, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F, 0x80, 0x81, 0x8C, 0x8D, 0x8F,
@@ -1256,6 +1256,36 @@ def self_test() -> None:
             "member_refs": [], "module_refs": [],
             "process_creation_calls": {"CreateProcessAsUserW": 0, "CreateProcessW": 0}}:
         raise HarnessError("synthetic static authority positive control")
+    leave_short = bytearray(synthetic)
+    leave_short[0x500:0x504] = b"\x0e\xde\x00\x2a"
+    if inspect_cli_authority(helper, bytes(leave_short), [],
+            {"CreateProcessAsUserW": 0, "CreateProcessW": 0}) != empty_authority:
+        raise HarnessError("synthetic leave.s positive control")
+    leave_long = bytearray(synthetic)
+    leave_long[0x500:0x507] = b"\x1a\xdd\x00\x00\x00\x00\x2a"
+    if inspect_cli_authority(helper, bytes(leave_long), [],
+            {"CreateProcessAsUserW": 0, "CreateProcessW": 0}) != empty_authority:
+        raise HarnessError("synthetic leave positive control")
+    truncated_leave_short = bytearray(synthetic)
+    truncated_leave_short[0x500:0x502] = b"\x06\xde"
+    try:
+        inspect_cli_authority(helper, bytes(truncated_leave_short), [],
+            {"CreateProcessAsUserW": 0, "CreateProcessW": 0})
+    except HarnessError as error:
+        if str(error) != "truncated IL operand":
+            raise HarnessError("truncated leave.s negative control") from error
+    else:
+        raise HarnessError("accepted truncated leave.s")
+    truncated_leave_long = bytearray(synthetic)
+    truncated_leave_long[0x500:0x502] = b"\x06\xdd"
+    try:
+        inspect_cli_authority(helper, bytes(truncated_leave_long), [],
+            {"CreateProcessAsUserW": 0, "CreateProcessW": 0})
+    except HarnessError as error:
+        if str(error) != "truncated IL operand":
+            raise HarnessError("truncated leave negative control") from error
+    else:
+        raise HarnessError("accepted truncated leave")
     import_map = {"import_name": "Sleep", "managed_name": "Sleep",
         "mapping_flags": 0x0100, "module": "kernel32.dll"}
     imported = inspect_cli_authority(helper, synthetic_implmap_pe(helper), [import_map],

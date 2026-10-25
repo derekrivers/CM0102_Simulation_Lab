@@ -156,8 +156,8 @@ FROZEN_IDENTITIES: dict[str, tuple[int, str]] = {
         "dee2f37a7266e824010d4e028196ed928970570384d9ae3037ef154f5c690b3a"),
     RUNTIME_ROOT + "/TimeoutFixtureLiveNative.cs": (17964,
         "fe9bfcbbafb477bd6fe9d7e44313dac9d83fc17a6c575b1344df59cd148facec"),
-    RUNTIME_ROOT + "/retained_build.py": (67082,
-        "3988f14ebaa0d3b5eb4ef54609d1dd1d4e1a7cd4c8abc5d0eca11563897cbbbc"),
+    RUNTIME_ROOT + "/retained_build.py": (68640,
+        "28e24b27e862ae31b3e9738090d3f8a2c954bc95f0f75d55ba3ce3b97eb29c77"),
 }
 
 
@@ -1375,6 +1375,11 @@ def verify_harness(source: str) -> None:
         "stat.S_IMODE(root_metadata.st_mode) != 0o700",
         "manifest.get(\"environment\") != expected_environment",
         "fresh retained tree self-test",
+        "one = set(range(0x0E, 0x14)) | {0x1F, 0xDE} | set(range(0x2B, 0x38))",
+        "four = {0x20, 0x22, 0xDD} | set(range(0x38, 0x45))",
+        "synthetic leave.s positive control", "synthetic leave positive control",
+        "truncated leave.s negative control", "truncated leave negative control",
+        "accepted truncated leave.s", "accepted truncated leave",
     ):
         if marker not in source:
             raise VerificationError("retained harness contract " + marker)
@@ -1831,6 +1836,38 @@ def self_test() -> None:
         pass
     else:
         raise VerificationError("accepted nonexistent retained mount binding")
+    one_byte_opcodes = \
+        "one = set(range(0x0E, 0x14)) | {0x1F, 0xDE} | set(range(0x2B, 0x38))"
+    four_byte_opcodes = "four = {0x20, 0x22, 0xDD} | set(range(0x38, 0x45))"
+    for replacements, label in (
+            (((one_byte_opcodes,
+                "one = set(range(0x0E, 0x14)) | {0x1F} | set(range(0x2B, 0x38))"),),
+                "leave.s opcode omission"),
+            (((one_byte_opcodes,
+                "one = set(range(0x0E, 0x14)) | {0x1F} | set(range(0x2B, 0x38))"),
+              (four_byte_opcodes,
+                "four = {0x20, 0x22, 0xDD, 0xDE} | set(range(0x38, 0x45))")),
+                "leave.s operand width"),
+            (((four_byte_opcodes,
+                "four = {0x20, 0x22} | set(range(0x38, 0x45))"),),
+                "leave opcode omission"),
+            (((four_byte_opcodes,
+                "four = {0x20, 0x22} | set(range(0x38, 0x45))"),
+              (one_byte_opcodes,
+                "one = set(range(0x0E, 0x14)) | {0x1F, 0xDD, 0xDE} | "
+                "set(range(0x2B, 0x38))")),
+                "leave operand width"),
+        ):
+        changed_harness = harness
+        for old, new in replacements:
+            if changed_harness.count(old) != 1:
+                raise VerificationError("self-test source marker " + label)
+            changed_harness = changed_harness.replace(old, new, 1)
+        try:
+            verify_harness(changed_harness)
+        except VerificationError:
+            continue
+        raise VerificationError("accepted " + label + " mutation")
     for old, new, label in (
             ("stat.S_IMODE(root_metadata.st_mode) != 0o700", "False",
                 "retained root mode omission"),
