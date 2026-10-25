@@ -1,0 +1,174 @@
+{
+  "audit_script_sha256": "0c173a8f6748eff9583cb5f602f0e5c1a52d5866c10948d7c1b4c22e1e51d27c",
+  "campaigns": [
+    {
+      "attempts": [
+        {
+          "artifact_bytes": 172151,
+          "artifact_count": 11,
+          "attempt_id": "d7bea53afdf34ca8a696f945d643248a",
+          "comparison_verdict": "equal",
+          "cpu_seconds": 0.458498,
+          "job_id": "001-rng-native-wasm-v1",
+          "result_sha256": "1d0ee03e08212b817aecbe2995769db4467a7dbef5e9bdcbdf9c6875f454d341",
+          "service_lifetime_memory_peak_bytes": 62918656
+        },
+        {
+          "artifact_bytes": 116543,
+          "artifact_count": 10,
+          "attempt_id": "c011476b3114438d96c5fd14d0ed02c8",
+          "comparison_verdict": "equal",
+          "cpu_seconds": 14.8076,
+          "job_id": "002-original-r10-regression-v1",
+          "result_sha256": "42a02ea5216b2cf1b2cb068a60d7c1a7c48db4871847fb88a2930d6c77c61baa",
+          "service_lifetime_memory_peak_bytes": 968343552
+        },
+        {
+          "artifact_bytes": 27133,
+          "artifact_count": 13,
+          "attempt_id": "bc15a3311261463faeadc508facd9b08",
+          "comparison_verdict": "not-run",
+          "cpu_seconds": 122.348255,
+          "job_id": "003-bosman-same-save-v1",
+          "result_sha256": "5d0a26505244558c72b14b90d2cda29f1963010eca8353d26e3a70ef43c541dc",
+          "service_lifetime_memory_peak_bytes": 986386432
+        }
+      ],
+      "campaign_id": "integrated-pilot-v1",
+      "cgroup_limits": {
+        "cpu_max": [
+          "100000",
+          "100000"
+        ],
+        "memory_max": "2147483648",
+        "path": "/user.slice/user-1000.slice/user@1000.service/app.slice/cm0102-local-lab.service",
+        "pids_max": "128"
+      },
+      "elapsed_seconds": 153.8720188249863,
+      "holder_record_sha256": "50da54b84f543c6aaec3f04b52cf22562796deaa0be2a00f78058d27b4466429",
+      "html_sha256": "201aa2b1e593e353e6e5d24592a420470e62919d6c786e62af0cdaeb037b1254",
+      "jobs": 3,
+      "json_report_sha256": "ea59cd4d88038ec4e806888c5d4ad41da3cef278597ed9a9bb5dde3c2ce7466a",
+      "manifest_sha256": "797a165cbe86385a74e20c8505f2b639480d5b9ec4b94f68a766f7f85fba8449",
+      "unique_pin_count": 90
+    },
+    {
+      "attempts": [
+        {
+          "artifact_bytes": 8867,
+          "artifact_count": 7,
+          "attempt_id": "047d64f7e0c24bb3aabd25dc4c533d46",
+          "comparison_verdict": "not-run",
+          "cpu_seconds": 1.000287,
+          "job_id": "001-research-squad-members-v1",
+          "result_sha256": "0fcbc1a4c0374040c4f992c6a37ec56c1f0b63c74831935524d551073b4e7e2a",
+          "service_lifetime_memory_peak_bytes": 139374592
+        }
+      ],
+      "campaign_id": "research-squad-pilot-v1",
+      "cgroup_limits": {
+        "cpu_max": [
+          "100000",
+          "100000"
+        ],
+        "memory_max": "2147483648",
+        "path": "/user.slice/user-1000.slice/user@1000.service/app.slice/cm0102-local-lab.service",
+        "pids_max": "128"
+      },
+      "elapsed_seconds": 1.1740089320082916,
+      "holder_record_sha256": "a677d72985ad9ec731b6478ecac2fb34ba9c0effd31c59541203b46616c38288",
+      "html_sha256": "bd53657c597d25aecb1e37f720f6526305d17a39b40529d312b8c71bf5fcfa63",
+      "jobs": 1,
+      "json_report_sha256": "77ce29b067cd654fc692b6b7f994fa0f10af48638f7a181b9f011bce93b94ab0",
+      "manifest_sha256": "ee5b284c0e9b76c081faccae8ba0a5e509d83d4dc18eb953ca01665909f9d58f",
+      "unique_pin_count": 12
+    }
+  ],
+  "decision": "accepted for bounded local lab delivery and separately scoped static research finding",
+  "findings": [],
+  "independence": "No workload function, native engine, WASM engine or emulator was executed by this audit. It independently opened SQLite read-only, hashed every pinned regular file and attempt artifact, reconstructed source raw-table counts/identities and six discriminating defects.",
+  "integrity_seal": {
+    "algorithm": "SHA-256 of canonical review excluding integrity_seal",
+    "identity_authentication": "Role attestation only; this digest is not a cryptographic identity signature.",
+    "sha256": "cb7ff9f3ac799d0fe59eb93286091e5ef2cdac5421b17d7cf8783d08837f2d5f"
+  },
+  "long_observation": {
+    "P01_P03": "Remain open; no phase gate or full-game fidelity claim.",
+    "decision": "not yet run or accepted by this review",
+    "protocol_preexecution": "Accepted unchanged frozen LOCAL_LAB_24H_V1 after actual short pilot/operator prerequisites; actual 86400-second elapsed, injected restart and post-horizon selected replay must still be demonstrated."
+  },
+  "regression": {
+    "bosman_comparison": "not-run; no original-process parity claim",
+    "bosman_endpoint": "classic-same-save-normal-again-14-days-equal",
+    "bosman_receipt_sha256": "b9359684cf422ff0e55288e9fcc1b16cb54273ba2dddf5d4cc381439479bad2a",
+    "native_wasm_exact_bytes": 75952,
+    "native_wasm_sha256": "1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16",
+    "negative_control_counts": [
+      1023,
+      61,
+      2447,
+      123
+    ],
+    "original_censored_calls": 4,
+    "original_continuation": "exact",
+    "original_controls": 12,
+    "original_receipt_sha256": "504f4f1142597f4f8e451e15837383df2527a2afc921149e4f72d75a8fb8d877",
+    "original_successful_calls": 11
+  },
+  "research": {
+    "accepted_finding": "For this exact retained capture, 43 distinct reciprocal complete member-list staff records equal all 43 complete-player-linked staff records among 61 full-table club associations; 18 other club associations lack a complete aligned player link.",
+    "attempt_id": "047d64f7e0c24bb3aabd25dc4c533d46",
+    "counts": {
+      "complete_player_id": 43,
+      "duplicate_player": 0,
+      "duplicate_staff": 0,
+      "foreign_club": 5,
+      "invalid_staff": 2,
+      "missing_player_extent": 0,
+      "reciprocal_staff": 43,
+      "slots": 50,
+      "unaligned_player": 0,
+      "wrong_player_id": 0
+    },
+    "hypothesis_H1": true,
+    "independently_discriminated_controls": {
+      "changed-club-backpointer": true,
+      "duplicate-member": true,
+      "missing-member": true,
+      "short-player-record": true,
+      "unaligned-link": true,
+      "wrong-player-id": true
+    },
+    "inverse_associations": {
+      "complete_player": 43,
+      "invalid_player": 18,
+      "total": 61
+    },
+    "observation_sha256": "cd421baab2ecf1effa9f4b0d764956e984b9cf7d0e1df6401df69e599f231ba0",
+    "player_table_sha256": "110e34f05248a78c5e63f0755b7c28af6f9e7de5f29deba4d0e223c8731c140d",
+    "production_admission": "none",
+    "record_identity_sha256": "ecf536c8f43a12234892dcb67805ff3150e5de51c2e4c4af0da0f334696d6971",
+    "remaining_unknown": "Meaning of two invalid and five foreign member-list entries, the 18 other associations, squad eligibility/lifetime, nonempty original mappings, full lineup workflow and save/browser integration remain unqualified.",
+    "set_comparison": {
+      "intersection": 43,
+      "inverse_distinct": 43,
+      "inverse_identity_sha256": "ba6a5a64e4c4238e47d6b9263a899a23c0e7474650ab30675547b016e2caf9cc",
+      "inverse_only": 0,
+      "list_distinct": 43,
+      "list_identity_sha256": "ba6a5a64e4c4238e47d6b9263a899a23c0e7474650ab30675547b016e2caf9cc",
+      "list_only": 0
+    }
+  },
+  "reviewed_at_utc": "2026-10-25T14:48:02.695375+00:00",
+  "reviewer": "Independent task agent /root/lab_core",
+  "reviewer_model": "Not exposed by this runtime; no model identity inferred",
+  "schema_version": 1,
+  "scope_exclusion": "Reviewer authored core.py/test_core.py and service qualification harness; this attestation is not independent approval of those own implementations. Complementary reviewer must cover them.",
+  "signed_by": "/root/lab_core; explicit independent evidence/research/helper review attestation",
+  "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+  "windows_installed_script_sha256": {
+    "Hold-Lab.ps1": "83d6288d25cfcd7383c859f50c250d2dad291c41fceeb9b1bdb44a999a712778",
+    "Lab.cmd": "9bda0425199d483f6c245ac91b60b214f409ae979819868ea6b3c6f06567e57a",
+    "Lab.ps1": "dc8cc74109d0fa93807616d410c4835a460ab4406c31b7883015a61e95dd8768"
+  }
+}

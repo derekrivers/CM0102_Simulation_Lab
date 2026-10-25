@@ -1,8 +1,16 @@
 # Frozen local lab research campaign v1
 
-Status: frozen pre-execution protocol, independently reviewed by the lead.
-The new question has not yet run; accepted-revision execution and independent
-post-execution review remain pending. Single-heavy-slot allocation is required.
+Status: frozen protocol, independently reviewed before execution. Clean
+`42a3138` execution and independent raw-data post-review now passed. The retained
+execution checkout keeps the original pre-execution document for exact replay;
+this delivery copy adds only the separately recorded outcome below.
+
+The campaign completed in 1.1740 seconds: both candidate sets contain the same
+43 records, out of 61 full-table club associations (18 other associations lack
+valid complete player links). All six controls discriminated; all seven list
+anomalies remain visible. This is a structural observation, not squad admission.
+The [independent review](evidence/local-lab-independent-research-review-v1.json)
+and [delivery receipt](evidence/local-lab-delivery-v1.json) retain identities.
 
 The programme next delivers an unattended local lab. These templates execute
 reviewed code with pinned tools and inputs; they never infer, generate or promote
