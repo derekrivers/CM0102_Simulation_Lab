@@ -1,0 +1,71 @@
+# PC-R9 bounded Bosman file-use provenance
+
+## Frozen claim and observation boundary
+
+This experiment reuses R5's exact sealed baseline and capture derivative on pinned
+Bosman 144ed82c248228c7769c6785899527eae5b33c3d. It observes host file API results
+with a separately compiled LD_PRELOAD library; it does not modify the game source,
+existing build, R5 observer or old artifacts. The instrumented process is Linux
+Bosman, never the original Windows executable.
+
+The observer wraps open/open64/openat/openat64, fopen/fopen64, read/pread/pread64,
+fread/fread_unlocked and mmap/mmap64. Successful operations record the descriptor's
+actual resolved /proc/self/fd target and fstat device/inode/size, requested count,
+returned count, operation, sequence and errno for failures. Requested open paths
+and failed operations are retained privately. No file content is logged.
+Positive read results prove bytes delivered through that API; a successful open
+alone does not. mmap success proves a mapping was established, not that its pages
+were read. No claim covers semantic use of every byte or unwrapped/direct-system-
+call/internal-libc I/O. Observations are affirmative evidence within this stated
+interposition boundary, not a census of all kernel file activity.
+
+An original clean manifest member is bound only when resolved path, device/inode,
+size and SHA-256 identity agree with the contemporaneously sealed clean inventory.
+All other successes, failures, symlink paths, escapes and identity mismatches stay
+in the private trace/summary. Public evidence publishes only aggregate structural
+counts and artifact hashes. It never publishes raw paths, names, proprietary bytes
+or traces. Missing/invalid footer, dropped/truncated records or observer failure
+makes observation completeness fail; successful game execution cannot override it.
+
+## Noninterference and bounded experiment acceptance
+
+Before execution, independently review exact observer/driver/contract revision.
+Compile only the new library into a fresh private output; seal source, compiler,
+command and resulting library. Revalidate R5 build receipt, baseline, derivative,
+pinned source/tree, pinned smoke script and all 760 clean files before each arm
+and after each arm. Hash and execute each binary through the same held descriptor.
+No source, deployment, CI, pin or original launcher changes are authorized here.
+
+Run four serial 14-day fixed-clock seed-1 arms with classic settings and the exact
+R5 smoke actions: retained baseline, R5 derivative with file observer absent,
+derivative + file observer A, derivative + file observer B. Enable the unchanged
+R5 sparse capture in all derivative arms. Each arm has a fresh private HOME/user
+directory, 240-second wall deadline, CPU 300 seconds, 6 GiB address-space limit,
+64 MiB per file and 1 MiB each stdout/stderr cap. Trace cap is 16 MiB; overflow
+must visibly invalidate observation rather than silently omit evidence.
+All attempts and failed arms are retained, with exclusive new output directories.
+
+Compare exact endpoint saves across all four arms and the retained R5 endpoint,
+and complete raw sparse captures across the three derivative arms and retained
+R5 capture. No masks or tolerances. These comparisons support only the observed
+endpoint and captured live ranges; endpoint equality is never full live-state
+equality. Timing differences are reported, not hidden. The observer changes host
+I/O and scheduling, which remains a wider noninterference limitation.
+
+Receipts separate execution_status, observation_completeness,
+endpoint_noninterference, captured_ranges_noninterference and comparison_verdict
+(not-run for original/Bosman comparison). They retain hashes/times/configuration,
+tool/build/input seals, failed/denied/escape/symlink counts and private raw traces.
+Reproducible controls must catch missing/truncated/dropped traces, wrong identities,
+positive-read versus open-only versus mmap-only confusion, and endpoint mismatch.
+Independent artifact/seal/result verification and exact final-head review are
+required before evidence promotion or merge. A failed experiment is retained with
+a precise blocker; hashes alone never upgrade consumption unknown to passed.
+
+## Routing and budget
+
+Lead owns observer/driver and experiment. GPT-6 Astra/high owns R7; GPT-6.1
+Sol/medium owns R8. A separate worker reviews this frozen experiment before
+execution and the artifacts afterward. No nested agents; one heavy job at a time.
+At most one four-arm campaign is initially admitted; a failure requires diagnosis
+and a separately retained bounded follow-up. Token/billing totals are unavailable.
