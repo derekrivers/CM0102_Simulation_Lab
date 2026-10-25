@@ -4,6 +4,31 @@ Decision: 25 October 2026. The owner accepted the PC review and Reversal reuse r
 
 ## Outcome and ordering
 
+### Current owner direction: unattended local laboratory
+
+On 25 October 2026 the owner superseded the browser/squad-first ordering below.
+Deliver working campaign execution, recovery, approved workloads and a Windows
+operator runbook before further browser expansion or full squad/lineup work.
+Preserve all earlier evidence boundaries and the open R9b/squad questions.
+
+| Package | Required executable result | Dependency |
+|---|---|---|
+| Lab 1 | Finite pinned manifest, durable logical jobs and immutable attempts, single-worker ownership, explicit rejection and synthetic results | Existing supervisor and persistence contracts |
+| Lab 2 | Enforced limits, progress detection, stop/restart recovery, bounded retries and fenced publication; chat-independent worker | Frozen Lab 1 interfaces |
+| Lab 3 | Approved qualified regression adapters and one independently reviewed bounded open-question campaign | Lab 1 and each workload's existing evidence gates |
+| Lab 4 | Windows start/status/stop/resume/report/replay with one-time private configuration | Lab 1 interfaces and local worker |
+| Lab 5 | Exact reviewed integration, short pilot, then actual 24 elapsed hours with restart, limits, cancellation, accounting and replay | Reviewed Lab 1–4 |
+
+The first milestone is a single-PC/WSL, single-worker local lab. Its documented
+SQLite/host-lock contract substitutes only for this local milestone; the full
+P01 PostgreSQL design, startup/load, short world-advance and targeted match
+coverage remain unwaived. The P03 function/domain/contract counts and actual
+72-hour gate remain open. Qualification is never inferred from short pilots or
+correctly classified failures. Use [the local contract](../architecture/LOCAL_LAB_V1.md)
+and [operator runbook](../runbooks/local-lab.md) for the current implementation.
+
+The remaining document retains the accepted earlier PC packages and evidence.
+
 Build one original-instruction-backed Rust RNG slice, execute the same corpus natively and in WASM, and prove checkpoint continuation. Then deliver one bounded stateful management workflow. Simulation Lab remains the implementation repository; [Reversal](../research/REVERSAL.md) is a pinned research source. Rust owns behaviour; React/TypeScript owns presentation.
 
 | Package | Status | Demonstrable target | Dependency |
@@ -13,7 +38,7 @@ Build one original-instruction-backed Rust RNG slice, execute the same corpus na
 | PC-R2: reference and lab recovery | Targeted recovery verified; wider reference gates open | Fresh bounded Bosman replay; reconciled evidence ledger; qualified Windows observations when needed | Each claim's own source, specimen and execution prerequisites |
 | PC-R3: player-visible stateful workflow | Bounded tactical-plan workflow verified | One evidenced management command, invalid-action rejection, native/browser equality, save/reload continuation | Relevant PC-R1/PC-R2 evidence and an accepted command contract |
 
-PC-R1 may proceed before full P02 calibration and the Windows helper campaign. This is a scoped numeric implementation, not formal P02/P04 closure. Original-process and broader journey claims still require their corresponding gates. B0/B1 remain historical checkpoint names; B2 calibration and B3 reconstruction continue through these packages. B4/B5 continuous operations stay deferred.
+PC-R1 may proceed before full P02 calibration and the Windows helper campaign. This is a scoped numeric implementation, not formal P02/P04 closure. Original-process and broader journey claims still require their corresponding gates. B0/B1 remain historical checkpoint names; B2 calibration and B3 reconstruction continue through these packages. B4/B5 historical deferral is superseded only by the bounded local lab direction above.
 
 ## PC-R1 acceptance contract
 
@@ -58,7 +83,11 @@ A read-only profile, static match phases or a navigation mock-up does not comple
 
 Windows hosts the separately reviewed operator-launched reference route; WSL hosts Linux builds and research. Use native filesystems for active builds, keep private inputs outside Git and live Windows packages outside OneDrive. Initially allow one heavy build or simulation at a time.
 
-No VPS upgrade/purchase, 24/7 campaign, distributed workers, dashboard project, PostgreSQL deployment or Jev pipeline is scheduled. Reconsider infrastructure only when a demonstrated feature or experiment needs it. After two focused setup sessions without useful execution, record the blocker and reassess a simpler route before adding infrastructure.
+No VPS upgrade/purchase, distributed workers, dashboard project, PostgreSQL
+deployment or Jev pipeline is scheduled. The owner now requires the bounded
+unattended lab and actual 24-hour local qualification described above. After two
+focused attempts at the same infrastructure blocker, diagnose and reassess the
+simplest viable approach before expanding infrastructure.
 
 Measure accepted behaviour contracts, reproducible cases, unresolved divergences and working workflows. Record engineering/model spend when available. Do not use PR counts, named-function percentages or synthetic UI breadth as game completion. Estimate subsequent work after several measured slices; no whole-game completion date is committed.
 

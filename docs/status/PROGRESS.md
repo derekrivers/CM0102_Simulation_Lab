@@ -4,6 +4,78 @@ Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FI
 
 ## Demonstrated evidence
 
+### Owner-directed lab delivery — started 25 October 2026
+
+Fetched main remains `ca6d465` (after PRs #44/#45); no later changes were
+discarded. Work is isolated in `codex/unattended-local-lab` on the WSL native
+filesystem. The immediate programme priority is now the five local lab packages
+in the active plan. Complete squad/lineup implementation, R9b provenance and
+whole-game fidelity remain open. No full P01/P03 closure is claimed.
+
+Initial measured WSL envelope: 11,960 MiB total RAM, 11,244 MiB available,
+16 logical CPUs, approximately 930 GiB free on the native filesystem. User
+systemd and a transient CPUQuota=100%, MemoryMax=2 GiB, TasksMax=128 service
+were exercised successfully. Initial production limits will be conservative
+and frozen before pilot execution, with one heavy build/simulation at a time.
+
+Lead owns programme, integration, Windows entry point and local reports;
+two workers own core/recovery and approved workload adapters respectively.
+Workers inherit the lead's configured model; exact model identifier and billing
+totals are unavailable in this interface. Each author requires complementary
+independent review of the exact integrated revision and relevant evidence.
+Private inputs and all existing historical worktrees remain preserved.
+
+### Reviewed executable lab precursor — 25 October 2026
+
+Exact clean implementation `42a313887e46274a2932dbe8c04de7a5e8f2840d`
+passed complementary independent source, actual evidence and operator review.
+The [delivery receipt](../research/evidence/local-lab-delivery-v1.json),
+[independent raw research audit](../research/evidence/local-lab-independent-research-review-v1.json)
+and [independent accounting audit](../research/evidence/local-lab-independent-accounting-review-v1.json)
+bind actual outcomes. Documentation-only delivery records follow separately;
+the accepted execution checkout remains fixed so recorded manifests replay.
+Frozen checks and the guarded merge identity are recorded in the delivery PR.
+
+| Package | What the owner can run | How demonstrated | Remaining agent/reviewer need | Next dependency |
+|---|---|---|---|---|
+| 1: executable foundation | `Lab.cmd Start synthetic` or an approved profile; durable logical jobs and distinct immutable attempts | Mixed valid/rejected controls, canonical identity/pin rejection, actual published campaigns, repeat invocation protection | New templates/inputs need reviewed admission; approved execution needs no agent | Used by packages 2–4 |
+| 2: unattended recovery | Start bounded work, Stop/Resume, recover interrupted attempts and reconcile pending publication | 21 controls and eight actual systemd cases in 19.3596 seconds: SIGKILL/restart, completed-result preservation, descendants, competing root, stall/output/disk/elapsed limits, cancellation, real publication obstruction/reconciliation | Broader distributed/PostgreSQL qualification remains open | Actual 24-hour observation |
+| 3: useful workloads | `Start regression`, `Start research-squad` and selected-result `Replay` | Clean integrated regression pilot 153.8720 seconds, research 1.1740 seconds, selected RNG replay 0.6163 seconds; all inventories independently verified | Research interpretation/promotion needs independent review; no production admission follows | Frozen local qualification boundary |
+| 4: Windows operation/review | Double-click installed `Lab.cmd`; Start/Status/Stop/Resume/Report/Replay from a fresh shell | Independent actual Windows command acceptance, retained cancellation/resume/replay, wrong-campaign restart refusal, correct restart recovery, matching installed hashes, detached holder heartbeat after launch-shell exit | One-time private setup on a new machine; unsupported changes need review | Owner can launch the frozen campaign |
+| 5: pilot/delivery | Reviewed short pilot and replay complete; actual 24-hour qualification is next | Native/WASM exact corpus, original 11 successful/4 censored calls with 12 controls, fixed Bosman endpoint, separate research receipt and independent audits | Actual 86,400 seconds, injected long-run restart, post-horizon replay and final independent evidence acceptance pending | [Frozen long-run protocol](../research/LOCAL_LAB_24H_V1.md) |
+
+The regression pilot used approximately 137.614 CPU seconds; service lifetime
+peak was 986,386,432 bytes (about 941 MiB), below the fixed 2 GiB limit. No OOM,
+hidden retries, rejections or failures occurred. Native/WASM equality remains
+scoped to its retained corpus; Bosman comparison remains `not-run`, with no
+original-process parity claim. Selected RNG replay retained the original and
+reproduced its exact byte identity.
+
+The independently reconstructed structural observation is 43 distinct reciprocal
+complete-player candidates equal to all 43 complete-player records among 61
+captured staff-table club associations. The other 18 associations and all two
+invalid/five foreign list entries remain explicit. Six controls discriminate.
+This is a capture-specific structural observation only; squad eligibility,
+lifetime, original membership semantics, full lineup/browser implementation and
+R9b consumption provenance remain open.
+
+Windows launcher settings are `%LOCALAPPDATA%\CM0102Lab\launcher.json`; private
+input configuration is WSL `~/.local/share/cm0102-lab/config.json`. Reports are
+`STATE/campaigns/CAMPAIGN/report.html` and `.json`, with attempts under
+`STATE/attempts`. The [runbook](../runbooks/local-lab.md) gives exact commands.
+The detached Windows holder acknowledges a fresh token, retains a foreground WSL
+client and requests system availability without changing saved power policy.
+`powercfg /requests` enumeration required administrator rights; that limitation
+is retained, while the guarded power API and holder continuation succeeded.
+
+Full P01 remains open: PostgreSQL/distributed ownership/failure scenarios,
+broader protocol/backend qualification, distinct full-play/quick-result path
+evidence and successful startup/load, short world-advance and targeted match
+scenarios are not supplied by this local milestone. P03 retains its function,
+domain, reviewed-contract and actual 72-hour gates. No short run establishes
+24 hours or either phase closure. Private inputs, raw records, manifests and
+traces remain outside public Git/build output; frozen CI was not changed.
+
 | Area | What is established | Limit |
 |---|---|---|
 | B0 inventory | Deterministic importer; 11,747 function starts, 6,863 named rows and 4,428 globals; PE-backed address validation | Names are hypotheses, not verified game semantics |

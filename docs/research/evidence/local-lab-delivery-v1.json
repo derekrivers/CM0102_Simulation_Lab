@@ -1,0 +1,396 @@
+{
+  "schema_version": 1,
+  "implementation_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+  "milestone": "LL1 bounded single-PC single-worker unattended lab precursor delivery",
+  "full_P01_closed": false,
+  "full_P03_closed": false,
+  "actual_24_hours_completed": false,
+  "build_checks": {
+    "commands": [
+      "cargo build --locked --workspace --all-targets -j 1",
+      "cargo build --locked -p cm-rng --example corpus --target wasm32-unknown-unknown -j 1",
+      "cargo fmt --all --check",
+      "cargo clippy --workspace --all-targets --locked -j 1 -- -D warnings",
+      "cargo test --workspace --locked -j 1 -- --test-threads=1"
+    ],
+    "outcome": "passed",
+    "toolchain": "1.99.1; no pin changes"
+  },
+  "mechanical_controls": {
+    "core": 21,
+    "workloads": 7,
+    "outcome": "passed",
+    "additional_report_controls": "malformed rejected specs, template IDs, HTML escaping, visible censorship and concurrent atomic publication",
+    "additional_restart_controls": "exact interpreter/core/root/repository/start/campaign argv; changed root/repo/campaign/interpreter/extra args reject"
+  },
+  "service_acceptance": {
+    "receipt_sha256": "78e127f892e0f1ff85b83afc7b608f088ccb1aa172afc029bc6d978c13be3818",
+    "actual_elapsed_seconds": 19.359591245651245,
+    "source_sha256": {
+      "core.py": "ba0212e85db90a2be10cdc3e77b84c0164662c2cb373336e8dc5b4ac87d34bcf",
+      "qualify_service.py": "80023788ac038f9625c9919a4a0070c7ad0122801be1423fc09f8b0a29b7b241",
+      "workloads.py": "52d15f63b5fa3050a7a17d8ef0b53e75201ceac1b26c51d4d6ae2bb9ad363a8c"
+    },
+    "outcome": "passed",
+    "cases": [
+      {
+        "case": "systemd-kill-restart-and-cross-root-exclusion",
+        "campaign_id": "service-recovery",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "completed-first",
+            "state": "succeeded"
+          },
+          {
+            "attempts": 2,
+            "comparison_verdict": "not-run",
+            "job_id": "interrupted-second",
+            "state": "succeeded"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "8e186c7ddcc94bd6921917f688a79027",
+            "execution_status": "succeeded",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": null
+          },
+          {
+            "attempt_id": "1a9a20af691a4a6a97cfbcde0e7c64cc",
+            "execution_status": "infrastructure_failed",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": "worker-interrupted"
+          },
+          {
+            "attempt_id": "a3bd556dbec140a5abc9a3c6d21a9127",
+            "execution_status": "succeeded",
+            "ordinal": 2,
+            "publication_state": "published",
+            "reason": null
+          }
+        ]
+      },
+      {
+        "case": "selected-result-replay",
+        "campaign_id": "service-recovery-replay-e87573510c55",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "completed-first",
+            "state": "succeeded"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "0f55cb79a7d641ea9ee5783cec92b268",
+            "execution_status": "succeeded",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": null
+          }
+        ]
+      },
+      {
+        "case": "bounded-output",
+        "campaign_id": "service-output",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "fixture",
+            "state": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "4865bc90b11147b281ef3915acaa8c4c",
+            "execution_status": "failed",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": "output-limit"
+          }
+        ]
+      },
+      {
+        "case": "bounded-stall",
+        "campaign_id": "service-stall",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "fixture",
+            "state": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "fb820fed5c6c491096c7f221817c52b6",
+            "execution_status": "failed",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": "semantic-progress-stalled"
+          }
+        ]
+      },
+      {
+        "case": "bounded-elapsed",
+        "campaign_id": "service-elapsed",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "fixture",
+            "state": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "f8cb5ffa9f6840cb9643983776f82fa1",
+            "execution_status": "failed",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": "elapsed-limit"
+          }
+        ]
+      },
+      {
+        "case": "bounded-disk",
+        "campaign_id": "service-disk",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "fixture",
+            "state": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "1e8d5337a084412caa90269e49a85d4c",
+            "execution_status": "failed",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": "disk-limit"
+          }
+        ]
+      },
+      {
+        "case": "cancellation-descendant-cleanup",
+        "campaign_id": "service-cancel",
+        "campaign_state": "stopped",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "fixture",
+            "state": "cancelled"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "a561bc57cdd844bbb29c1c81060a8184",
+            "execution_status": "cancelled",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": "fenced-stale-publication"
+          }
+        ]
+      },
+      {
+        "case": "real-publication-failure-and-reconciliation",
+        "campaign_id": "service-publication",
+        "campaign_state": "completed",
+        "jobs": [
+          {
+            "attempts": 1,
+            "comparison_verdict": "not-run",
+            "job_id": "fixture",
+            "state": "succeeded"
+          }
+        ],
+        "attempts": [
+          {
+            "attempt_id": "cfa12bc6cc104204a17edc6ee9ad90e6",
+            "execution_status": "succeeded",
+            "ordinal": 1,
+            "publication_state": "published",
+            "reason": null
+          }
+        ]
+      }
+    ]
+  },
+  "pilot": {
+    "campaigns": [
+      {
+        "active_seconds": 152.18433336199087,
+        "actual_observation_seconds": 153.8720188249863,
+        "attempts": [
+          {
+            "artifact_count": 11,
+            "attempt_id": "d7bea53afdf34ca8a696f945d643248a",
+            "comparison_verdict": "equal",
+            "cpu_seconds": 0.458498,
+            "elapsed_seconds": 0.7762787342071533,
+            "execution_status": "succeeded",
+            "job_id": "001-rng-native-wasm-v1",
+            "publication_state": "published",
+            "result_sha256": "1d0ee03e08212b817aecbe2995769db4467a7dbef5e9bdcbdf9c6875f454d341",
+            "service_lifetime_peak_bytes": 62918656
+          },
+          {
+            "artifact_count": 10,
+            "attempt_id": "c011476b3114438d96c5fd14d0ed02c8",
+            "comparison_verdict": "equal",
+            "cpu_seconds": 14.8076,
+            "elapsed_seconds": 14.965715169906616,
+            "execution_status": "succeeded",
+            "job_id": "002-original-r10-regression-v1",
+            "publication_state": "published",
+            "result_sha256": "42a02ea5216b2cf1b2cb068a60d7c1a7c48db4871847fb88a2930d6c77c61baa",
+            "service_lifetime_peak_bytes": 968343552
+          },
+          {
+            "artifact_count": 13,
+            "attempt_id": "bc15a3311261463faeadc508facd9b08",
+            "comparison_verdict": "not-run",
+            "cpu_seconds": 122.348255,
+            "elapsed_seconds": 137.56002569198608,
+            "execution_status": "succeeded",
+            "job_id": "003-bosman-same-save-v1",
+            "publication_state": "published",
+            "result_sha256": "5d0a26505244558c72b14b90d2cda29f1963010eca8353d26e3a70ef43c541dc",
+            "service_lifetime_peak_bytes": 986386432
+          }
+        ],
+        "campaign_id": "integrated-pilot-v1",
+        "host_record_sha256": "50da54b84f543c6aaec3f04b52cf22562796deaa0be2a00f78058d27b4466429",
+        "idle_seconds": 0.0,
+        "manifest_sha256": "797a165cbe86385a74e20c8505f2b639480d5b9ec4b94f68a766f7f85fba8449",
+        "report_json_sha256": "ea59cd4d88038ec4e806888c5d4ad41da3cef278597ed9a9bb5dde3c2ce7466a",
+        "source_dirty": false,
+        "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+        "state": "completed"
+      },
+      {
+        "active_seconds": 0.5956914980051806,
+        "actual_observation_seconds": 1.1740089320082916,
+        "attempts": [
+          {
+            "artifact_count": 7,
+            "attempt_id": "047d64f7e0c24bb3aabd25dc4c533d46",
+            "comparison_verdict": "not-run",
+            "cpu_seconds": 1.000287,
+            "elapsed_seconds": 1.0515515804290771,
+            "execution_status": "succeeded",
+            "job_id": "001-research-squad-members-v1",
+            "observations": {
+              "controls": {
+                "changed-club-backpointer": true,
+                "duplicate-member": true,
+                "missing-member": true,
+                "short-player-record": true,
+                "unaligned-link": true,
+                "wrong-player-id": true
+              },
+              "counts": {
+                "complete_player_id": 43,
+                "duplicate_player": 0,
+                "duplicate_staff": 0,
+                "foreign_club": 5,
+                "invalid_staff": 2,
+                "missing_player_extent": 0,
+                "reciprocal_staff": 43,
+                "slots": 50,
+                "unaligned_player": 0,
+                "wrong_player_id": 0
+              },
+              "hypotheses": {
+                "H1_exact_candidate_set_equality": true
+              },
+              "inverse_associations": {
+                "complete_player": 43,
+                "invalid_player": 18,
+                "total": 61
+              },
+              "known_regression": {
+                "anomalies_2_and_5": true,
+                "reciprocal_complete_43": true
+              },
+              "player_table_sha256": "110e34f05248a78c5e63f0755b7c28af6f9e7de5f29deba4d0e223c8731c140d",
+              "production_admission": "none",
+              "question_id": "r10-inverse-club-candidate-completeness-v1",
+              "record_identity_sha256": "ecf536c8f43a12234892dcb67805ff3150e5de51c2e4c4af0da0f334696d6971",
+              "scope": "captured structural identity and inverse association only; squad eligibility/lifetime unknown",
+              "set_comparison": {
+                "intersection": 43,
+                "inverse_distinct": 43,
+                "inverse_identity_sha256": "ba6a5a64e4c4238e47d6b9263a899a23c0e7474650ab30675547b016e2caf9cc",
+                "inverse_only": 0,
+                "list_distinct": 43,
+                "list_identity_sha256": "ba6a5a64e4c4238e47d6b9263a899a23c0e7474650ab30675547b016e2caf9cc",
+                "list_only": 0
+              }
+            },
+            "publication_state": "published",
+            "research_observation_sha256": "cd421baab2ecf1effa9f4b0d764956e984b9cf7d0e1df6401df69e599f231ba0",
+            "result_sha256": "0fcbc1a4c0374040c4f992c6a37ec56c1f0b63c74831935524d551073b4e7e2a",
+            "service_lifetime_peak_bytes": 139374592
+          }
+        ],
+        "campaign_id": "research-squad-pilot-v1",
+        "host_record_sha256": "a677d72985ad9ec731b6478ecac2fb34ba9c0effd31c59541203b46616c38288",
+        "idle_seconds": 0.0,
+        "manifest_sha256": "ee5b284c0e9b76c081faccae8ba0a5e509d83d4dc18eb953ca01665909f9d58f",
+        "report_json_sha256": "77ce29b067cd654fc692b6b7f994fa0f10af48638f7a181b9f011bce93b94ab0",
+        "source_dirty": false,
+        "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+        "state": "completed"
+      }
+    ],
+    "classification": "short integrated pilots; actual24hour qualification pending",
+    "schema_version": 1
+  },
+  "selected_replay": {
+    "actual_elapsed_seconds": 0.6163244240015047,
+    "attempt_id": "0ffb472f9ed64626be5d3faf9b9c5496",
+    "campaign_id": "integrated-pilot-v1-replay-a494e1061580",
+    "comparison_verdict": "equal",
+    "manifest_sha256": "c11a05cd8797cbfa7183c769dc5ab1842add78c2c6969bb1ec701aa40aec3bd2",
+    "native_sha256": "1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16",
+    "replay_of": {
+      "campaign_id": "integrated-pilot-v1",
+      "job_id": "001-rng-native-wasm-v1",
+      "manifest_sha256": "797a165cbe86385a74e20c8505f2b639480d5b9ec4b94f68a766f7f85fba8449"
+    },
+    "result_sha256": "1de685a452fceb0a0b2741ae41b9987383d7ba8e256f857ffdbf1332163541d8",
+    "source_dirty": false,
+    "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+    "state": "completed",
+    "wasm_sha256": "1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16"
+  },
+  "operator_evidence": {
+    "initial_summary_sha256": "bd5d6d7885ef0d2bae9a476cec3f2d2d7dd4c83abc2b9d7fc91894b1be5ac8a0",
+    "targeted_restart_summary_sha256": "7b31eb3a3156c2ca40f1c9a2225f5b8cf105017346a2821c59f5b3cdec21670a",
+    "outcome": "independent Windows start/status/stop/resume/report/replay and wrong/right campaign restart passed",
+    "limitations": [
+      "powercfg /requests enumeration requires administrator; acknowledged holder token establishes successful guarded system-awake API call"
+    ]
+  },
+  "independent_reviews": {
+    "research_and_helpers": "649cfc72ca8d33aadb5cdaf152d5a58805a58e1582b3acbee86b7c7b91f94481",
+    "accounting_and_core": "8fc166611283f3dea80e2d97f220c57a5a75c247e88b1f2bd943174be9525d8f"
+  },
+  "next_dependency": "Qualified review/check/merge, then actual frozen 86400-second campaign, restart drill, post-horizon selected replay and independent acceptance."
+}

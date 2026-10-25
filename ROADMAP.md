@@ -4,6 +4,22 @@ Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workf
 
 ## Current delivery sequence
 
+**Owner-directed priority change, 25 October 2026:** deliver the unattended
+research lab next. The immediate target is a finite approved campaign started
+on this PC that continues after the agent/chat closes and leaves a complete,
+reproducible report of outcomes, failures and unresolved questions. The active
+[local lab contract](docs/architecture/LOCAL_LAB_V1.md) scopes a single-worker
+local milestone. Browser feature expansion and complete squad/lineup delivery
+remain future work. Existing squad unknowns and failed R9b provenance evidence
+remain open; neither blocks unrelated qualified workloads.
+
+Delivery order: executable campaign foundation; unattended recovery and limits;
+approved regression/research adapters; Windows operator entry point and reports;
+then a reviewed short integrated pilot and an actual 24-hour qualification.
+Full P01 and P03 gates remain unchanged, including P01 scenario coverage and
+P03's separate 72-hour and evidence-domain requirements. SQLite for this bounded
+single-worker milestone does not qualify PostgreSQL or distributed leases.
+
 | Target | Status | Acceptance |
 |---|---|---|
 | PC-R0: recover research evidence | Complete for the selected input | Reversal checks passed; fresh official-instruction RNG outputs match retained hashes |
@@ -30,9 +46,9 @@ These contracts describe programme scope and eventual exit gates. Their phase nu
 | Phase | Scope | Current position |
 |---|---|---|
 | [P00](docs/roadmap/phase-00.md) | Baseline, inputs and scope | Substantial inventory/input work demonstrated; remaining scope/gate review open |
-| [P01](docs/roadmap/phase-01.md) | Reliable headless laboratory | Bounded local execution demonstrated; durable service deferred |
+| [P01](docs/roadmap/phase-01.md) | Reliable headless laboratory | Local unattended milestone is the immediate priority; full gate open |
 | [P02](docs/roadmap/phase-02.md) | Calibrated references and replay | Synthetic comparator and scoped original-instruction evidence; original-process calibration open |
-| [P03](docs/roadmap/phase-03.md) | Continuous evidence and mapping | Deferred continuous campaigns; targeted research continues |
+| [P03](docs/roadmap/phase-03.md) | Continuous evidence and mapping | Bounded approved campaigns next; full continuous evidence gate open |
 | [P04](docs/roadmap/phase-04.md) | Rust foundation and browser slice | Begins with PC-R1; PC-R3 provides the first player workflow |
 | [P05](docs/roadmap/phase-05.md) | People and club management | Later |
 | [P06](docs/roadmap/phase-06.md) | Detailed and quick matches | Later, alongside P05 after relevant foundation |
@@ -45,7 +61,13 @@ Scope includes setup, databases/assets, players/staff, contracts/transfers, fina
 
 ## Deferred work and re-evaluation
 
-VPS capacity purchases, 24/72-hour campaigns, distributed workers, PostgreSQL deployment, dashboards and Jev trials are not immediate dependencies. Retained designs are reference material, not instructions to implement them now. Existing dormant Windows launcher retirement needs a separate reviewed verification-policy transition; do not bypass its guards.
+VPS capacity purchases, distributed workers, PostgreSQL deployment, dashboards
+and Jev trials are not immediate dependencies. A real 24-hour local qualification
+is now required after reviewed integration and a short pilot; the separate
+72-hour P03 gate remains open. Retained designs are reference material, not
+instructions to implement all services. Existing dormant Windows launcher
+retirement needs a separate reviewed verification-policy transition; do not
+bypass its guards.
 
 After two focused setup sessions without useful execution, diagnose and reassess before expanding infrastructure. Replan a feature when original evidence contradicts its contract, state cannot replay, or unresolved dependencies overwhelm its boundary. Measure accepted behaviours and demonstrated workflows, not mapped-function or PR counts. Estimate broader delivery after several completed slices.
 
