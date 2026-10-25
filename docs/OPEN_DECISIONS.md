@@ -1,20 +1,20 @@
-# Inputs and decisions still needed
+# Open decisions and prerequisites
 
-The roadmap is complete as a design proposal; the following block specific execution gates, not the creation of this plan.
+Updated 25 October 2026. Official executable/clean data identity, Rust ownership, PC-first direction and the next RNG target are settled. The remaining items block only their stated scope.
 
-| Item | Proposed default | Owner and gate |
+| Item | Next action / default | Required for |
 |---|---|---|
-| VPS OS, CPU architecture, RAM, free disk and existing services | Deferred B4/P01 work; Linux x86-64, start one worker and measure | Lister supplies facts before later P01 deployment; does not block B2/B3 |
-| Original executable/data/assets and reference saves | Official 3.9.68, original 2001 data, verified hashes | Lister supplies private input locations before P00 baseline run |
-| Original clean-data read provenance | PC is the selected Windows reference host; staging and executable origin alone do not prove data consumption | Close with reviewed observation or isolated binding before a clean-data behavioural claim |
-| Acceptable fidelity/deviation profile | Preserve original observable behaviour; explicit approved quirk fixes | Lister/implementer resolve measured conflicts in P02 |
-| Browser memory/performance target | Measure representative worlds in P04; no fixed FPS/game-days target invented | Implementer at P04 |
-| Original-save coverage | Import supported original saves; export to original format deferred | Confirm variants during P00 inventory; certify P09 |
-| Supported original play modes | Inventory and retain; explicitly resolve any proposed exclusion | P00 inventory, P08/P09 closure |
-| Off-host backup destination and spend ceiling | Daily consistent backup, no unbounded storage growth | Lister before unattended durability certification |
-| Jev access, model, token budget and permitted input classes | Optional, disabled until configured; shadow evaluation in P03 | Lister supplies configuration; implementer evaluates |
-| Reasoning-model service | Optional separate service, bounded evidence packets | Configure only when needed for P03 |
-| First new feature | Choose after a faithful vertical slice exposes useful interfaces | Lister by P10; design hooks earlier |
-| Licence for copied/adapted upstream material | Retain provenance; do not assume MIT covers GPL-derived code | Resolve before copying/distributing affected code |
+| Pinned local Rust/WASM execution environment | Restore in a WSL-native checkout; choose a bounded actual WASM execution harness for PC-R1 | PC-R1 acceptance |
+| RNG supported state domain | Freeze cursor/offset/table validity from the original routine and fixtures before coding | PC-R1 implementation |
+| First stateful management command | Select by original evidence and manageable dependencies after the numeric slice | PC-R3 |
+| Clean-data read provenance | Prove actual input consumption through the reviewed Windows route; staging is insufficient | Clean original-process behaviour claims |
+| Original A/A and Bosman differences | Classify measured differences without hiding them | Relevant P02/journey acceptance |
+| Private Reversal captures | Recover/hash only those needed by the chosen experiment; keep different GDI specimen separate | Reuse of live capture results |
+| Frozen launcher retirement | Propose dependency removal and replacement verification through review and branch protection | Removal or CI changes; not basic PC-R1 work |
+| Original-save variants, modes and browser memory | Inventory/measure against actual supported journeys | P04–P09 scope and compatibility |
+| Upstream code licensing | Preserve attribution and inspect terms for each proposed adapted/distributed artifact | Copying/distribution |
+| Backups, unattended limits and spend ceiling | Decide when continuous operation has a demonstrated need | Deferred B4/P01 durability |
+| Jev/model service access and budgets | Disabled; reconsider only on measured benefit | Optional later P03 trial |
+| First extension | Choose after a faithful stateful workflow; version deviations explicitly | P10 |
 
-No private credentials belong in this document or chat. Use deployment secret configuration when implementation starts.
+No credentials or private paths belong here. Do not buy infrastructure to close a research uncertainty.

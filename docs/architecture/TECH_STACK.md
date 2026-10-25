@@ -1,5 +1,7 @@
 # Technology decisions
 
+> Scope note (25 October 2026): service, scheduler, dashboard, metrics and VPS entries are deferred design choices, not installed components or immediate tasks. Use the active PC plan for implementation order.
+
 Decision date: 24 October 2026. Rust is the user's selected implementation language. Exact dependency patches, container digests and compiler version are locked during P0/P1 after a reproducible build; floating `latest` dependencies are prohibited in experiments.
 
 | Component | Decision | Reason / boundary |
@@ -52,4 +54,4 @@ Initial default: build Bosman externally from its pinned source; store local pat
 
 ## Implementation contracts
 
-Use [reconstruction method](RECONSTRUCTION_METHOD.md), [runtime contracts](RUNTIME_CONTRACTS.md), [verification plan](../research/VERIFICATION_PLAN.md) and the [bootstrap checkpoints](../roadmap/BOOTSTRAP.md) to turn these decisions into bounded executable work.
+Use [reconstruction method](RECONSTRUCTION_METHOD.md), [runtime contracts](RUNTIME_CONTRACTS.md), [verification plan](../research/VERIFICATION_PLAN.md) and the [active PC delivery plan](../roadmap/PC_FIRST.md) to turn these decisions into bounded executable work.

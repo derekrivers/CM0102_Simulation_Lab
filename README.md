@@ -1,23 +1,45 @@
 # CM0102 Simulation Lab
 
-## Foundational upstream projects
+Reconstruct the entire Championship Manager 01/02 game with **Rust** for behaviour and persistence, and **React/TypeScript** for browser presentation. The official 3.9.68 executable and original 2001 data are the initial behavioural reference. This is an early research and implementation project; a Rust game or playable browser simulator does not exist yet.
 
-This project builds on Max Evans's existing work:
+## Start here
 
-- [cm0102-bosman-edition](https://github.com/maxevans60/cm0102-bosman-edition): our initial native execution backend, recompiler/runtime reference and source of reusable headless and differential test infrastructure.
-- [cm0102-function-map](https://github.com/maxevans60/cm0102-function-map): our starting function/global inventory, names, provenance and call/data relationship clues. Import it in P00; add our evidence rather than starting a blank map.
+- [Roadmap](ROADMAP.md): current priorities and whole-game scope.
+- [Active PC delivery plan](docs/roadmap/PC_FIRST.md): next tasks, acceptance tests and stop conditions.
+- [Progress and known gaps](docs/status/PROGRESS.md): demonstrated results versus pending work.
+- [Documentation index](docs/MANIFEST.md): contracts, evidence and historical material.
 
-[Upstream integration](docs/research/UPSTREAM_INTEGRATION.md) specifies pins, exact inputs, adapters, test reuse, map ingestion and upgrade qualification. The original executable remains the behavioural reference. Neither upstream project is treated as automatically complete or infallible.
+The PC is the primary development and reference host. Use WSL/Linux for the existing lab CLI and Bosman builds. The future portable Rust core will run natively and in WASM. Live Windows reference execution follows the separately reviewed [PC medium-helper contract](docs/architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md); WSL must not launch the original game.
 
-A research and reconstruction programme for the **entire Championship Manager 01/02 game**: a faithful playable game, understandable source, and deliberate extensions.
+## What works today
 
-The laboratory is the first enabling product. It runs repeatable experiments against the original game and a pinned Bosman build, records evidence, and verifies the replacement. The reconstructed game and simulator use **Rust**. The browser interface uses **React and TypeScript** with the Rust core compiled to WebAssembly. Python supports existing reverse-engineering tooling.
+The pinned map importer, qualified official input inventory, bounded Bosman adapter and synthetic comparator exist. One controlled fixed-clock, seed-1, 14-game-day Bosman same-save replay has retained evidence. Windows host probes and no-UI launcher builds have evidence, but the Lab has not qualified original-process execution or original/Bosman parity.
 
-Status: P00 inventory and P01/P02 bootstrap work are active, 25 October 2026. The pinned public function/global map has a deterministic Rust importer and reconciled provenance report. The supplied executable is the exact official 3.9.68 PE32 expected by the pinned Bosman source, and all imported addresses have been validated against its sections. The pinned Bosman source builds successfully and all 45 registered upstream tests pass. The official ISO and patch produced a separate private 760/760 clean runtime set. A bounded Rust process supervisor and Bosman adapter have completed one controlled fixed-clock, seed-1, 14-game-day same-save replay with byte-identical outputs and retained protocol evidence. Two complete Windows host reports are `pe-build-identity-normalized-stable`; the harmless fixture and Stage 2 production images have accepted no-UI builds, but neither the fixture UI nor any production image or original executable has run. The active route now makes the PC the primary build/reference/experiment host and uses a separately reviewed helper manually launched from Explorer at medium integrity. WSL may build and inspect but may not launch the original. The user's existing installed folder remains modified and untouched. Original-process calibration and the reconstructed game remain outstanding; the durable VPS service is deferred from their immediate critical path.
+[Reversal research](docs/research/REVERSAL.md) now supplies a freshly reproduced official-instruction RNG oracle. **Next: port the CRT and small-bound RNG to Rust, execute it natively and in WASM, and prove checkpoint continuation.** Full Windows qualification does not block this scoped numeric work.
 
-Start with [ROADMAP.md](ROADMAP.md), [non-negotiables](docs/NON_NEGOTIABLES.md), [stack decisions](docs/architecture/TECH_STACK.md), and the [simulator design](docs/architecture/SIMULATOR.md). The detailed [implementation roadmap](docs/roadmap/implementation-roadmap.md) links all phase gates. The active [PC medium-helper contract](docs/architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md) defines the manual Windows execution boundary. The additive [observation comparison contract](docs/architecture/OBSERVATION_COMPARISON_V1.md) keeps process success separate from behavioural verdicts. [Sources and limitations](docs/research/SOURCES.md) distinguish inspected code from proposed behaviour.
+## Source layout
 
-Current implementation and blockers are recorded in [programme progress](docs/status/PROGRESS.md). To import a checkout of the exact locked function-map revision:
+| Path | Role |
+|---|---|
+| `crates/lab-cli` | Existing Linux host tooling: inventory import, process supervision, Bosman adapter and comparator |
+| `config` | Pinned inputs, profiles and verification contracts |
+| `tools/windows` | Host probes, harmless fixtures and frozen dormant launcher controls; see [status](docs/history/README.md) before using |
+| `docs` | Active plan, evidence, architecture and long-term phase contracts |
+
+The Linux lab uses Unix process/filesystem APIs; do not build it as the browser game engine. A small portable compatibility crate is the next implementation increment, not an existing component.
+
+For development in a WSL-native checkout, install the toolchain pinned in `rust-toolchain.toml`, then run:
+
+```sh
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo build --locked
+cargo test --locked
+```
+
+These are developer commands, not a claim that Rust is already installed on the PC. CI also runs frozen Linux/Windows verification checks. No original game files are required for public synthetic tests.
+
+The importer accepts the exact locked map checkout:
 
 ```sh
 cargo run -p lab-cli -- import-map \
@@ -27,10 +49,10 @@ cargo run -p lab-cli -- import-map \
   --output target/b0-evidence/function-map-import.json
 ```
 
-The generated evidence artifact is intentionally untracked. It retains every imported row as an upstream hypothesis. Omit `--executable` only for map-only work; the artifact then explicitly reports address validation as pending.
+Omitting `--executable` permits map-only work and leaves address validation pending. Imported names remain hypotheses.
 
-The versioned local execution request and child protocol are documented in [local execution request v1](docs/architecture/EXECUTION_REQUEST_V1.md).
+## Sources and boundaries
 
-Whole-game scope includes management, world simulation, competition rules, match engines, databases, save/load, news, navigation, presentation, settings and supported modes. Match fidelity is one workstream.
+Max Evans's [Bosman Edition](https://github.com/maxevans60/cm0102-bosman-edition) provides the separately qualified native execution/research backend; his [function map](https://github.com/maxevans60/cm0102-function-map) supplies the starting inventory. [Reversal](https://github.com/derekrivers/Reversal) is a pinned research reference, not a second production engine. See [upstream integration](docs/research/UPSTREAM_INTEGRATION.md), [attribution](docs/research/UPSTREAM_ATTRIBUTION.md) and [non-negotiables](docs/NON_NEGOTIABLES.md).
 
-The existing MIT licence is retained for this repository. Upstream material has its own terms; see the [provenance decision](docs/architecture/TECH_STACK.md#provenance-and-distribution). No original executable, game assets, databases or saves are included.
+Original executables, assets, data, saves and private captures stay outside public Git. This repository's MIT licence does not relicense upstream material. VPS upgrades, continuous campaigns, dashboards and model pipelines are deferred until demonstrated work needs them.

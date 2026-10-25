@@ -1,41 +1,19 @@
-# Documentation manifest
+# Documentation index
 
-Standalone CM0102 Simulation Lab roadmap, revision 3. All implementation phases remain planned.
+Current PC-first direction, 25 October 2026. Use this index instead of treating every historical design as active work.
 
-- `README.md`
-- `ROADMAP.md`
-- `docs/MANIFEST.md`
-- `docs/NON_NEGOTIABLES.md`
-- `docs/OPEN_DECISIONS.md`
-- `docs/architecture/EVIDENCE_AND_FIDELITY.md`
-- `docs/architecture/JEV.md`
-- `docs/architecture/OBSERVATION_COMPARISON_V1.md`
-- `docs/architecture/ORIGINAL_HOST_QUALIFICATION_V1.md`
-- `docs/architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md`
-- `docs/architecture/RECONSTRUCTION_METHOD.md`
-- `docs/architecture/RUNTIME_CONTRACTS.md`
-- `docs/architecture/SIMULATOR.md`
-- `docs/architecture/SYNTHETIC_LAUNCHER_QUALIFICATION_V1.md`
-- `docs/architecture/SYNTHETIC_LAUNCHER_IMPLEMENTATION_V1.md`
-- `docs/architecture/TECH_STACK.md`
-- `docs/operations/VPS.md`
-- `docs/research/COVERAGE_REGISTER.md`
-- `docs/research/SOURCES.md`
-- `docs/research/UPSTREAM_INTEGRATION.md`
-- `docs/research/VERIFICATION_PLAN.md`
-- `docs/reviews/PRE_IMPLEMENTATION_REVIEW.md`
-- `docs/roadmap/BOOTSTRAP.md`
-- `docs/roadmap/implementation-roadmap.md`
-- `docs/roadmap/phase-00.md`
-- `docs/roadmap/phase-01.md`
-- `docs/roadmap/phase-02.md`
-- `docs/roadmap/phase-03.md`
-- `docs/roadmap/phase-04.md`
-- `docs/roadmap/phase-05.md`
-- `docs/roadmap/phase-06.md`
-- `docs/roadmap/phase-07.md`
-- `docs/roadmap/phase-08.md`
-- `docs/roadmap/phase-09.md`
-- `docs/roadmap/phase-10.md`
-- `docs/runbooks/delivery.md`
-- `docs/status/P02_ORIGINAL_HOST_QUALIFICATION.md`
+| Read when | Document |
+|---|---|
+| Starting work | [Roadmap](../ROADMAP.md), [active delivery plan](roadmap/PC_FIRST.md), [current progress](status/PROGRESS.md) |
+| Checking non-negotiable boundaries | [Programme contract](NON_NEGOTIABLES.md), [delivery workflow](runbooks/delivery.md), [open decisions](OPEN_DECISIONS.md) |
+| Implementing a slice | [Reconstruction method](architecture/RECONSTRUCTION_METHOD.md), [fidelity/evidence](architecture/EVIDENCE_AND_FIDELITY.md), [runtime contracts](architecture/RUNTIME_CONTRACTS.md), [verification plan](research/VERIFICATION_PLAN.md) |
+| Reusing research | [Reversal](research/REVERSAL.md), [upstream integration](research/UPSTREAM_INTEGRATION.md), [attribution](research/UPSTREAM_ATTRIBUTION.md), [source history](research/SOURCES.md) |
+| Running existing lab tooling | [Execution request](architecture/EXECUTION_REQUEST_V1.md), [observation comparison](architecture/OBSERVATION_COMPARISON_V1.md), [backend capabilities](research/BACKEND_CAPABILITIES.md) |
+| Planning live Windows work | [Active PC helper contract](architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md), [observation procedure](research/ORIGINAL_OBSERVATION.md), [host evidence](status/P02_ORIGINAL_HOST_QUALIFICATION.md) |
+| Inspecting completed groundwork | [B0 import](status/B0_MAP_IMPORT.md), [inputs](status/P00_INPUT_QUALIFICATION.md), [B1 build/replay](status/B1_BOSMAN_BUILD.md), [smoke](status/B1_CLEAN_SMOKE.md) |
+| Checking whole-game scope | [Coverage register](research/COVERAGE_REGISTER.md), [numbered phases via roadmap](../ROADMAP.md#whole-game-scope-retained) |
+| Understanding architecture | [Stack decisions](architecture/TECH_STACK.md), [simulator design](architecture/SIMULATOR.md) |
+| Researching deferred infrastructure | [VPS design](operations/VPS.md), [Jev proposal](architecture/JEV.md); neither is scheduled |
+| Investigating old plans or dormant controls | [History and retirement boundary](history/README.md) |
+
+The original-host and synthetic-launcher qualification/implementation contracts and files under `tools/windows` also support frozen verification. They are retained at their existing paths, not promoted to today's launch route.

@@ -1,0 +1,26 @@
+{
+  "source_revision": "9b0d1a5fa5dd6c9dc8f4efc69e14bcd49c052345",
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "emulator": "Unicorn 2.1.4",
+  "python": "3.12.3",
+  "checks": {
+    "x86-oracle.json": {
+      "fresh_sha256": "b7794145182f3ee357c11bf53136351c4231b960ae8c69d560ab2732a2d2f692",
+      "retained_sha256": "b7794145182f3ee357c11bf53136351c4231b960ae8c69d560ab2732a2d2f692",
+      "byte_equal": true
+    },
+    "random-table.bin": {
+      "fresh_sha256": "befdec88f802582bba7450e418aaa39837036c8d038810158cfc7a998be1b3db",
+      "retained_sha256": "befdec88f802582bba7450e418aaa39837036c8d038810158cfc7a998be1b3db",
+      "byte_equal": true
+    }
+  },
+  "coverage": {
+    "crt_steps": 1024,
+    "bounded_calls": 2570,
+    "argument_domain": "signed integer -65535 through 65535; sampled bounds and synthetic states",
+    "zero_bound": "included; must not consume state",
+    "table_wrap": "included; must advance CRT and offset"
+  },
+  "scope": "Original instruction emulation using synthetic state/table; no Windows game process, full seeding, large-bound branch, save compatibility or whole-game parity."
+}

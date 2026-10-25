@@ -1,5 +1,7 @@
 # Sources, repository state and limitations
 
+> Historical source inspection below dates from the initial planning session. Current results are in [progress](../status/PROGRESS.md); [Reversal integration](REVERSAL.md) records the new pinned research and reproduction. The initial target snapshot is not the current repository state.
+
 Inspected 24 October 2026. These are source inspections, not reports of tests executed in this planning session.
 
 ## Pinned repositories

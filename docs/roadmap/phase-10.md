@@ -1,6 +1,6 @@
 # P10 — Extensible game and sustained development
 
-Status: planned; implementation and gate evidence remain outstanding.
+Status: whole-game scope and exit contract; not fully closed. Use the [active PC plan](PC_FIRST.md) for current ordering and [progress](../status/PROGRESS.md) for demonstrated work. Scoped numeric work may proceed before full P02/P04 closure; no phase gate is waived.
 
 ## Purpose
 
