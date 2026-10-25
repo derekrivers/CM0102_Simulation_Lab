@@ -1,5 +1,7 @@
 # VPS deployment and 24/7 operation plan
 
+Status: deferred from the immediate critical path. The PC is the primary host for local B2 calibration and the first B3/P04 slice. This document remains the future B4/P01 durability and continuous-operation design; VPS sizing, the 24-hour pilot, and resource improvements do not block the active [PC medium-helper route](../architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md).
+
 No deployment occurred during planning. Host specification, access, budget and original inputs are not yet supplied. The design assumes an existing Linux x86-64 VPS; verify architecture, OS, available disk/RAM/CPU, noisy neighbours, provider sustained-CPU policy and other workloads before selecting limits.
 
 ## Sizing by measurement

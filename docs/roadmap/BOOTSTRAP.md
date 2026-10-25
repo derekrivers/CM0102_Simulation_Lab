@@ -11,7 +11,9 @@ The objective of the opening work is to prove a complete evidence-to-Rust loop w
 | B4 Sustain | Durable queue, bounded worker and 24h VPS pilot | Successful scenario endpoints, recovery and no lost accepted evidence | Jev, large dashboard |
 | B5 Research | Instrumented evidence workflow and 72h campaign | Useful reviewed contracts, negative control, bounded storage and restored backup | Model services if reviewed evidence can be produced manually |
 
-B0/B1 are the first active packages. Reference work B2 and service hardening B4 may overlap after their inputs exist. B3 begins when the relevant local calibration is adequate; its acceptance still requires the P02/P04 gate evidence. Optional Jev evaluation never blocks the first Rust feature.
+B0/B1 are the first active packages. The PC is the primary build, reference-execution and experiment host for B2 and B3. B4 is deferred and does not block B2, B3, or the first P04 work. B3 begins when the relevant local calibration is adequate; its acceptance still requires the P02/P04 gate evidence. Optional Jev evaluation never blocks the first Rust feature.
+
+The active Windows route is the reviewed [PC medium-integrity helper](../architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md), started manually from Explorer. WSL may build and inspect its artifacts but may not launch the original executable. The synthetic qualification campaign, separate original-launch review, first supervised startup, and original/Bosman calibration remain distinct gates.
 
 Defer elaborate dashboards, distributed workers, large model pipelines and elaborate crate splitting until these checkpoints expose a need. Start with a Cargo workspace containing a small core/protocol and lab CLI; split crates at demonstrated boundaries. PostgreSQL remains the selected durable backend, introduced when unattended queue semantics are needed. No second production scheduler is created for the local spike.
 

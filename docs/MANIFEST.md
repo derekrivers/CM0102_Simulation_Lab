@@ -11,6 +11,7 @@ Standalone CM0102 Simulation Lab roadmap, revision 3. All implementation phases 
 - `docs/architecture/JEV.md`
 - `docs/architecture/OBSERVATION_COMPARISON_V1.md`
 - `docs/architecture/ORIGINAL_HOST_QUALIFICATION_V1.md`
+- `docs/architecture/PC_MEDIUM_HELPER_QUALIFICATION_V1.md`
 - `docs/architecture/RECONSTRUCTION_METHOD.md`
 - `docs/architecture/RUNTIME_CONTRACTS.md`
 - `docs/architecture/SIMULATOR.md`
