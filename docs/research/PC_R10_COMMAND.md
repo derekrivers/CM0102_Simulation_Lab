@@ -1,6 +1,7 @@
 # R10 original lineup command dependency boundary
 
-Status: static candidate identified; no dynamic command qualification or production
+Status: the retained-only original assignment/readback campaign passes its
+frozen dynamic checks; independent post-run review is pending. No production
 admission. This does not complete the requested real squad, lineup change,
 save/reopen and continuation milestone. R8's already qualified empty option-3
 branch remains valid and unchanged; it is not rerun or exposed as a lineup command.
@@ -202,3 +203,61 @@ Independent review must approve this diagnosis/resource delta before the lead
 allocates a new heavy slot. No unreviewed retry is authorized and no further
 retry follows from this follow-up freeze. The old attempt and its original limit
 remain immutable. Execution and production admission remain pending.
+
+## Executed retained original assignment result
+
+The separately reviewed follow-up completed at exact source `f6b4052`, with the
+qualifier unchanged from `320b9ba`. The [original receipt](evidence/pc-r10-command-retained-oracle-v1.json)
+SHA-256 is `504f4f1142597f4f8e451e15837383df2527a2afc921149e4f72d75a8fb8d877`.
+The [execution record](evidence/pc-r10-command-execution-v1.json) seals the private
+outer launcher, commands/source/tool/input identities, timing, logs and result.
+Outer elapsed time was 13.849964520 seconds, exit 0, without a triggered limit;
+all before/after source, official PE, raw snapshot and tool seals match.
+
+Eleven original calls return successfully: five assignments and six readbacks,
+including initial empty readback. Each assignment executes 123 original
+instructions and exactly one DWORD store at `00896b98`, including repeats. Each
+nonempty readback executes 152 instructions, returns the exact selected staff
+pointer and writes nothing; initial empty readback executes 120 instructions.
+The assignment from initial -1 to the first member, repetition, replacement by
+the second member and restoration to the first all match their predeclared
+semantics. This genuinely creates nonempty mapping through the original entry;
+it does not retroactively establish a preexisting nonempty human input.
+
+Every call checks all 108,564,672 captured heap bytes and the complete loaded
+official image, exact EAX/stack cleanup/callee-saved registers, ordered admitted
+reads and non-stack writes. Full staff/player/member-link/table bytes remain
+unchanged through the sequence. Both exact selected record pairs match the two
+independent raw extractions. This qualifies only the two initialized captured
+object lifetimes across this bounded sequence; no constructor, appointment,
+load/free or other lifecycle transition executes or is admitted.
+
+The full checkpoint suffix matches complete heap/image, ordered reads, instruction
+starts, effects and returned results exactly when repeated. Twelve defective
+model candidates are rejected. The four unsupported original calls censor at
+their frozen diagnostic-call PCs, with decoded instruction and empty partial
+write sets retained; their original diagnostics were not executed. No host-domain
+rejection or production-validator parity is claimed.
+
+The first native initialization failure remains in the denominator as one failed
+attempt with zero original calls, followed by this separately reviewed successful
+attempt. The default translator was not changed. No further original campaign
+ran or is authorized by this result. Private object IDs/bytes/pointers remain
+outside Git; public results normalize the two actual records to candidate 0/1.
+
+## Required implementation carry-forward
+
+The lead can use the original-backed transition **assign one of these two exact
+admitted members to mapping slot zero, then return original readback**, with the
+strict ordinary-mode/zero-cache/immutable-binding domain above. A repeated
+assignment still records its original write. Atomic host rejection, command-ID
+history, serialization/replay and browser storage are new Rust/host requirements,
+not original event/save behavior observed by this qualifier.
+
+This lane does not admit a whole-squad projection or a production fingerprint.
+The seven anomalous fifty-slot entries remain unresolved, the fresh sparse input
+lacks required player extents, and no original duplicate-removal/swap/position
+semantics are qualified. Rust command integration, independently admitted squad
+projection, explicit save/profile compatibility, the actual browser journey and
+native/WASM persistent save/reopen/continuation remain required work. This
+research increment alone does not complete the player-visible milestone.
