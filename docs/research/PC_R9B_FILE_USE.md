@@ -19,9 +19,9 @@ seccomp TSYNC policy which kills on clone/clone3/fork/vfork and rejects x32/fore
 syscall architectures. Then require `/proc/self/task` to contain exactly one task.
 A clone denial kills the observed process and leaves an incomplete footer, hence
 fails completeness and noninterference. No denied clone is allowed to continue
-with altered return behavior. Mask catchable asynchronous signals across each
+with altered return behavior. Mask all maskable signals across each
 observed API plus descriptor inspection; preserve and restore the original mask.
-Synchronous faults, callbacks and arbitrary hostile code remain outside this
+Blocked synchronous faults terminate without a footer. Cookie-stream callbacks, external ptrace/shared descriptor injection and arbitrary hostile code remain outside this
 narrow pinned-route claim. Any inability to establish the policy fails activation.
 The policy changes observer runtime behavior and must pass exact comparison to
 uninstrumented baseline, disabled and A/A endpoints/captured ranges.
@@ -61,3 +61,36 @@ count/counter overflow/table/abnormal/output saturation, wrong identities, stack
 reexec exclusive activation, signal-mask restoration, endpoint/capture mismatches.
 Independent reviewer B and lead review exact committed source before heavy slot.
 No qualified result exists at this design revision.
+Frozen format `PCR9BFILE1`: one mandatory policy line, up to 2,048 aggregate
+rows, up to 1,024 individual abnormal-event rows, and `PCR9BDONE` with exact
+operation/row/abnormal/error counts. Each path buffer is 1,024 bytes (a resolved
+path reaching the terminating bound fails identity); uint64 overflow sets the
+failure bit. Worst-case bounded output remains below the independent 16 MiB cap;
+write/truncation/saturation failure leaves errors or missing footer and rejects.
+Aggregate keys include API, resolved dev/inode/size/path, status/sample errno and
+supplied open path; counts preserve all attempts, positive results, requested/API
+delivered-byte lower bounds, complete fread items, nested calls and short
+multi-byte fread calls. Only sampled error errno is claimed for stdio stream
+errors; it may be stale and is not asserted as their cause. Any positive delivery
+with missing/mismatched identity fails even when the stream also reports error.
+Abnormal details retain sequence, row identity, fd, request/delivery and sampled
+errno for every failed call and successful outside-root/unresolved operation.
+Supplied open paths and their exact counts also survive in aggregate rows;
+absolute symlink observations at analysis time are labeled as such. Relative
+symlink paths are unresolved rather than reconstructed using later cwd state.
+Clean manifest validation forbids clean-path symlinks and checks all members.
+
+Source/tool freeze includes all four new Python/C source/control files, this
+contract, exact compiler executable/version/command, built library, Python, libc,
+loader and all dynamic runtime libraries of the R5 derivative. All are sealed
+before/after each arm together with source/tree, smoke, R5 receipt/observer and
+clean inputs. The official source boundary is unchanged; the new seccomp policy
+is a separate observer runtime intervention explicitly evaluated for endpoint
+and captured-range noninterference only. One review author cannot admit their
+own result. Model: assigned GPT-6.1 Sol/medium; B reviews source, A/lead artifacts.
+
+Small controls have passed at working-source level. They compile only tiny
+synthetic programs/observer variants in fresh retained private directories and
+never launch the game. These are mechanism tests, not provenance qualification.
+The native production observer build and four-arm campaign remain pending exact
+independent review and lead allocation of the single heavy slot.
