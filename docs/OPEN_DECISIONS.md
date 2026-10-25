@@ -5,8 +5,8 @@ Updated 25 October 2026. Official executable/clean data identity, Rust ownership
 | Item | Next action / default | Required for |
 |---|---|---|
 | Wider RNG domains | PC-R1 CRT/small-bound domain is delivered; qualify actual-game tables, initialization and large-bound x87 before exposing them | Additional numeric compatibility |
-| Connected human effective-plan lookup | Direct slot and option-2 commands are delivered; qualify outer lookup branches and exact missing dependencies before admission | Additional connected management behavior |
-| Bosman clean-data read provenance | Observe actual clean-tree file use with reviewed instrumentation; staging and endpoint equality are insufficient | Bosman consumption claims |
+| Wider effective-plan domain | R7 qualifies initialized human lookup with first-bank slot-0 fallback; new managers/mappings, other banks and lifecycle need real inputs and separate admission | Additional connected management behavior |
+| Bosman clean-data read provenance | R9 retained two failed observation campaigns; freeze a bounded aggregation/compression design before any new run. Endpoint/captured equality does not close the trace-completeness gap | Bosman consumption claims |
 | Original clean-data read provenance | Prove actual input consumption through the separately reviewed Windows route | Clean original-process behaviour claims |
 | Original A/A and Bosman differences | Classify measured differences without hiding them | Relevant P02/journey acceptance |
 | Private Reversal captures | Recover/hash only those needed by the chosen experiment; keep different GDI specimen separate | Reuse of live capture results |
