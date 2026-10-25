@@ -95,7 +95,7 @@ module.exports=async function checkRegistry(page,root,out,fixtureText){
  assert.equal(uiState.state.fixture.guard_9a01,fixture.guard_9a01);
  assert.match(await page.getByTestId('durability').textContent(),/Saved in this browser: revision 2/);
  const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export state',exact:true}).click();
- const output=path.join(out,human.origin+'-registry-slice-v4.json');await(await downloadEvent).saveAs(output);
+ const output=path.join(out,human.origin+'-'+hash(encoded(fixture)).slice(0,12)+'-registry-slice-v4.json');await(await downloadEvent).saveAs(output);
  await page.getByLabel('Choose registry option 2',{exact:true}).selectOption('0');await page.getByRole('button',{name:'Apply registry option 2',exact:true}).click();
  await page.getByRole('status').filter({hasText:'revision 3'}).waitFor();
  await page.getByLabel('Import state',{exact:true}).setInputFiles(output);await page.getByRole('status').filter({hasText:'revision 2'}).waitFor();
