@@ -18,6 +18,7 @@ from qualify_human_registry_producer import FRESH_CAPTURE, BUILD_RECEIPT
 CALLS = {0x8966e7: 0x600a50, 0x896700: 0x5fd210, 0x896718: 0x5fea50,
          0x896737: 0x5fbe20, 0x896749: 0x5fbd00, 0x600b84: 0x53b900,
          0x5fbe81: 0x5409b0, 0x5fbec9: 0x53b900, 0x5fbf06: 0x53b900}
+ACTIVE_ORACLE = None
 SEQUENCE = [('lookup', 0), ('lookup', 1), ('select', 1), ('lookup', 0),
             ('option', 1), ('lookup', 0), ('lookup', 1), ('lookup', 1),
             ('select', 0), ('lookup', 1), ('option', 0), ('lookup', 0),
@@ -50,20 +51,23 @@ class EffectiveOracle(Oracle):
             'first_bank_pointer': (s['context']+0x5f9, 4),
             'mapping_selection': (s['mapping']+s['club_id']*145, 2)}
         self.pc = None
+        self.decoded = None
         self.ordered_reads = []
         self.write_instructions = []
         self.current_starts = set()
 
     def censor(self, category, width=0, field='unadmitted'):
         raise Censored({'instruction': f'{self.pc:08x}', 'category': category,
-                        'field': field, 'width': width}, copy.deepcopy(self.writes))
+                        'field': field, 'width': width, 'decoded': self.decoded}, copy.deepcopy(self.writes))
 
     def instruction(self, uc, address, size, unused):
         self.pc = address
+        self.decoded = None
         if not any(a <= address and address+size <= b for a, b in RANGES):
             self.censor('instruction')
         ins = list(self.decoder.disasm(bytes(uc.mem_read(address, size)), address))
         require(len(ins) == 1 and ins[0].size == size, 'decode mismatch')
+        self.decoded = {'mnemonic': ins[0].mnemonic, 'instruction_width': size}
         if ins[0].mnemonic in ('int', 'syscall', 'sysenter'):
             self.censor('system_instruction')
         if ins[0].mnemonic == 'call' and (address not in CALLS or
@@ -113,7 +117,12 @@ def project(snapshot, state, source):
                          'second_bank_sha256': digest(snapshot.read(s['bank2'], s['second']*6371))}}
 
 
+def verify_case(observed, expected):
+    require(observed == expected, 'connected case mismatch')
+
+
 def generate(binary, capture, source, build_receipt=None):
+    global ACTIVE_ORACLE
     raw = checked(binary, SPECIMEN)
     if source == 'retained':
         snapshot = Snapshot(capture)
@@ -130,6 +139,7 @@ def generate(binary, capture, source, build_receipt=None):
     projected = project(snapshot, s, source)
     registry = projected['registry']
     oracle = EffectiveOracle(raw, snapshot, s)
+    ACTIVE_ORACLE = oracle
     selected, option = registry['human']['selected_slot'], registry['option_two']
     guard = registry['guard_9a01']
     require((guard, option, selected) == ((1, 0, 0) if source == 'retained' else (0, 0, 0)), 'initial tuple changed')
@@ -166,9 +176,16 @@ def generate(binary, capture, source, build_receipt=None):
                         {'kind': 'human_registry', 'registry_index': s['registry_index'], 'slot': value, 'byte_offset': value*SLOT_STRIDE})
         require(result['ordered_writes'] == writes, 'ordered effects differ')
         oracle.full_state({0x9a69: selected, 0x9b25: option})
-        return {'kind': kind, 'value': value, 'previous_slot': old_slot, 'selected_slot': selected,
+        expected_case = {'kind': kind, 'value': value, 'previous_slot': old_slot, 'selected_slot': selected,
                 'previous_option': old_option, 'option_two': option, 'branch': branch,
-                'location': location, 'ordered_writes': writes, 'rng_draws': 0}
+                'location': location, 'ordered_writes': writes, 'rng_draws': 0, 'guard_9a01': guard}
+        observed_case = copy.deepcopy(expected_case)
+        observed_case['selected_slot'] = oracle.uc.mem_read(s['row']+0x9a69, 1)[0]
+        observed_case['option_two'] = oracle.uc.mem_read(s['row']+0x9b25, 1)[0]
+        observed_case['guard_9a01'] = int.from_bytes(oracle.uc.mem_read(s['row']+0x9a01, 4), 'little')
+        observed_case['ordered_writes'] = copy.deepcopy(result['ordered_writes'])
+        verify_case(observed_case, expected_case)
+        return observed_case
 
     for kind, value in SEQUENCE:
         cases.append(execute(kind, value))
@@ -199,34 +216,62 @@ def generate(binary, capture, source, build_receipt=None):
     registry_cases = [c for c in all_cases if c['kind'] == 'lookup' and c['location']['kind'] == 'human_registry']
     fallback_cases = [c for c in all_cases if c['branch'] == 'ordinary_fallback']
     all_writes = [w for c in all_cases for w in c['ordered_writes']]
-    controls = {
-        'wrong_human_stride': sum(c['location']['byte_offset'] != c['value']*6371 for c in registry_cases),
-        'omitted_registry_write': len(registry_cases),
-        'elided_repeated_registry_write': sum(c['previous_slot'] == c['selected_slot'] for c in registry_cases),
-        'word_instead_of_byte': len(all_writes),
-        'wrong_registry_row': sum(c['location']['registry_index'] != 0 for c in registry_cases),
-        'extra_rng_draw': len(all_cases),
-        'producer_changes_slot': sum(c['kind'] == 'option' and c['selected_slot'] == c['previous_slot'] for c in all_cases),
-        'selector_changes_option': sum(c['kind'] == 'select' and c['option_two'] == c['previous_option'] for c in all_cases),
-        'reordered_effects': int(all_writes != [all_writes[1], all_writes[0]]+all_writes[2:]),
-        'wrong_branch': len(registry_cases)+len(fallback_cases),
-        'wrong_ordinary_index': len(fallback_cases),
-        'fallback_mutates_selection': sum(c['previous_slot'] != c['value'] for c in fallback_cases),
-        'fallback_emits_write': len(fallback_cases),
-        'ignore_option': len(fallback_cases) if guard else None,
-        'ignore_zero_guard': sum(c['option_two'] == 0 for c in registry_cases) if not guard else None}
-    # Fresh cannot dynamically discriminate fallback defects; retained cannot
-    # discriminate zero-guard defects. Keep these explicit rather than inventing data.
-    if not fallback_cases:
-        for name in ('wrong_ordinary_index', 'fallback_mutates_selection', 'fallback_emits_write'):
-            controls[name] = None
-    require(all(v is None or v > 0 for v in controls.values()), 'non-discriminating defect control')
+    controls = {}
+
+    def detect(name, candidates, mutate):
+        detected = 0
+        for original in candidates:
+            candidate = copy.deepcopy(original)
+            mutate(candidate)
+            require(candidate != original, 'defect did not mutate observation')
+            try:
+                verify_case(candidate, original)
+            except ValueError:
+                detected += 1
+        require(detected == len(candidates), 'undetected candidate defect')
+        controls[name] = detected if candidates else None
+
+    def change_write(c, field, value):
+        c['ordered_writes'][0][field] = value
+
+    writable = [c for c in all_cases if c['ordered_writes']]
+    detect('wrong_human_stride', [c for c in registry_cases if c['value'] == 1],
+           lambda c: c['location'].update(byte_offset=6371))
+    detect('omitted_registry_write', registry_cases, lambda c: c.update(ordered_writes=[]))
+    detect('elided_repeated_registry_write', [c for c in registry_cases if c['previous_slot'] == c['selected_slot']],
+           lambda c: c.update(ordered_writes=[]))
+    detect('word_instead_of_byte', writable, lambda c: change_write(c, 'width', 2))
+    detect('wrong_registry_row', registry_cases, lambda c: c['location'].update(registry_index=0))
+    detect('extra_rng_draw', all_cases, lambda c: c.update(rng_draws=1))
+    detect('producer_changes_slot', [c for c in all_cases if c['kind'] == 'option'],
+           lambda c: c.update(selected_slot=1-c['selected_slot']))
+    detect('selector_changes_option', [c for c in all_cases if c['kind'] == 'select'],
+           lambda c: c.update(option_two=1-c['option_two']))
+    detect('immutable_guard_mutation', all_cases, lambda c: c.update(guard_9a01=1-c['guard_9a01']))
+    detect('wrong_branch', registry_cases+fallback_cases,
+           lambda c: c.update(branch='ordinary_fallback' if c['branch'] != 'ordinary_fallback' else 'registry_option_enabled'))
+    detect('wrong_ordinary_index', fallback_cases, lambda c: c['location'].update(index=1))
+    detect('fallback_mutates_selection', [c for c in fallback_cases if c['previous_slot'] != c['value']],
+           lambda c: c.update(selected_slot=c['value']))
+    detect('fallback_emits_write', fallback_cases, lambda c: c.update(ordered_writes=[{'registry_offset': 0x9a69, 'width': 1, 'value': c['value']}]))
+    detect('ignore_option', fallback_cases if guard else [], lambda c: c.update(branch='registry_option_enabled'))
+    detect('ignore_zero_guard', [c for c in registry_cases if c['option_two'] == 0] if not guard else [],
+           lambda c: c.update(branch='ordinary_fallback'))
+    reversed_cases = copy.deepcopy(all_cases)
+    reversed_cases[0], reversed_cases[1] = reversed_cases[1], reversed_cases[0]
+    try:
+        verify_case(reversed_cases, all_cases)
+    except ValueError:
+        controls['reordered_effects'] = 1
+    require(controls.get('reordered_effects') == 1, 'reordered stream undetected')
     require(len(successful_calls) <= 60, 'campaign call budget exceeded')
     receipt = {'schema_version': 1, 'execution_status': 'completed', 'comparison_verdict': 'matched',
                'method': 'official connected entry-to-return instructions; no code patches or stubbed callees',
                'specimen_sha256': SPECIMEN, 'capture': identity, 'source': source,
                'tools': {'unicorn': '2.1.4', 'capstone': capstone.__version__},
                'qualifier_sha256': digest(Path(__file__).read_bytes()),
+               'source_dependencies': {name: digest(Path(__file__).with_name(name).read_bytes()) for name in
+                   ['qualify_human_registry.py', 'qualify_manager_bound_plan.py', 'qualify_fresh_human_registry.py', 'qualify_human_registry_producer.py']},
                'private_projection': {'sha256': digest(canonical(projected)), 'bytes': len(canonical(projected)), 'admission': 'pending_independent_review'},
                'ordinary_inputs': projected['ordinary'], 'initial_guard_option_slot': [guard, registry['option_two'], registry['human']['selected_slot']],
                'successful_calls': len(successful_calls), 'successful_instruction_starts': [f'{a:08x}' for a in successful_starts],
@@ -254,6 +299,11 @@ def main():
     except Exception as error:
         failure = {'execution_status': 'failed', 'comparison_verdict': 'not_comparable',
                    'exception_type': type(error).__name__, 'qualifier_sha256': digest(Path(__file__).read_bytes())}
+        if ACTIVE_ORACLE is not None:
+            failure['last_instruction'] = f'{ACTIVE_ORACLE.pc:08x}' if ACTIVE_ORACLE.pc else None
+            failure['decoded'] = ACTIVE_ORACLE.decoded
+            failure['ordered_partial_writes'] = copy.deepcopy(ACTIVE_ORACLE.writes)
+            failure['ordered_partial_reads'] = copy.deepcopy(ACTIVE_ORACLE.ordered_reads)
         if isinstance(error, Censored):
             failure['diagnostic'] = error.diagnostic
             failure['ordered_partial_writes'] = error.partial_writes
