@@ -189,3 +189,10 @@ do not affect the publishing worker. The abort control now patches the actual
 engine worker and requires its interception counter to advance. Each acceptance
 run retains a fresh private artifact directory instead of replacing prior corpora.
 No failed browser run is implied: the defect was found before execution.
+
+Independent static review approved exact implementation revision
+`17f03381bc8830db63fd5768e5ecb46f6f718e3d`, all thirteen changed files, with no
+open actionable findings. The [static review receipt](evidence/pc-r10-bounded-static-review-v1.json)
+records source hashes, synthetic identity, the initial harness finding and its
+correction. This receipt plus the projection receipt authorize source preparation
+only; all listed executable/final-delivery gates remain pending.

@@ -38,6 +38,24 @@ parsing pass; these are source checks only. Actual Rust tests/lint/build, comple
 native/WASM equality, original-effects comparison, real browser close/reopen,
 final exact-revision review, frozen CI and merge remain gates after LL1 acceptance.
 
+Source checkpoint: implementation head
+`17f03381bc8830db63fd5768e5ecb46f6f718e3d` passed independent exact-revision
+static review of all thirteen changed files, with no open actionable findings.
+The initial pre-execution abort-control defect and its correction remain in the
+[static receipt](../research/evidence/pc-r10-bounded-static-review-v1.json).
+The bounded implementer independently cross-reviewed lead-owned UI/acceptance
+paths and corroborated that correction. The review also independently verified
+the synthetic fixture fingerprint. No executable acceptance is inferred.
+
+Checkpoint recorded at 2026-10-25T16:44:07.982727+00:00; observed work span from
+16:31:05 UTC was approximately 13.0 minutes, excluding earlier prompt reads.
+Actual tokens and cost remain unknown. Protected main remained `8ae412a` at the
+final remote read; execution/candidate checkouts stayed clean at their fixed pins.
+Source and evidence may be backed up on the feature branch; opening a PR is deferred
+because the existing pull-request workflow starts compilation. Nothing is merged
+or installed. Resume from this checkpoint after the existing LL1 acceptance and
+LAB-005/006 operational priorities release the single heavy slot.
+
 ## Demonstrated evidence
 
 ### Owner-directed lab delivery — started 25 October 2026

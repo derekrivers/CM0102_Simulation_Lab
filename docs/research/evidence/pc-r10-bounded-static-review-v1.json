@@ -1,0 +1,131 @@
+{
+  "base_revision": "8ae412aac6377f4bc824fa6f8c29d76c0c79bd99",
+  "changed_files_reviewed": 13,
+  "decision": "approved-static-source-preparation-only-no-open-actionable-findings",
+  "deferred_required_acceptance": [
+    "LL1 terminal eligibility, post-horizon replay and independent acceptance before heavy-slot release; this review grants no release",
+    "Rust compilation, formatting/lint and all relevant behavioral/negative-control tests",
+    "Actual native and release-WASM corpus execution including private retained fixture and unchanged legacy canonical evidence",
+    "Actual original-effect comparator and all nine exercised defect controls against produced private response corpus",
+    "Actual browser UI/persistent process close-reopen/continuation, corruption, fencing and corrected abort acceptance",
+    "Fresh target-branch review, exact final revision acceptance, frozen repository CI and guarded delivery"
+  ],
+  "limits": [
+    "Static approval is source-preparation review only; no executable behavior, CI pass, deployment, merge or player-visible completion is certified",
+    "Existing two-record initialized-lifetime admission remains narrow; seven squad anomalies and complete squad/original-save/original-process gates remain open",
+    "Protected original/LL1 execution and frozen candidate checkouts were not mutated"
+  ],
+  "methods": [
+    "Read every changed implementation, test, fixture, contract, admission and progress file at the pinned revision; inspected relevant unchanged Engine/save/worker/storage and prior recovery-harness code",
+    "Compared new module and protocol routing to frozen admitted projection and retained original command/effect boundary",
+    "Read-only immutable Git diff and byte checks; Python AST parse only; independently canonicalized synthetic JSON and checked its allowlist fingerprint",
+    "No Cargo, Rust test, browser, WASM, emulator, original process, build or acceptance harness execution"
+  ],
+  "open_actionable_findings": [],
+  "resolved_findings": [
+    {
+      "file": "apps/management/check-assignment.cjs",
+      "found_revision": "7b228301b728b45fe80ebef066a59a70096923c6",
+      "id": "R10-STATIC-001",
+      "line": 71,
+      "priority": 2,
+      "problem": "Page-context addInitScript patched a different IndexedDB prototype from the publishing worker, so the required aborted-publication control could not trigger",
+      "resolution": "Locate actual engine worker, patch its IDBObjectStore.put via worker.evaluate, count interception and require positive count, then verify visible failure, exact preserved head and native-equivalent unsaved state",
+      "resolution_revision": "17f03381bc8830db63fd5768e5ecb46f6f718e3d",
+      "verification": "Static exact-diff inspection; no failed or successful browser execution claimed"
+    }
+  ],
+  "reviewed_revision": "17f03381bc8830db63fd5768e5ecb46f6f718e3d",
+  "reviewer": {
+    "actual_model": "GPT-6 Astra",
+    "reasoning_effort": "high",
+    "role": "Independent reviewer, not implementation author",
+    "token_usage": "unknown"
+  },
+  "schema_version": 1,
+  "source_seals": [
+    {
+      "bytes": 11622,
+      "path": "apps/management/check-assignment.cjs",
+      "sha256": "203b166c810a0aca8c4dccc3f3f4fc751cb6ec887cbd263a39e108fe8856931f"
+    },
+    {
+      "bytes": 1763,
+      "path": "apps/management/preview.cjs",
+      "sha256": "d492c362e695601cc7bbf4632e641b47245e310c5064362a34d09ef943c3c30c"
+    },
+    {
+      "bytes": 5766,
+      "path": "apps/management/public/worker.js",
+      "sha256": "f83415b46f8ae755101557423d6cbdc191446eaf43a5690e1c35ee12775d25e8"
+    },
+    {
+      "bytes": 21349,
+      "path": "apps/management/src/main.tsx",
+      "sha256": "da90fcda11628e02be774ccf8f3b253c7b17aba37c5d7b8c807181b5aaf6dbb7"
+    },
+    {
+      "bytes": 11948,
+      "path": "crates/cm-management/src/assignment.rs",
+      "sha256": "84f0684e6af946a8a43e7e475bd3b2f2dd31925d5b6abcc3d58a05013a6c2cfd"
+    },
+    {
+      "bytes": 23860,
+      "path": "crates/cm-management/src/lib.rs",
+      "sha256": "47510cf4f1271474a4ee3644d706da238f8dedcd0e0a2242d2d5c2d9abbadc88"
+    },
+    {
+      "bytes": 15860,
+      "path": "crates/cm-management/tests/assignment_management.rs",
+      "sha256": "09a11663d45c915f338edbcb67562db62253441923b9d412aa5c53b34d86de84"
+    },
+    {
+      "bytes": 618,
+      "path": "crates/cm-management/tests/fixtures/synthetic-assignment.json",
+      "sha256": "1519f61d64b717ea32e273bd60cbb94a0e075e984e5bdbfb12771c9a03d6a8ef"
+    },
+    {
+      "bytes": 12167,
+      "path": "docs/research/PC_R10_BOUNDED_WORKFLOW_V1.md",
+      "sha256": "57a518f3741c5d66ec43e8ecc4fead808afa8f5d7dc7c9183556b9605134dad9"
+    },
+    {
+      "bytes": 6777,
+      "path": "docs/research/evidence/pc-r10-bounded-projection-review-v1.json",
+      "sha256": "43e3c69f42146ec0706d656c9b32786671243130ebf0e29652478771f079c2d8"
+    },
+    {
+      "bytes": 38738,
+      "path": "docs/status/PROGRESS.md",
+      "sha256": "8b23435161e4574d9893b0911c7d982821fdf6b60897cf8c267fd4a7b6c4ea70"
+    },
+    {
+      "bytes": 7077,
+      "path": "scripts/check_pc_r10_assignment_effects.py",
+      "sha256": "b149e97a7d436163bfc18a520186c98f71dab6eb91301fafb77d0a03e6df3f2a"
+    },
+    {
+      "bytes": 5157,
+      "path": "scripts/pc_r10_assignment_projection.py",
+      "sha256": "13a61bc932970f8656b940ad01003766fbe5c81fd239a21b3ce059ab0252c71a"
+    }
+  ],
+  "static_assessments": {
+    "admitted_retained_fixture": "Exact 39ec04463f83c893e3ab702a6d29d31bd95ee925b06d7a3e70d149a85e9075ea fingerprint unchanged; producer and independent admission receipt byte-identical",
+    "artifact_retention": "Fresh mode0700 acceptance run directory; exclusive mode0600 corpus/receipt; prior attempts not replaced",
+    "atomicity": "All fallible command checks precede mutation; import/load parse, fingerprint validation and replay complete before Engine replacement",
+    "browser_harness_nonvacuity": "Actual UI assignment/readback, full persistent Chromium process close/reopen/continuation, export before distinct mutation then import older state, corrupt-current fallback, stale-tab CAS rejection, and corrected worker-realm abort with interception counter and unchanged full durable head",
+    "browser_presentation": "Rust owns actions and admission; UI labels incomplete squad and structural slot; latest explicit readback remains historical; new mutations and import participate in existing durable worker queue",
+    "comparison_scope": "Complete native/WASM responses and saves compared; original comparator checks admitted fixture, all twenty mapping entries, ordered effects, return and RNG, reconstructs three pinned complete-heap states, and has nine observable defect mutations; this is the declared logical projection rather than a new dynamic whole-image comparison",
+    "domain_and_original_effects": "Exact literal slot zero and either selected member; signed bounds checked before conversion; one width-four offset-two write including fresh repeated assignment; explicit readback has no mapping write; zero RNG; no unsupported cleanup/removal/swap/lifetime transition",
+    "legacy_compatibility": "Existing v1-v5 serializers and profile semantics unchanged in source; new optional Engine route cleared on successful legacy transition/reset; stale hidden world cannot accept legacy commands while assignment active; actual immutable legacy corpus rerun remains required",
+    "original_corpus_sequence": "Source constructs empty read, assign A/read, fresh repeated assign A/read, assign B/read, then assign A/read twice from the same complete saved checkpoint using identical suffix commands; comparator requires eleven successful original cases in order",
+    "retry_semantics": "Exact same command returns original stored event without transition even after later revisions/capacity; conflicting reuse rejects; fresh command for same member records another write",
+    "save_replay": "Private world fields and no public Deserialize bypass; load reconstructs initial admitted fixture and every command then compares complete profile/session/revision/fixture/mapping/events/records; duplicates, forged results/state and relabelled inputs cannot pass equality",
+    "synthetic_fixture": {
+      "canonical_sha256": "2c3e22cb65f6bd6f0f4cb48da7e0ed4a92a2ddc04d191682335c204f40490599",
+      "classification": "Explicit fictional regression-only fixture with separate origin and exact fingerprint; no original identity or behavior claim follows from its values"
+    },
+    "tests": "Seven new Rust tests specify effects, retry/conflict, atomic unsupported requests/imports, resealed save tampering, continuation, capacity and v1-v5 isolation; inspected only, not run"
+  }
+}
