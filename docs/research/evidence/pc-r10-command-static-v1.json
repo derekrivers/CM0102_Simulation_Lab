@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "method": "static-pinned-PE-inspection",
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "specimen_bytes": 7192576,
+  "decoder": "Capstone 5.0.7",
+  "inspector_sha256": "378b9eac183f59900b24755837703b3360f12e24bbb54a7e6664fd2c1ede4546",
+  "decoder_module_sha256": "6f8a27fe069aa89a46974e189b5365d56eb5e02c2fd581d2fbfad7fbba51549f",
+  "ranges": {
+    "mapping_resolver": {
+      "start": "008968f0",
+      "end_exclusive": "00896a8e",
+      "sha256": "1fa63d6f3dc9fce8c71a83dc43d2323f2bd1932dca6a219e813043ea180d64d5",
+      "decoded_instructions": 127
+    },
+    "mapping_assignment": {
+      "start": "00896a90",
+      "end_exclusive": "00896c5d",
+      "sha256": "c3698dc160afc4495039a920cce62bc75003931aab15a1c7c7343655a1ec97ae",
+      "decoded_instructions": 138
+    },
+    "mapping_row_resolver": {
+      "start": "008982b0",
+      "end_exclusive": "008983ed",
+      "sha256": "19c3f972a7f72bee41a92d27374362cd33c3ac8d2e91dc1446663dd89a594e52",
+      "decoded_instructions": 95
+    },
+    "ordinary_category": {
+      "start": "0053b900",
+      "end_exclusive": "0053b99f",
+      "sha256": "9e1991a802fbd9f8f648d69697664d3a9b680097b7bfc878d9a6508c96cadad3",
+      "decoded_instructions": 45
+    },
+    "membership_assignment_caller_excerpt": {
+      "start": "0076263b",
+      "end_exclusive": "0076267d",
+      "sha256": "655adb6b27dbaa74c797621725afdea729ff56a15df681964c730944c1327e2d",
+      "decoded_instructions": 23
+    },
+    "fifty_member_count_excerpt": {
+      "start": "0090d429",
+      "end_exclusive": "0090d45b",
+      "sha256": "63e2884d366467cf4a50a29a3d23fe93d44fe16336687219c69eab99e660a6ea",
+      "decoded_instructions": 15
+    },
+    "player_table_loop_excerpt": {
+      "start": "008b3cdc",
+      "end_exclusive": "008b3d2e",
+      "sha256": "dbe9a813dc8571a3a3f3186c030e80cd4ba6e03003e65c28f9a8c491e2d1d14a",
+      "decoded_instructions": 26
+    },
+    "player_link_store_excerpt": {
+      "start": "00526535",
+      "end_exclusive": "0052654d",
+      "sha256": "d2250fcd60d670bce176e35d05f26b4409b91280f2267b527e9f7046dbe57612",
+      "decoded_instructions": 7
+    }
+  },
+  "checked_instruction_facts": 41,
+  "candidate": {
+    "entry": "00896a90",
+    "receiver": "captured tactical context",
+    "arguments": [
+      "club",
+      "signed-low-byte index",
+      "nonnull staff",
+      "row mode"
+    ],
+    "candidate_index_domain": [
+      0,
+      19
+    ],
+    "mapping_stride": 145,
+    "mapping_slot_offset": 2,
+    "mapping_slot_stride": 4,
+    "success_eax": 1,
+    "ret_bytes": 16,
+    "cache_count_offset": 1520,
+    "cache_first_active_offset": 56,
+    "cache_record_stride": 92,
+    "cache_record_count": 16
+  },
+  "readback": {
+    "entry": "008968f0",
+    "staff_player_link_offset": 97,
+    "null_player_link_effect": "mapping DWORD becomes -1; returns zero",
+    "staff_stride": 110,
+    "ret_bytes": 12
+  },
+  "membership": {
+    "club_list_offset": 215,
+    "slots": 50,
+    "stride": 4,
+    "staff_reciprocal_club_offset": 57,
+    "claim": "static structural corroboration only"
+  },
+  "original_calls_executed": 0,
+  "production_admission": "none",
+  "command_qualification": "pending-real-input-and-reviewed-execution",
+  "limitations": [
+    "No command or read-set lifetime is dynamically qualified",
+    "Original assignment does not itself remove duplicate lineup entries",
+    "Excerpts are not qualified entry-to-return paths",
+    "No original Windows process, Bosman run or emulator invoked"
+  ]
+}
