@@ -132,7 +132,9 @@ a shared union of these field allowlists, while every call separately records
 its ordered PCs/fields/widths; the complete checkpoint suffix must repeat those
 reads and instruction starts exactly. Ordinary classifier thresholds use the
 actual club/nation counts. All five code ranges and five permitted CALL edges are
-frozen in the qualifier. Diagnostic CALLs stop before entering their callees.
+frozen in the qualifier. Before execution, a complete linear Capstone decode of
+those exact original ranges freezes valid instruction start/size pairs; the hook
+rejects entry into any other byte boundary. Diagnostic CALLs stop before entering their callees.
 
 Eleven successful calls are planned: initial empty readback; assignment/readback
 for candidate 0, repeated candidate 0 and candidate 1; then candidate 0 plus
@@ -150,8 +152,8 @@ Four additional original probes (null club, signed index -1, index 20, null staf
 start independently from the complete final checkpoint and must censor at
 `00896abd`, `00896c06`, `00896c06` and `00896b12` respectively, preserving all
 partial effects and full state. These are unavailable original diagnostics, not
-successful rejection parity. Host slot 1/256 and candidate out-of-domain controls
-are explicitly host validation. Thirteen exercised defective-model/domain
+successful rejection parity. Host slot 1/256 and candidate out-of-domain rejection is not
+tested here because no production validator exists. Twelve exercised defective-model
 controls cover player/slot/width/write omission/cache mutation/PC/RNG/return/ABI,
 immutable state digest corruption and erroneous readback cleanup/return.
 

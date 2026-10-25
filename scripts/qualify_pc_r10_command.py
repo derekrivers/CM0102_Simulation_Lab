@@ -69,6 +69,13 @@ class AssignmentOracle(Oracle):
         super().__init__(raw, snapshot, state)
         require(capstone.__version__ == "5.0.7", "decoder version")
         self.decoder = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        self.instruction_sizes = {}
+        for start, end in RANGES:
+            decoded = list(self.decoder.disasm(bytes(self.uc.mem_read(start, end-start)), start))
+            require(decoded and decoded[-1].address+decoded[-1].size == end,
+                    "incomplete frozen instruction decode")
+            for ins in decoded:
+                self.instruction_sizes[ins.address] = ins.size
         self.target = state["mapping"]+state["club_id"]*145+2
         self.fields = {"club_id": (state["club"], 4),
             "club_manager": (state["club"]+0xcf, 4),
@@ -96,8 +103,8 @@ class AssignmentOracle(Oracle):
         ins = list(self.decoder.disasm(bytes(uc.mem_read(address, size)), address))
         require(len(ins) == 1 and ins[0].size == size, "instruction decode")
         self.decoded = ins[0].mnemonic+(" "+ins[0].op_str if ins[0].op_str else "")
-        if not any(a <= address and address+size <= b for a, b in RANGES):
-            self.censor("instruction", "outside-frozen-code")
+        if self.instruction_sizes.get(address) != size:
+            self.censor("instruction", "outside-frozen-instruction-starts")
         if ins[0].mnemonic == "call" and (address not in CALLS or
                 ins[0].op_str != hex(CALLS[address])):
             self.censor("call", "unqualified-original-call")
@@ -236,12 +243,6 @@ def generate(binary, capture, attempts):
             controls[name] = True
         else:
             raise ValueError("nondiscriminating readback control")
-    # Host selection-domain rejection is not original diagnostic parity.
-    for slot, selected in [(-1, 0), (1, 0), (20, 0), (256, 0), (0, -1), (0, 2)]:
-        before = oracle.capture_state()
-        require(not(slot == 0 and selected in (0, 1)), "host-domain control")
-        require(oracle.capture_state() == before, "host-domain mutation")
-    controls["unsupported-host-domain-preserved"] = True
     probe_checkpoint = oracle.capture_state()
     probes = []
     for label, args, boundary_pc in [
@@ -283,6 +284,7 @@ def generate(binary, capture, attempts):
         "cases": cases, "successful_calls": len(cases), "censored_calls": len(probes),
         "probes": probes, "defect_controls": controls, "checkpoint_continuation": "exact",
         "complete_heap_and_loaded_official_image_checked_after_every_call": True,
+        "host_domain_rejection": "not-tested-no-production-validator",
         "limits": {"maximum_calls": 15, "instructions_per_call": 3000, "emulator_microseconds": 100000},
         "production_admission": "none", "original_windows_process_launched": False,
         "limitations": ["Exact retained initialized objects only, no constructor/load/free/appointment transitions",
