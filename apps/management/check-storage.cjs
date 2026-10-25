@@ -9,7 +9,7 @@ const hash=v=>createHash('sha256').update(v).digest('hex');
 const encoded=v=>JSON.stringify(canonical(v));
 const equal=(a,b,label)=>assert.equal(hash(encoded(a)),hash(encoded(b)),label);
 const native=ops=>{const p=spawnSync(path.join(root,'target/debug/management-corpus'),[],{input:JSON.stringify(ops),encoding:'utf8',maxBuffer:32*1024*1024});assert.equal(p.status,0,'native execution');return JSON.parse(p.stdout);};
-const command=(state,id,plan)=>state.schema_version===4?{action:plan%2?'registry_option_command':'human_command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.fixture.human.club_id,[plan%2?'value':'slot']:plan%2}}:state.schema_version===3?{action:'human_command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.fixture.club_id,slot:plan%2}}:({action:'command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.clubs[0].id,plan_id:plan}});
+const command=(state,id,plan)=>state.schema_version===5?{action:['human_command','registry_option_command','effective_plan_command'][plan%3],command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.fixture.registry.human.club_id,[plan%3===1?'value':'slot']:plan%2}}:state.schema_version===4?{action:plan%2?'registry_option_command':'human_command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.fixture.human.club_id,[plan%2?'value':'slot']:plan%2}}:state.schema_version===3?{action:'human_command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.fixture.club_id,slot:plan%2}}:({action:'command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.clubs[0].id,plan_id:plan}});
 let injection='';
 const assets=new Set(['index.html','app.js','worker.js','storage.js','style.css','cm_management.wasm']);
 const server=http.createServer((req,res)=>{const file=req.url==='/'?'index.html':req.url.slice(1);if(!assets.has(file)){res.writeHead(404).end();return;}
@@ -57,8 +57,12 @@ async function head(page){return page.evaluate(async()=>{
    fs.writeFileSync(path.join(out,'invalid-head-receipt.json'),JSON.stringify(receipt,null,2)+'\n');
    console.log(JSON.stringify(receipt));return;
   }
+  const effectiveFixtures=[fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-effective-plan.json'),'utf8')];
+  if(process.env.EFFECTIVE_REFERENCE_FIXTURE)effectiveFixtures.push(fs.readFileSync(process.env.EFFECTIVE_REFERENCE_FIXTURE,'utf8'));
+  if(process.env.FRESH_EFFECTIVE_REFERENCE_FIXTURE)effectiveFixtures.push(fs.readFileSync(process.env.FRESH_EFFECTIVE_REFERENCE_FIXTURE,'utf8'));
+  fixtures.push(...effectiveFixtures);
   for(const fixture of fixtures){
-   const initial=fixture?{action:JSON.parse(fixture).schema_version===2&&JSON.parse(fixture).human?'import_registry_reference':JSON.parse(fixture).registry_row_sha256?'import_human_reference':'import_reference',fixture}:{action:'reset'};
+   const initial=fixture?{action:JSON.parse(fixture).schema_version===3&&JSON.parse(fixture).registry?'import_effective_reference':JSON.parse(fixture).schema_version===2&&JSON.parse(fixture).human?'import_registry_reference':JSON.parse(fixture).registry_row_sha256?'import_human_reference':'import_reference',fixture}:{action:'reset'};
    const first=await request(page,initial);assert.equal(first.ok,true);
    const a=command(first.state,'durable-a',1),one=await request(page,a),b=command(one.state,'durable-b',2),two=await request(page,b);
    assert.equal(two.durability.status,'saved');equal(two.state,native([initial,a,b]).at(-1).state,'native state before reopen');
@@ -82,6 +86,8 @@ async function head(page){return page.evaluate(async()=>{
   const freshControls=process.env.FRESH_HUMAN_REFERENCE_FIXTURE&&process.env.HUMAN_REFERENCE_FIXTURE?await require('./check-fresh-storage.cjs')({page,context,url,request,ready,head,editHead,command,native,equal,setInjection:value=>{injection=value;}}):null;
 
   const registryControls=await require('./check-registry-storage.cjs')({page,context,url,request,ready,head,editHead,native,equal,setInjection:value=>{injection=value;},fixtures:registryFixtures});
+
+  const effectiveControls=await require('./check-effective-storage.cjs')({page,context,url,request,ready,head,editHead,native,equal,setInjection:value=>{injection=value;},fixtures:effectiveFixtures});
 
   const invalidHeadControls=await require('./check-invalid-storage.cjs')({page,context,url,request,ready,head,editHead,command,native,equal,fixture:registryFixtures.at(-1)});
 
@@ -165,6 +171,7 @@ async function head(page){return page.evaluate(async()=>{
   receipt.fresh_admission=freshControls;
   receipt.registry_producer=registryControls;
   receipt.invalid_heads=invalidHeadControls;
+  receipt.effective_lookup=effectiveControls;
   fs.writeFileSync(path.join(out,'storage-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
  }finally{await context.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;});
