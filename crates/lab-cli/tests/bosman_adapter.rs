@@ -212,10 +212,16 @@ fn adapter_emits_success_only_for_the_exact_nested_endpoint_and_redacts_paths() 
 
 #[test]
 fn nested_runner_output_and_silence_are_bounded_before_exit() {
-    for body in [
-        "import os\nwhile True: os.write(1, b'x' * 8192)\n",
-        "import os\nwhile True: os.write(2, b'x' * 8192)\n",
-        "import time\ntime.sleep(30)\n",
+    for (body, expected_error) in [
+        (
+            "import os\nwhile True: os.write(1, b'x' * 8192)\n",
+            "nested output limit",
+        ),
+        (
+            "import os\nwhile True: os.write(2, b'x' * 8192)\n",
+            "nested output limit",
+        ),
+        ("import time\ntime.sleep(30)\n", "timed out"),
     ] {
         let (root, request, config) = fixture(true);
         let runner = root.0.join("runner");
@@ -229,10 +235,7 @@ fn nested_runner_output_and_silence_are_bounded_before_exit() {
         assert!(!output.status.success());
         assert!(started.elapsed() < Duration::from_secs(5));
         let error = String::from_utf8_lossy(&output.stderr);
-        assert!(
-            error.contains("nested output limit") || error.contains("timed out"),
-            "{error}"
-        );
+        assert!(error.contains(expected_error), "{error}");
         assert!(output.stderr.len() < 4096);
         assert!(!String::from_utf8_lossy(&output.stdout).contains("\"kind\":\"terminal\""));
     }
