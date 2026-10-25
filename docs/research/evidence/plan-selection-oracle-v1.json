@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "research_revision": "9b0d1a5fa5dd6c9dc8f4efc69e14bcd49c052345",
+  "method": "original entry-to-return instructions; no stubbed callees; synthetic preinitialized null-owner clubs; option zero",
+  "emulator": "unicorn 2.1.4",
+  "instruction_ranges": [
+    {
+      "va_start": "0x8967d0",
+      "va_end_exclusive": "0x8968e6",
+      "sha256": "bb585e39ef9f77439da4bd5c806baae063928b8684816941f4958d7886446ca7"
+    },
+    {
+      "va_start": "0x8982b0",
+      "va_end_exclusive": "0x8983f0",
+      "sha256": "4972b80ddcf81acb3ca1ecf739a9c00fe01009454d6da749ac44f32da337b4d4"
+    },
+    {
+      "va_start": "0x600a50",
+      "va_end_exclusive": "0x600c90",
+      "sha256": "0f6e1ec0228c6ebcbacaaec5794caab8ba99a099c107686d013d204e0e055412"
+    },
+    {
+      "va_start": "0x5409b0",
+      "va_end_exclusive": "0x540a4c",
+      "sha256": "884811ef44ef43b428dedf6a6ed9eca60c94572d928b25c879871046bead0455"
+    }
+  ],
+  "executed_instruction_starts": 96,
+  "cases": [
+    {
+      "club_id": 0,
+      "abi_plan_argument": 0,
+      "selected_plan": 0,
+      "before_sha256": "f342d2d2814cb6817111030e2ca399481606ac71c28f2dd2356144f02cb29bdc",
+      "after_sha256": "0ac05789f57d0c3401228df0919193cdf2178c20bbb60e15f5aa0b3696ccd68c",
+      "ordered_writes": [
+        {
+          "offset": 0,
+          "width": 2,
+          "value": 0
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 0,
+      "abi_plan_argument": 1,
+      "selected_plan": 1,
+      "before_sha256": "0ac05789f57d0c3401228df0919193cdf2178c20bbb60e15f5aa0b3696ccd68c",
+      "after_sha256": "fc13016c7f6299c441e3aa6db271b6291052a6ee767152d275db80c1b7ca2491",
+      "ordered_writes": [
+        {
+          "offset": 0,
+          "width": 2,
+          "value": 1
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 0,
+      "abi_plan_argument": 2,
+      "selected_plan": 2,
+      "before_sha256": "fc13016c7f6299c441e3aa6db271b6291052a6ee767152d275db80c1b7ca2491",
+      "after_sha256": "6e400197aa170d00c1a2566815c39d5c086f9f1de51d4779fe55c1c281669e60",
+      "ordered_writes": [
+        {
+          "offset": 0,
+          "width": 2,
+          "value": 2
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 0,
+      "abi_plan_argument": 3,
+      "selected_plan": 3,
+      "before_sha256": "6e400197aa170d00c1a2566815c39d5c086f9f1de51d4779fe55c1c281669e60",
+      "after_sha256": "c80ea33280280445b8c9ac73223ec63828658d91cfd4676b55b9471ab2423d86",
+      "ordered_writes": [
+        {
+          "offset": 0,
+          "width": 2,
+          "value": 3
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 0,
+      "abi_plan_argument": 4,
+      "selected_plan": 4,
+      "before_sha256": "c80ea33280280445b8c9ac73223ec63828658d91cfd4676b55b9471ab2423d86",
+      "after_sha256": "6327247a73e45855dfe8b19cd6b06e9e9e3521c158d9c9df79adebf12beff57c",
+      "ordered_writes": [
+        {
+          "offset": 0,
+          "width": 2,
+          "value": 4
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 1,
+      "abi_plan_argument": 0,
+      "selected_plan": 0,
+      "before_sha256": "6327247a73e45855dfe8b19cd6b06e9e9e3521c158d9c9df79adebf12beff57c",
+      "after_sha256": "b1c1d651352d79728eddb9e6013d3ccd3dfa8a20f0558355873b15c646d1a382",
+      "ordered_writes": [
+        {
+          "offset": 145,
+          "width": 2,
+          "value": 0
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 1,
+      "abi_plan_argument": 1,
+      "selected_plan": 1,
+      "before_sha256": "b1c1d651352d79728eddb9e6013d3ccd3dfa8a20f0558355873b15c646d1a382",
+      "after_sha256": "36cfda82b7496111f0ab5432adbd825a4fd9995c8ffb30081a027e6f9f2c28e2",
+      "ordered_writes": [
+        {
+          "offset": 145,
+          "width": 2,
+          "value": 1
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 1,
+      "abi_plan_argument": 2,
+      "selected_plan": 2,
+      "before_sha256": "36cfda82b7496111f0ab5432adbd825a4fd9995c8ffb30081a027e6f9f2c28e2",
+      "after_sha256": "a7c05b0d4a5691d75273c8f57f669e64410c2dcdf099beaa20884dd2495f4571",
+      "ordered_writes": [
+        {
+          "offset": 145,
+          "width": 2,
+          "value": 2
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 1,
+      "abi_plan_argument": 3,
+      "selected_plan": 3,
+      "before_sha256": "a7c05b0d4a5691d75273c8f57f669e64410c2dcdf099beaa20884dd2495f4571",
+      "after_sha256": "8b4fec5d5a2d9817b0754642deb298fa81d4b53ec0481b3d41ee53d4f7e5b022",
+      "ordered_writes": [
+        {
+          "offset": 145,
+          "width": 2,
+          "value": 3
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 1,
+      "abi_plan_argument": 4,
+      "selected_plan": 4,
+      "before_sha256": "8b4fec5d5a2d9817b0754642deb298fa81d4b53ec0481b3d41ee53d4f7e5b022",
+      "after_sha256": "52a0d384b70b397b48dddc1da2da612e3263e0599a9c2883b9b63f7238a556ea",
+      "ordered_writes": [
+        {
+          "offset": 145,
+          "width": 2,
+          "value": 4
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 0,
+      "selected_plan": 0,
+      "before_sha256": "52a0d384b70b397b48dddc1da2da612e3263e0599a9c2883b9b63f7238a556ea",
+      "after_sha256": "3ec636fc5e5b197460fb33a75aeb2277642a504b11406ac29659b2d89c2a864c",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 0
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 1,
+      "selected_plan": 1,
+      "before_sha256": "3ec636fc5e5b197460fb33a75aeb2277642a504b11406ac29659b2d89c2a864c",
+      "after_sha256": "ec09f684efb0883ff40ca1e6fbf1eec5b00e53e00d98e9238f13fbd80cf7d3c1",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 1
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 2,
+      "selected_plan": 2,
+      "before_sha256": "ec09f684efb0883ff40ca1e6fbf1eec5b00e53e00d98e9238f13fbd80cf7d3c1",
+      "after_sha256": "cd40864f8367bbda551dcfdfbada9d701fda72e078f87c32691d6fca79b270ca",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 2
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 3,
+      "selected_plan": 3,
+      "before_sha256": "cd40864f8367bbda551dcfdfbada9d701fda72e078f87c32691d6fca79b270ca",
+      "after_sha256": "f48e549eba094ee435e7ee84043fe09abfe15321c1a64f55bcf0bb7fe3f33954",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 3
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 4,
+      "selected_plan": 4,
+      "before_sha256": "f48e549eba094ee435e7ee84043fe09abfe15321c1a64f55bcf0bb7fe3f33954",
+      "after_sha256": "aec90b6a87e8efd9135788543b31fbb144d6b4201211f50c61bdd5943c7ed0eb",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 4
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 3,
+      "abi_plan_argument": 0,
+      "selected_plan": 0,
+      "before_sha256": "aec90b6a87e8efd9135788543b31fbb144d6b4201211f50c61bdd5943c7ed0eb",
+      "after_sha256": "19d038bc5f0b8a81653a4d23189a81fc5882cc9b05e286c2de0d429089345031",
+      "ordered_writes": [
+        {
+          "offset": 435,
+          "width": 2,
+          "value": 0
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 3,
+      "abi_plan_argument": 1,
+      "selected_plan": 1,
+      "before_sha256": "19d038bc5f0b8a81653a4d23189a81fc5882cc9b05e286c2de0d429089345031",
+      "after_sha256": "d80a2c5fa8b0ff94f83c00aa613149a790d7cdab9c18922d9e7eb40b1a901c8a",
+      "ordered_writes": [
+        {
+          "offset": 435,
+          "width": 2,
+          "value": 1
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 3,
+      "abi_plan_argument": 2,
+      "selected_plan": 2,
+      "before_sha256": "d80a2c5fa8b0ff94f83c00aa613149a790d7cdab9c18922d9e7eb40b1a901c8a",
+      "after_sha256": "315e8aa1a56c05b7faf4374ed1339be3ef07b427f5ea0ca9cc3808e80a59d084",
+      "ordered_writes": [
+        {
+          "offset": 435,
+          "width": 2,
+          "value": 2
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 3,
+      "abi_plan_argument": 3,
+      "selected_plan": 3,
+      "before_sha256": "315e8aa1a56c05b7faf4374ed1339be3ef07b427f5ea0ca9cc3808e80a59d084",
+      "after_sha256": "fdd052059d9f6d2b58cb5d92b8b30149c8b68ed49dc84c49dcd651c163166483",
+      "ordered_writes": [
+        {
+          "offset": 435,
+          "width": 2,
+          "value": 3
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 3,
+      "abi_plan_argument": 4,
+      "selected_plan": 4,
+      "before_sha256": "fdd052059d9f6d2b58cb5d92b8b30149c8b68ed49dc84c49dcd651c163166483",
+      "after_sha256": "2235b87e287888ed4f80de412c877742748c05c6fe55627d9b21e95a77658222",
+      "ordered_writes": [
+        {
+          "offset": 435,
+          "width": 2,
+          "value": 4
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 4,
+      "selected_plan": 4,
+      "before_sha256": "2235b87e287888ed4f80de412c877742748c05c6fe55627d9b21e95a77658222",
+      "after_sha256": "2235b87e287888ed4f80de412c877742748c05c6fe55627d9b21e95a77658222",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 4
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 2,
+      "abi_plan_argument": 4,
+      "selected_plan": 4,
+      "before_sha256": "2235b87e287888ed4f80de412c877742748c05c6fe55627d9b21e95a77658222",
+      "after_sha256": "2235b87e287888ed4f80de412c877742748c05c6fe55627d9b21e95a77658222",
+      "ordered_writes": [
+        {
+          "offset": 290,
+          "width": 2,
+          "value": 4
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 0,
+      "abi_plan_argument": 1,
+      "selected_plan": 1,
+      "before_sha256": "2235b87e287888ed4f80de412c877742748c05c6fe55627d9b21e95a77658222",
+      "after_sha256": "40e8e8d9f73f21f01e0a0f6fc3668a2297961c83e60729f4cc8086972f5f7e14",
+      "ordered_writes": [
+        {
+          "offset": 0,
+          "width": 2,
+          "value": 1
+        }
+      ],
+      "return": 1
+    },
+    {
+      "club_id": 3,
+      "abi_plan_argument": 305397763,
+      "selected_plan": 3,
+      "before_sha256": "40e8e8d9f73f21f01e0a0f6fc3668a2297961c83e60729f4cc8086972f5f7e14",
+      "after_sha256": "526c095a4f4db75793f920b8517f147dc53fa4b1c96ea47eb5e21cdba525a7de",
+      "ordered_writes": [
+        {
+          "offset": 435,
+          "width": 2,
+          "value": 3
+        }
+      ],
+      "return": 1
+    }
+  ],
+  "negative_controls": {
+    "wrong-row": 24,
+    "dword-store": 24,
+    "extra-write": 24,
+    "omitted-write": 24
+  },
+  "limitations": [
+    "No original UI command binding, tactical plan contents, human registry, diagnostics, squad capture or save compatibility",
+    "Invalid actions rejected by Rust preflight; original diagnostic paths are not equivalent"
+  ]
+}

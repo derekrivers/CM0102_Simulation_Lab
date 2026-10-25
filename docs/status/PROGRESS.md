@@ -8,24 +8,34 @@ Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FI
 |---|---|---|
 | B0 inventory | Deterministic importer; 11,747 function starts, 6,863 named rows and 4,428 globals; PE-backed address validation | Names are hypotheses, not verified game semantics |
 | Official inputs | Exact official executable and separate 760-file clean set rehashed during PC review | Modified installed folder stays separate; staging does not prove a process consumes clean data |
-| B1 Bosman | Pinned native build; 45 upstream tests historically passed; retained fixed-clock, seed-1, 14-day same-save protocol replay | Old artifacts rehashed during recovery; no fresh replay in this reset; no original parity |
+| B1 / PC-R2 Bosman | Fresh fixed-clock seed-1 two-run 14-day replay passed in 116.900 seconds including input verification; qualified retained binary rehashed | Same-save endpoint only; comparison not-run; no original parity |
 | Comparator | Synthetic A/A and deliberate divergences exercise comparison mechanics | No qualified real original/Bosman bundle or parity verdict |
 | Windows host | Two complete retained probes accepted as stable; fixture and Stage 2 no-UI builds accepted | Fixture UI/production launchers/original have not run in the Lab's qualified route |
 | PC-R0 Reversal recovery | Root retained checks passed; fresh official-instruction RNG oracle and synthetic table byte-match retained files | Scoped synthetic state/table; no full initialization, original game process or save compatibility |
-| Rust game/browser | Not implemented | PC-R1 is next, followed by a stateful PC-R3 workflow |
+| PC-R1 Rust RNG | 1,024 CRT steps, 2,570 bounded calls, 512 checkpoints and 511 restored continuations; executed native/WASM bytes identical; four defect controls detected | Explicit synthetic table/state domain; excludes seeding, x87 large bounds, actual tables and original saves |
+| PC-R3 Rust/browser | Original-instruction 24-case plan-index setter qualification; 37-operation native/Chromium state/event equality; React Apply/Export/Import and corrupt-import rejection | Fictional squad/labels, preinitialized null-owner clubs, option zero; original UI/plan contents/match effects unqualified |
 
 Supporting records: [B0](B0_MAP_IMPORT.md), [input qualification](P00_INPUT_QUALIFICATION.md), [Bosman build/replay](B1_BOSMAN_BUILD.md), [smoke observations](B1_CLEAN_SMOKE.md), [Windows host](P02_ORIGINAL_HOST_QUALIFICATION.md), [Reversal receipt and boundaries](../research/REVERSAL.md).
 
 Historical setup failure: the 3.7 GiB/no-swap VPS could not complete the Bosman build. The PC/WSL build did complete (11m19.72s, peak RSS 7,547,840 KiB). The old VPS sizing constraint is not the current PC's specification. No VPS upgrade or continuous campaign is scheduled.
 
+## Accepted PC delivery increment
+
+[PR #32](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/32) carries the reviewed implementation, exact final-head CI and merge identity. Implementation code revision `80a2cb6ca6afaa8db6221b441b9fb7cdcedbf20f` passed independent GPT-6 Astra/high review after fixing initial WASM buffer growth and public-world invariant bypass. Two GPT-6.1 Sol/medium workers delivered R1/R2; the coordinator delivered and integrated R3. Review rotation and one-heavy-job ownership were observed. Actual aggregate token/billing totals are unavailable.
+
+The pinned Rust 1.99.1 toolchain (fmt/clippy/WASM) is operational on WSL-native checkouts. Nested Bosman output capture now has incremental caps/deadline. Admitted supervisor failures retain canonical request, capped streams and a failed replay manifest when publication succeeds; storage failures remain explicit. All 53 lab tests pass, alongside five RNG/management tests and one compile-fail boundary test. Formatting, workspace Clippy with denied warnings, builds, TypeScript strict typecheck and real-browser interaction pass. The earlier R2 summary's total was corrected from 51 to the category sum of 53; no reference outputs changed.
+
+Receipts and precise scope: [R1](../research/PC_R1_RNG.md), [R2](../research/PC_R2_RECOVERY.md), [R3](../research/PC_R3_MANAGEMENT.md). New synthetic oracle data and attributable research are public; original binaries/data/captures and replay inputs stay private. Historical control checkouts and frozen CI/launcher contracts are preserved.
+
 ## Remaining engineering
 
-1. Restore a pinned WSL development toolchain and implement PC-R1. Existing Linux lab code is not a native Windows/WASM core.
-2. Fix nested Bosman output buffering and failed-attempt artifact publication before widening adapter scope or unattended work. These are known open source gaps.
-3. Re-run the qualified bounded Bosman profile before new backend claims; recover any private Reversal capture needed for a selected experiment.
-4. Implement/qualify the separate medium-integrity helper only as required by Windows observations, preserving synthetic, original-startup, clean-data and comparison gates.
-5. Select and prove the first stateful management command. Browser rendering without Rust state transition does not complete it.
-6. Retire frozen dormant launcher infrastructure only through a reviewed policy transition. Existing CI remains in force.
+1. Extend only from a newly evidenced bounded command: recover a real supported club/owner state and its relevant original path before claiming human-management UI or match effects.
+2. Original Windows startup, clean-data consumption, A/A and original/Bosman comparisons remain separate medium-helper gates. No original process was launched in this increment; no private capture was needed.
+3. Actual-game RNG table qualification, full initialization/seeding, x87 large bounds, original saves and complete match behavior remain open.
+4. Storage-failure recovery, cgroup/lease/resource fencing, durable orchestration and unattended campaigns remain unqualified.
+5. Dormant launcher retirement requires a separately reviewed policy transition; frozen controls were not weakened.
+
+These three accepted bounded increments do not complete the simulator, P02/P04 whole-phase gates or unattended-operation qualification.
 
 ## Repository reset
 

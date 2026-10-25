@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "command_count": 37,
+  "original_instruction_cases": 24,
+  "native_browser_equal": true,
+  "canonical_sha256": "4f5280e535551f4bc16a05d8b08544c46cb4075d59caf31343397df7754fe873",
+  "wasm_sha256": "a3e7ffe7ca71b04936f1baba03c263c2526b1aad78940e6db9819c7dd28f620b",
+  "browser_version": "148.0.7778.96",
+  "controls": [
+    "invalid plan/bound/club/revision/id atomic",
+    "save/load deterministic continuation",
+    "duplicate commands idempotent after reload",
+    "invalid save import preserves state",
+    "React command/save/import interaction"
+  ],
+  "limitations": [
+    "fictional squad and plan labels",
+    "null-owner option-zero original path only",
+    "no original UI binding or match effects"
+  ],
+  "implementation_revision": "80a2cb6ca6afaa8db6221b441b9fb7cdcedbf20f",
+  "node_version": "22.22.2",
+  "checks": [
+    "cargo fmt --all --check",
+    "cargo test --workspace",
+    "cargo clippy --workspace --all-targets -- -D warnings",
+    "cargo build --workspace",
+    "cargo build -p cm-management --target wasm32-unknown-unknown --release",
+    "npm run typecheck",
+    "npm run build",
+    "npm run check with Chromium and Node 22"
+  ],
+  "independent_review": {
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "reviewed_revision": "80a2cb6ca6afaa8db6221b441b9fb7cdcedbf20f",
+    "result": "two actionable findings fixed; no remaining correctness blockers"
+  },
+  "oracle_sha256": "d8494b6ec6e49bc400d25c13eb12facfa7017bbb88798530eacb56138e5b20a4"
+}

@@ -391,3 +391,88 @@ fn preexisting_attempt_directory_is_never_reused() {
     );
     assert!(!attempt.join("stdout.ndjson").exists());
 }
+
+#[test]
+fn failed_executions_publish_bounded_hashed_evidence() {
+    for (mode, timeout, reason) in [
+        ("timeout-group", 100, "timeout"),
+        ("output-cap", 2000, "output-limit"),
+        ("missing-terminal", 2000, "infrastructure-error"),
+        ("unknown-mode", 2000, "crash"),
+    ] {
+        let root = TestDirectory::new(mode);
+        let (attempt, output) = execute(root.path(), mode, timeout);
+        assert!(!output.status.success());
+        let manifest: Value =
+            serde_json::from_slice(&fs::read(attempt.join("replay-manifest.json")).unwrap())
+                .unwrap();
+        assert_eq!(manifest["execution"]["status"], "failed");
+        assert_eq!(manifest["execution"]["reason"], reason);
+        assert_eq!(manifest["execution"]["stop_condition"], "");
+        assert_eq!(manifest["comparison_verdict"], "not-run");
+        for (key, name) in [
+            ("request", "request.json"),
+            ("stdout", "stdout.ndjson"),
+            ("stderr", "stderr.log"),
+        ] {
+            let bytes = fs::read(attempt.join(name)).unwrap();
+            assert!(bytes.len() <= ONE_MIB as usize);
+            assert_eq!(manifest["artifacts"][key]["sha256"], digest(&bytes));
+            assert_eq!(manifest["artifacts"][key]["byte_count"], bytes.len());
+        }
+        if mode == "output-cap" {
+            assert_eq!(
+                fs::metadata(attempt.join("stdout.ndjson")).unwrap().len(),
+                ONE_MIB
+            );
+        }
+        let published = fs::read(attempt.join("replay-manifest.json")).unwrap();
+        let retry = Command::new(CLI)
+            .args(["execute-process", "--request"])
+            .arg(root.path().join("request.json"))
+            .arg("--backend-executable")
+            .arg(FIXTURE)
+            .arg("--attempt-dir")
+            .arg(&attempt)
+            .output()
+            .unwrap();
+        assert!(!retry.status.success());
+        assert_eq!(
+            published,
+            fs::read(attempt.join("replay-manifest.json")).unwrap()
+        );
+    }
+}
+
+#[test]
+fn spawn_failure_still_publishes_the_admitted_attempt() {
+    use std::os::unix::fs::PermissionsExt;
+    let root = TestDirectory::new("spawn-failure");
+    let backend = root.path().join("bad-interpreter");
+    fs::write(&backend, b"#!/nonexistent/lab-test-interpreter\n").unwrap();
+    fs::set_permissions(&backend, fs::Permissions::from_mode(0o500)).unwrap();
+    let request_path = write_request(
+        root.path(),
+        &request("valid", &digest(&fs::read(&backend).unwrap()), 1000),
+    );
+    let attempt = root.path().join("attempt");
+    let output = Command::new(CLI)
+        .args(["execute-process", "--request"])
+        .arg(request_path)
+        .arg("--backend-executable")
+        .arg(backend)
+        .arg("--attempt-dir")
+        .arg(&attempt)
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(stderr(&output).contains("spawn backend"));
+    let manifest: Value =
+        serde_json::from_slice(&fs::read(attempt.join("replay-manifest.json")).unwrap()).unwrap();
+    assert_eq!(manifest["execution"]["status"], "failed");
+    assert_eq!(manifest["execution"]["exit_code"], -1);
+    assert_eq!(manifest["comparison_verdict"], "not-run");
+    for name in ["request.json", "stdout.ndjson", "stderr.log"] {
+        assert!(attempt.join(name).is_file());
+    }
+}

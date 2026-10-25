@@ -5,7 +5,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const ADAPTER: &str = env!("CARGO_BIN_EXE_lab-bosman-adapter");
 static NEXT_DIRECTORY: AtomicU64 = AtomicU64::new(0);
@@ -208,4 +208,35 @@ fn adapter_emits_success_only_for_the_exact_nested_endpoint_and_redacts_paths() 
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("did not finish with PASS"));
     assert!(!String::from_utf8_lossy(&output.stdout).contains("\"kind\":\"terminal\""));
+}
+
+#[test]
+fn nested_runner_output_and_silence_are_bounded_before_exit() {
+    for (body, expected_error) in [
+        (
+            "import os\nwhile True: os.write(1, b'x' * 8192)\n",
+            "nested output limit",
+        ),
+        (
+            "import os\nwhile True: os.write(2, b'x' * 8192)\n",
+            "nested output limit",
+        ),
+        ("import time\ntime.sleep(30)\n", "timed out"),
+    ] {
+        let (root, request, config) = fixture(true);
+        let runner = root.0.join("runner");
+        fs::write(&runner, body).unwrap();
+        let mut value: Value = serde_json::from_slice(&fs::read(&request).unwrap()).unwrap();
+        value["input_identities"][2] = file_identity(&runner);
+        value["timeout_ms"] = json!(1000);
+        fs::write(&request, serde_json::to_vec(&value).unwrap()).unwrap();
+        let started = Instant::now();
+        let output = run_adapter(&root, &request, &config);
+        assert!(!output.status.success());
+        assert!(started.elapsed() < Duration::from_secs(5));
+        let error = String::from_utf8_lossy(&output.stderr);
+        assert!(error.contains(expected_error), "{error}");
+        assert!(output.stderr.len() < 4096);
+        assert!(!String::from_utf8_lossy(&output.stdout).contains("\"kind\":\"terminal\""));
+    }
 }

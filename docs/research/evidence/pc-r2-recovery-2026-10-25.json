@@ -1,0 +1,167 @@
+{
+  "adapter_source_revision": "8bd8ffb638c19b66acccfe986e1acfdb2eadcb32",
+  "build": {
+    "adapter": {
+      "byte_count": 13290712,
+      "sha256": "d55ae53868a16c294e0d9c460d7585f24c420aea82a2b329ca727d21c2281e97"
+    },
+    "cli": {
+      "byte_count": 17305240,
+      "sha256": "987426f77d50aacf7a5ae3b3a9cc3182fa03086f3396368455c32723d555c83f"
+    },
+    "command": "cargo build --locked -p lab-cli --bins",
+    "profile": "dev"
+  },
+  "environment": {
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "clippy": "0.1.99 (58cf8f9c35 2026-10-13)",
+    "host": "Ubuntu WSL x86_64",
+    "installed_targets": [
+      "x86_64-unknown-linux-gnu",
+      "wasm32-unknown-unknown"
+    ],
+    "node": "18.19.1",
+    "node_scope": "Raw WebAssembly execution available; package/browser engines separately qualified",
+    "python": "3.12.3",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "rustfmt": "1.10.0-stable (58cf8f9c35 2026-10-13)",
+    "toolchain_pin_changed": false
+  },
+  "exclusions": [
+    "original launch",
+    "live Windows helper qualification",
+    "private capture recovery",
+    "clean-data-consumption proof",
+    "original A/A",
+    "original-versus-Bosman observation comparison",
+    "cgroup resource/lease enforcement",
+    "unattended campaigns",
+    "new infrastructure"
+  ],
+  "official_specimen": {
+    "byte_count": 7192576,
+    "crt_rva": "0x00546a04",
+    "crt_va": "0x00946a04",
+    "identity_rehashed": true,
+    "preferred_image_base": "0x00400000",
+    "process_execution": "not-run",
+    "sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+    "small_bound_rva": "0x0050cfc0",
+    "small_bound_va": "0x0090cfc0"
+  },
+  "publication_limit": "Per-file atomic writes with manifest last; filesystem/publication failure may leave incomplete evidence and returns error.",
+  "recorded_date": "2026-10-25",
+  "replay": {
+    "artifacts": {
+      "replay_manifest": {
+        "byte_count": 2007,
+        "sha256": "d8a9be2f1666b3f3f3450bb654e28791734d1172d26d756be34216b7e8e63e10"
+      },
+      "request": {
+        "byte_count": 1216,
+        "file_name": "request.json",
+        "sha256": "65e92a5db66c469ee74cdedb6e7ddb1045a954a958967e84bd5a071e7d953b32"
+      },
+      "stderr": {
+        "byte_count": 201,
+        "file_name": "stderr.log",
+        "sha256": "706be1fe64980d991a7d12936c691302c1a77d6f3ad246d04ad670e6d5f0fbb2"
+      },
+      "stdout": {
+        "byte_count": 1284,
+        "file_name": "stdout.ndjson",
+        "sha256": "5f3aca78a3885b040c5156f6629f41de332a6789e1d5369de045aacc48ca63e5"
+      }
+    },
+    "attempt_id": "pc-r2-same-save-20261025T092301Z",
+    "backend": {
+      "executable_sha256": "d55ae53868a16c294e0d9c460d7585f24c420aea82a2b329ca727d21c2281e97",
+      "kind": "bosman-native",
+      "source_revision": "8bd8ffb638c19b66acccfe986e1acfdb2eadcb32"
+    },
+    "bosman_upstream_revision": "144ed82c248228c7769c6785899527eae5b33c3d",
+    "clean_file_count": 760,
+    "command_template": "lab-cli execute-process --request <fresh-request> --backend-executable <built-adapter> --backend-config <private-bosman-config> --attempt-dir <fresh-private-attempt>",
+    "comparison_verdict": "not-run",
+    "elapsed_seconds": 116.9,
+    "endpoint": {
+      "again_elapsed_seconds": 85,
+      "again_idle_sleeps": 20995,
+      "fixed_clock": true,
+      "game_days_each": 14,
+      "jobs": 2,
+      "mode": "classic",
+      "normal_elapsed_seconds": 85,
+      "normal_idle_sleeps": 20964,
+      "runner_terminal": "PASS",
+      "runs": [
+        "normal",
+        "again"
+      ],
+      "save_hashes": "not emitted by this accepted endpoint; no additional save-identity claim",
+      "save_relation": "byte-identical",
+      "seed": 1
+    },
+    "execution": {
+      "exit_code": 0,
+      "reason": "completed-target",
+      "status": "succeeded",
+      "stop_condition": "classic-same-save-normal-again-14-days-equal"
+    },
+    "expected_stop_condition": "classic-same-save-normal-again-14-days-equal",
+    "inputs": {
+      "bosman_executable": {
+        "byte_count": 48696400,
+        "sha256": "9a41f4a028f0dd1df71e3f9f18f9821a17f91947bb20e7ed0ba9fc18fcafa07b"
+      },
+      "clean_manifest": {
+        "byte_count": 72879,
+        "sha256": "920cbf75653473d276cd33fbbe7a90553dcd6fff4c0878e848aaca7736dddac6"
+      },
+      "python_interpreter": {
+        "byte_count": 8020928,
+        "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+      },
+      "smoke_runner": {
+        "byte_count": 41619,
+        "sha256": "3428aeae65a2dcd899e123b8c9649d109404cd11c601d2c89947d872d8d7196b"
+      }
+    },
+    "limits": {
+      "stderr_bytes": 1048576,
+      "stdout_bytes": 1048576,
+      "timeout_ms": 600000
+    }
+  },
+  "review_status": "independently reviewed in integrated code revision 80a2cb6ca6afaa8db6221b441b9fb7cdcedbf20f; no remaining correctness findings",
+  "schema_version": 1,
+  "scope": "PC-R2 bounded lab recovery; no original-process or comparison qualification",
+  "validation": {
+    "commands": [
+      "cargo fmt --all --check",
+      "cargo test -p lab-cli",
+      "cargo clippy -p lab-cli --all-targets -- -D warnings",
+      "cargo test -p lab-cli --test bosman_adapter"
+    ],
+    "controls": [
+      "nested stdout flood capped before runner exit",
+      "nested stderr flood capped before runner exit",
+      "silent nested runner deadline",
+      "supervisor timeout plus descendant containment",
+      "output cap retains exactly bounded prefix",
+      "missing terminal publishes failed evidence",
+      "nonzero exit publishes failed evidence",
+      "spawn failure publishes admitted request and empty streams",
+      "failed attempt cannot be reused"
+    ],
+    "pre_admission_rejections_create_no_attempt": true,
+    "test_counts": {
+      "adapter_integration": 2,
+      "comparator_integration": 12,
+      "library": 10,
+      "main": 14,
+      "process_integration": 15
+    },
+    "total_passed": 53
+  }
+}

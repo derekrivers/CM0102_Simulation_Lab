@@ -10,7 +10,9 @@ use std::os::fd::AsRawFd;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::process::CommandExt;
 use std::path::{Component, Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Output, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 const CONFIG_MAX_BYTES: u64 = 64 * 1024;
 const REQUEST_MAX_BYTES: u64 = 1024 * 1024;
@@ -147,16 +149,13 @@ fn run_protocol() -> Result<(), String> {
         descriptor_flags,
         "restore smoke runner descriptor flags",
     );
-    let child = child_result.map_err(|error| format!("run pinned smoke runner: {error}"))?;
-    restore_result?;
-    let output = child
-        .wait_with_output()
-        .map_err(|error| format!("wait for pinned smoke runner: {error}"))?;
-    if output.stdout.len() > NESTED_OUTPUT_MAX_BYTES
-        || output.stderr.len() > NESTED_OUTPUT_MAX_BYTES
-    {
-        return Err("pinned smoke runner exceeded the nested output limit".to_owned());
+    let mut child = child_result.map_err(|error| format!("run pinned smoke runner: {error}"))?;
+    if let Err(error) = restore_result {
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(error);
     }
+    let output = capture_nested(&mut child, request.timeout_ms)?;
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|error| format!("smoke runner stdout was not UTF-8: {error}"))?;
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -216,6 +215,68 @@ fn run_protocol() -> Result<(), String> {
             "stop_condition": STOP
         }),
     )
+}
+
+// Incremental pipe capture bounds memory before allocation and shares the request deadline.
+fn capture_nested(child: &mut Child, timeout_ms: u64) -> Result<Output, String> {
+    let result = (|| {
+        let mut stdout = child.stdout.take().ok_or("missing nested stdout")?;
+        let mut stderr = child.stderr.take().ok_or("missing nested stderr")?;
+        crate::process_contract::set_nonblocking(stdout.as_raw_fd(), "nested stdout")?;
+        crate::process_contract::set_nonblocking(stderr.as_raw_fd(), "nested stderr")?;
+        let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let (mut out_done, mut err_done) = (false, false);
+        loop {
+            for (reader, bytes, done) in [
+                (&mut stdout as &mut dyn Read, &mut out, &mut out_done),
+                (&mut stderr as &mut dyn Read, &mut err, &mut err_done),
+            ] {
+                if *done {
+                    continue;
+                }
+                let mut buffer = [0_u8; 8192];
+                match reader.read(&mut buffer) {
+                    Ok(0) => *done = true,
+                    Ok(count) => {
+                        if count > NESTED_OUTPUT_MAX_BYTES - bytes.len() {
+                            return Err(
+                                "pinned smoke runner exceeded the nested output limit".to_owned()
+                            );
+                        }
+                        bytes.extend_from_slice(&buffer[..count]);
+                    }
+                    Err(error)
+                        if matches!(
+                            error.kind(),
+                            std::io::ErrorKind::WouldBlock | std::io::ErrorKind::Interrupted
+                        ) => {}
+                    Err(error) => return Err(format!("read nested output: {error}")),
+                }
+            }
+            if let Some(status) = child
+                .try_wait()
+                .map_err(|error| format!("wait for pinned smoke runner: {error}"))?
+                && out_done
+                && err_done
+            {
+                return Ok(Output {
+                    status,
+                    stdout: out,
+                    stderr: err,
+                });
+            }
+            if Instant::now() >= deadline {
+                return Err("pinned smoke runner timed out".to_owned());
+            }
+            thread::sleep(Duration::from_millis(1));
+        }
+    })();
+    if result.is_err() {
+        let _ = child.kill();
+        let _ = child.wait();
+    }
+    result
 }
 
 fn read_request() -> Result<RunRequest, String> {

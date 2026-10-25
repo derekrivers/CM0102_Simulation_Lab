@@ -264,158 +264,191 @@ pub fn execute_process(
     let attempt_dir = attempt_dir
         .canonicalize()
         .map_err(|error| format!("resolve created attempt directory: {error}"))?;
-    let home_dir = attempt_dir.join("home");
-    let temp_dir = attempt_dir.join("tmp");
-    create_private_dir(&home_dir, "private HOME")?;
-    create_private_dir(&temp_dir, "private temporary directory")?;
+    let mut stdout_bytes = Vec::new();
+    let mut stderr_bytes = Vec::new();
+    let mut exit_code = -1;
+    let result = (|| -> Result<(), String> {
+        let home_dir = attempt_dir.join("home");
+        let temp_dir = attempt_dir.join("tmp");
+        create_private_dir(&home_dir, "private HOME")?;
+        create_private_dir(&temp_dir, "private temporary directory")?;
 
-    enable_child_subreaper()?;
-    let executable_descriptor = executable_file.as_raw_fd();
-    let executable_path = PathBuf::from(format!("/proc/self/fd/{executable_descriptor}"));
-    let mut command = Command::new(executable_path);
-    command
-        .current_dir(&attempt_dir)
-        .env_clear()
-        .env("HOME", &home_dir)
-        .env("TMPDIR", &temp_dir)
-        .env("TZ", "UTC")
-        .env("LC_ALL", "C")
-        .env("LANG", "C")
-        .env("SDL_VIDEODRIVER", "dummy")
-        .env("SDL_AUDIODRIVER", "dummy")
-        .env("LAB_PROTOCOL_VERSION", "1")
-        .env("LAB_REQUEST_TRANSPORT", "stdin-json-v1")
-        .env("LAB_ATTEMPT_ID", &request.attempt_id)
-        .env("LAB_SCENARIO_ID", &request.scenario_id)
-        .env("LAB_PROFILE_ID", &request.profile_id)
-        .env("LAB_BACKEND_KIND", request.backend.kind.as_str())
-        .env("LAB_SOURCE_REVISION", &request.backend.source_revision)
-        .env(
-            "LAB_EXECUTABLE_SHA256",
-            &request.backend.expected_executable_sha256,
-        )
-        .env(
-            "LAB_EXPECTED_STOP_CONDITION",
-            &request.expected_stop_condition,
-        )
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .process_group(0);
-    if let Some(path) = &backend_config {
-        command.env("LAB_BACKEND_CONFIG", path);
-    }
+        enable_child_subreaper()?;
+        let executable_descriptor = executable_file.as_raw_fd();
+        let executable_path = PathBuf::from(format!("/proc/self/fd/{executable_descriptor}"));
+        let mut command = Command::new(executable_path);
+        command
+            .current_dir(&attempt_dir)
+            .env_clear()
+            .env("HOME", &home_dir)
+            .env("TMPDIR", &temp_dir)
+            .env("TZ", "UTC")
+            .env("LC_ALL", "C")
+            .env("LANG", "C")
+            .env("SDL_VIDEODRIVER", "dummy")
+            .env("SDL_AUDIODRIVER", "dummy")
+            .env("LAB_PROTOCOL_VERSION", "1")
+            .env("LAB_REQUEST_TRANSPORT", "stdin-json-v1")
+            .env("LAB_ATTEMPT_ID", &request.attempt_id)
+            .env("LAB_SCENARIO_ID", &request.scenario_id)
+            .env("LAB_PROFILE_ID", &request.profile_id)
+            .env("LAB_BACKEND_KIND", request.backend.kind.as_str())
+            .env("LAB_SOURCE_REVISION", &request.backend.source_revision)
+            .env(
+                "LAB_EXECUTABLE_SHA256",
+                &request.backend.expected_executable_sha256,
+            )
+            .env(
+                "LAB_EXPECTED_STOP_CONDITION",
+                &request.expected_stop_condition,
+            )
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .process_group(0);
+        if let Some(path) = &backend_config {
+            command.env("LAB_BACKEND_CONFIG", path);
+        }
 
-    let mut child = command
-        .spawn()
-        .map_err(|error| format!("spawn backend: {error}"))?;
-    drop(executable_file);
-    let process_group = child.id() as i32;
-    let stdin = child
-        .stdin
-        .take()
-        .ok_or_else(|| "send backend request: pipe missing".to_owned())?;
-    let stdout = child
-        .stdout
-        .take()
-        .ok_or_else(|| "capture backend stdout: pipe missing".to_owned())?;
-    let stderr = child
-        .stderr
-        .take()
-        .ok_or_else(|| "capture backend stderr: pipe missing".to_owned())?;
-    let (limit_tx, limit_rx) = mpsc::channel();
-    let io_cancel = Arc::new(AtomicBool::new(false));
-    let input_handle = match spawn_input(stdin, request_bytes, Arc::clone(&io_cancel)) {
-        Ok(handle) => handle,
-        Err(error) => {
-            return Err(terminate_with_reason(process_group, &mut child, error));
-        }
-    };
-    let stdout_handle = match spawn_capture(
-        stdout,
-        request.stdout_limit_bytes as usize,
-        "stdout",
-        limit_tx.clone(),
-        Arc::clone(&io_cancel),
-    ) {
-        Ok(handle) => handle,
-        Err(error) => {
-            let error = terminate_with_reason(process_group, &mut child, error);
-            io_cancel.store(true, Ordering::Release);
-            let _ = join_input(input_handle);
-            return Err(error);
-        }
-    };
-    let stderr_handle = match spawn_capture(
-        stderr,
-        request.stderr_limit_bytes as usize,
-        "stderr",
-        limit_tx,
-        Arc::clone(&io_cancel),
-    ) {
-        Ok(handle) => handle,
-        Err(error) => {
-            let error = terminate_with_reason(process_group, &mut child, error);
-            io_cancel.store(true, Ordering::Release);
-            let _ = join_input(input_handle);
-            let _ = join_capture(stdout_handle);
-            return Err(error);
-        }
-    };
-
-    let deadline = Instant::now() + Duration::from_millis(request.timeout_ms);
-    let status = loop {
-        if let Ok(stream) = limit_rx.try_recv() {
-            let error = terminate_with_reason(
-                process_group,
-                &mut child,
-                format!("backend {stream} exceeded its configured byte limit"),
-            );
-            io_cancel.store(true, Ordering::Release);
-            let _ = join_input(input_handle);
-            let _ = join_capture(stdout_handle);
-            let _ = join_capture(stderr_handle);
-            return Err(error);
-        }
-        match child.try_wait() {
+        let mut child = command
+            .spawn()
+            .map_err(|error| format!("spawn backend: {error}"))?;
+        drop(executable_file);
+        let process_group = child.id() as i32;
+        let stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| "send backend request: pipe missing".to_owned())?;
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| "capture backend stdout: pipe missing".to_owned())?;
+        let stderr = child
+            .stderr
+            .take()
+            .ok_or_else(|| "capture backend stderr: pipe missing".to_owned())?;
+        let (limit_tx, limit_rx) = mpsc::channel();
+        let io_cancel = Arc::new(AtomicBool::new(false));
+        let input_handle = match spawn_input(stdin, request_bytes, Arc::clone(&io_cancel)) {
+            Ok(handle) => handle,
             Err(error) => {
+                return Err(terminate_with_reason(process_group, &mut child, error));
+            }
+        };
+        let stdout_handle = match spawn_capture(
+            stdout,
+            request.stdout_limit_bytes as usize,
+            "stdout",
+            limit_tx.clone(),
+            Arc::clone(&io_cancel),
+        ) {
+            Ok(handle) => handle,
+            Err(error) => {
+                let error = terminate_with_reason(process_group, &mut child, error);
+                io_cancel.store(true, Ordering::Release);
+                let _ = join_input(input_handle);
+                return Err(error);
+            }
+        };
+        let stderr_handle = match spawn_capture(
+            stderr,
+            request.stderr_limit_bytes as usize,
+            "stderr",
+            limit_tx,
+            Arc::clone(&io_cancel),
+        ) {
+            Ok(handle) => handle,
+            Err(error) => {
+                let error = terminate_with_reason(process_group, &mut child, error);
+                io_cancel.store(true, Ordering::Release);
+                let _ = join_input(input_handle);
+                stdout_bytes = join_capture(stdout_handle).unwrap_or_default();
+                return Err(error);
+            }
+        };
+
+        let deadline = Instant::now() + Duration::from_millis(request.timeout_ms);
+        let status = loop {
+            if let Ok(stream) = limit_rx.try_recv() {
                 let error = terminate_with_reason(
                     process_group,
                     &mut child,
-                    format!("wait for backend: {error}"),
+                    format!("backend {stream} exceeded its configured byte limit"),
                 );
                 io_cancel.store(true, Ordering::Release);
                 let _ = join_input(input_handle);
-                let _ = join_capture(stdout_handle);
-                let _ = join_capture(stderr_handle);
+                stdout_bytes = join_capture(stdout_handle).unwrap_or_default();
+                stderr_bytes = join_capture(stderr_handle).unwrap_or_default();
                 return Err(error);
             }
-            Ok(Some(status)) => break status,
-            Ok(None) if Instant::now() >= deadline => {
-                let error = terminate_with_reason(
-                    process_group,
-                    &mut child,
-                    format!("backend timed out after {} ms", request.timeout_ms),
-                );
-                io_cancel.store(true, Ordering::Release);
-                let _ = join_input(input_handle);
-                let _ = join_capture(stdout_handle);
-                let _ = join_capture(stderr_handle);
-                return Err(error);
+            match child.try_wait() {
+                Err(error) => {
+                    let error = terminate_with_reason(
+                        process_group,
+                        &mut child,
+                        format!("wait for backend: {error}"),
+                    );
+                    io_cancel.store(true, Ordering::Release);
+                    let _ = join_input(input_handle);
+                    stdout_bytes = join_capture(stdout_handle).unwrap_or_default();
+                    stderr_bytes = join_capture(stderr_handle).unwrap_or_default();
+                    return Err(error);
+                }
+                Ok(Some(status)) => break status,
+                Ok(None) if Instant::now() >= deadline => {
+                    let error = terminate_with_reason(
+                        process_group,
+                        &mut child,
+                        format!("backend timed out after {} ms", request.timeout_ms),
+                    );
+                    io_cancel.store(true, Ordering::Release);
+                    let _ = join_input(input_handle);
+                    stdout_bytes = join_capture(stdout_handle).unwrap_or_default();
+                    stderr_bytes = join_capture(stderr_handle).unwrap_or_default();
+                    return Err(error);
+                }
+                Ok(None) => thread::sleep(Duration::from_millis(2)),
             }
-            Ok(None) => thread::sleep(Duration::from_millis(2)),
+        };
+        // A child must not leave descendants holding capture pipes or mutating its attempt.
+        kill_process_group(process_group);
+        let cleanup_result = cleanup_adopted_children();
+        io_cancel.store(true, Ordering::Release);
+        let input_result = join_input(input_handle);
+        let stdout_result = join_capture(stdout_handle);
+        let stderr_result = join_capture(stderr_handle);
+        // Join every pipe before propagating an error so the other stream survives.
+        let mut capture_error = None;
+        match stdout_result {
+            Ok(bytes) => stdout_bytes = bytes,
+            Err(error) => capture_error = Some(error),
         }
+        match stderr_result {
+            Ok(bytes) => stderr_bytes = bytes,
+            Err(error) => capture_error = Some(error),
+        }
+        input_result?;
+        if let Some(error) = capture_error {
+            return Err(error);
+        }
+        exit_code = status.code().unwrap_or(-1);
+        cleanup_result?;
+        if let Ok(stream) = limit_rx.try_recv() {
+            return Err(format!(
+                "backend {stream} exceeded its configured byte limit"
+            ));
+        }
+        require_success_exit(status)?;
+        validate_protocol(&stdout_bytes, &request)?;
+        Ok(())
+    })();
+    let reason = match &result {
+        Ok(()) => "completed-target",
+        Err(error) if error.contains("timed out") => "timeout",
+        Err(error) if error.contains("byte limit") => "output-limit",
+        Err(error) if error.contains("exited unsuccessfully") => "crash",
+        Err(_) => "infrastructure-error",
     };
-    // A child must not leave descendants holding capture pipes or mutating its attempt.
-    kill_process_group(process_group);
-    let cleanup_result = cleanup_adopted_children();
-    io_cancel.store(true, Ordering::Release);
-    join_input(input_handle)?;
-    let stdout = join_capture(stdout_handle)?;
-    let stderr = join_capture(stderr_handle)?;
-    cleanup_result?;
-    require_success_exit(status)?;
-    validate_protocol(&stdout, &request)?;
 
     let command_bytes = serde_json::to_vec(&request.commands)
         .map_err(|error| format!("serialize command stream: {error}"))?;
@@ -440,16 +473,24 @@ pub fn execute_process(
             stderr_bytes: request.stderr_limit_bytes,
         },
         execution: ReplayExecution {
-            status: "succeeded",
-            reason: "completed-target",
-            stop_condition: &request.expected_stop_condition,
-            exit_code: 0,
+            status: if result.is_ok() {
+                "succeeded"
+            } else {
+                "failed"
+            },
+            reason,
+            stop_condition: if result.is_ok() {
+                &request.expected_stop_condition
+            } else {
+                ""
+            },
+            exit_code,
         },
         comparison_verdict: "not-run",
         artifacts: ReplayArtifacts {
             request: artifact_identity("request.json", &canonical_request),
-            stdout: artifact_identity("stdout.ndjson", &stdout),
-            stderr: artifact_identity("stderr.log", &stderr),
+            stdout: artifact_identity("stdout.ndjson", &stdout_bytes),
+            stderr: artifact_identity("stderr.log", &stderr_bytes),
         },
     };
     let mut manifest_bytes = serde_json::to_vec_pretty(&manifest)
@@ -457,10 +498,10 @@ pub fn execute_process(
     manifest_bytes.push(b'\n');
 
     atomic_write(&attempt_dir, "request.json", &canonical_request)?;
-    atomic_write(&attempt_dir, "stdout.ndjson", &stdout)?;
-    atomic_write(&attempt_dir, "stderr.log", &stderr)?;
+    atomic_write(&attempt_dir, "stdout.ndjson", &stdout_bytes)?;
+    atomic_write(&attempt_dir, "stderr.log", &stderr_bytes)?;
     atomic_write(&attempt_dir, "replay-manifest.json", &manifest_bytes)?;
-    Ok(())
+    result
 }
 
 fn read_and_validate_request(path: &Path) -> Result<RunRequest, String> {
@@ -747,15 +788,13 @@ fn spawn_capture<R: Read + AsRawFd + Send + 'static>(
             bytes.extend_from_slice(&buffer[..count.min(remaining)]);
             if count > remaining {
                 let _ = limit_tx.send(label);
-                return Err(format!(
-                    "backend {label} exceeded its configured byte limit"
-                ));
+                return Ok(bytes);
             }
         }
     }))
 }
 
-fn set_nonblocking(file_descriptor: RawFd, label: &str) -> Result<(), String> {
+pub(crate) fn set_nonblocking(file_descriptor: RawFd, label: &str) -> Result<(), String> {
     // SAFETY: fcntl only reads or changes flags on a live, owned pipe descriptor.
     let flags = unsafe { libc::fcntl(file_descriptor, libc::F_GETFL) };
     if flags == -1 {
