@@ -55,6 +55,19 @@ jobs:
         python3 tools/windows/synthetic-launcher-controller/verify_controller_runtime_contract.py verify \
           --repo "$GITHUB_WORKSPACE" \
           --source-commit "$GITHUB_SHA"
+    - name: Verify synthetic launcher runtime implementation
+      shell: /bin/bash --noprofile --norc -euo pipefail {0}
+      env:
+        BASH_ENV: /dev/null
+        ENV: /dev/null
+      run: |
+        run_bound_runtime_implementation_verifier() {
+          /usr/bin/env -i PATH=/usr/bin:/bin LC_ALL=C /usr/bin/python3 -I -B -c 'import fcntl,hashlib,os,stat,sys; source=os.open(sys.argv[1],os.O_RDONLY|os.O_NOFOLLOW|os.O_CLOEXEC); before=os.fstat(source); raw=os.read(source,262145); after=os.fstat(source); ok=stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_size==len(raw) and len(raw)<=262144 and os.read(source,1)==b"" and (before.st_dev,before.st_ino,before.st_mode,before.st_nlink,before.st_size,before.st_mtime_ns,before.st_ctime_ns)==(after.st_dev,after.st_ino,after.st_mode,after.st_nlink,after.st_size,after.st_mtime_ns,after.st_ctime_ns) and hashlib.sha256(raw).hexdigest()==sys.argv[2]; ok or sys.exit(1); snapshot=os.memfd_create("runtime-implementation-verifier",os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING); len(raw)==os.write(snapshot,raw) or sys.exit(1); fcntl.fcntl(snapshot,fcntl.F_ADD_SEALS,fcntl.F_SEAL_SEAL|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_GROW|fcntl.F_SEAL_WRITE); os.lseek(snapshot,0,os.SEEK_SET); os.set_inheritable(snapshot,True); os.close(source); os.execve("/usr/bin/python3",["/usr/bin/python3","-I","-B","/proc/self/fd/"+str(snapshot)]+sys.argv[3:],{"PATH":"/usr/bin:/bin","LC_ALL":"C","PYTHONDONTWRITEBYTECODE":"1"})' "$GITHUB_WORKSPACE/tools/windows/synthetic-launcher-runtime/verify_runtime_implementation.py" "3134f00f131becc4d928f7f66efa253de184c4cf5a4d97b3cdc21580b747e520" "$@"
+        }
+        run_bound_runtime_implementation_verifier self-test
+        run_bound_runtime_implementation_verifier verify \
+          --repo "$GITHUB_WORKSPACE" \
+          --source-commit "$GITHUB_SHA"
     - name: Verify authority-free controller engine
       run: |
         python3 tools/windows/synthetic-launcher-controller/verify_controller_engine.py self-test
@@ -67,7 +80,7 @@ jobs:
       run: cargo test --verbose
 
   controller-policy-windows:
-    needs: runtime-binding
+    needs: build
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
@@ -146,4 +159,35 @@ jobs:
         $diagnostics = $process.StandardError.ReadToEnd().Trim()
         if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS 202') {
           throw "unexpected runtime binding result: $actual"
+        }
+    - name: Build and run P/Invoke-free x86 runtime gate tests
+      shell: pwsh
+      run: |
+        $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319'
+        $compiler = Join-Path $framework 'csc.exe'
+        $output = Join-Path $env:RUNNER_TEMP 'RuntimeGateTests.exe'
+        $canonical = (Resolve-Path 'tools\windows\synthetic-launcher-runtime\RuntimeCanonicalData.cs').Path
+        $gate = (Resolve-Path 'tools\windows\synthetic-launcher-runtime\RuntimeGate.cs').Path
+        $tests = (Resolve-Path 'tools\windows\synthetic-launcher-runtime\RuntimeGateTests.cs').Path
+        & $compiler /nologo /noconfig /warnaserror+ /optimize+ /nostdlib+ /platform:x86 /target:exe `
+          /main:Cm0102.SyntheticLauncherRuntime.RuntimeGateTests `
+          "/reference:$framework\mscorlib.dll" "/reference:$framework\System.dll" "/out:$output" `
+          $canonical $gate $tests
+        if ($LASTEXITCODE -ne 0) { throw 'runtime gate compilation failed' }
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $output
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        $process = [System.Diagnostics.Process]::new()
+        $process.StartInfo = $startInfo
+        if (-not $process.Start()) { throw 'runtime gate test start failed' }
+        if (-not $process.WaitForExit(30000)) {
+          $process.Kill()
+          throw 'runtime gate test timed out'
+        }
+        $actual = $process.StandardOutput.ReadToEnd().Trim()
+        $diagnostics = $process.StandardError.ReadToEnd().Trim()
+        if ($process.ExitCode -ne 0 -or $diagnostics -cne '' -or $actual -cne 'PASS runtime-gate-v1') {
+          throw "unexpected runtime gate result: $actual"
         }
