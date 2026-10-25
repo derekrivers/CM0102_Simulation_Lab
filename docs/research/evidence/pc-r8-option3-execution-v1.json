@@ -1,0 +1,55 @@
+{
+  "executed_revision": "878a068029446ba1a6cce61991ce58f13baf68da",
+  "sources": {
+    "retained": {
+      "receipt_sha256": "fd6ee4de7299e17badb1b4f12ba4650d26f5ffe25203a17a2d250eada4b65aec",
+      "receipt_bytes": 99649,
+      "timing_sha256": "b967a265ccbe14324ccd501b3cfb18b205c20b572676f1be7f012778b9ed121e",
+      "timing_bytes": 76754,
+      "host_generate_elapsed_seconds": 3.6891082279908005,
+      "emulation_elapsed_seconds": [
+        0.05124098900705576,
+        0.04354507899552118,
+        0.0015062019956531003,
+        0.04703500999312382
+      ],
+      "instruction_starts_per_call": [
+        295,
+        295,
+        43,
+        295
+      ],
+      "write_counts_per_call": [
+        33,
+        33,
+        1,
+        33
+      ]
+    },
+    "fresh": {
+      "receipt_sha256": "e7b50a6658469e240e2c46868f390728018f6ddc88c81840b092cfcac927d74d",
+      "receipt_bytes": 105663,
+      "timing_sha256": "59f7ad0f6fa5817774075b99964afbd91aafd6fd51519df85b6a1238fa0d5470",
+      "timing_bytes": 78770,
+      "host_generate_elapsed_seconds": 0.3880110239988426,
+      "emulation_elapsed_seconds": [
+        0.04566227100440301,
+        0.04431729100178927,
+        0.0013407719961833209,
+        0.04372144100489095
+      ],
+      "instruction_starts_per_call": [
+        362,
+        362,
+        43,
+        362
+      ],
+      "write_counts_per_call": [
+        34,
+        34,
+        1,
+        34
+      ]
+    }
+  }
+}

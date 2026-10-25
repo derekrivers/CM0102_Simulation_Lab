@@ -67,8 +67,9 @@ otherwise a separately sealed capture increment. No whole-path date is promised.
 
 ## Results
 
-Pending frozen-source review and explicit heavy-slot allocation. Independent
-review must assess exact source, diagnostics privacy, evidence and claim scope.
+The initial frozen boundary campaign completed as recorded below. The separately
+reviewed empty-mapping expansion then qualified its precise initialized branch.
+Final independent source/evidence review remains required before delivery.
 
 ## Separately frozen empty-mapping expansion
 
@@ -101,7 +102,9 @@ Mutated effect/width/value/offset/order/RNG/ABI candidates must fail the same
 verifier used on observations. No production admission follows. Nonempty slots,
 staff-linked lifetimes, plan numeric branches and broader options remain excluded.
 
-Pending independent source review and heavy-slot allocation for this expansion.
+Independent pre-execution review approved exact source 878a068 by the R7
+investigator (who authored neither R8 qualifier). The coordinator allocated the
+single heavy slot after R9 released it; eight additional calls then completed.
 
 The expansion writes separate exclusive `.timing.json` sidecars with measured
 per-call emulation and overall host-generation elapsed durations. Timing is host
@@ -123,3 +126,68 @@ Receipts: [retained](evidence/pc-r8-option3-retained-boundary-v1.json) and
 returned; all four value-one calls censored at their frozen boundaries. Failed
 harness attempts: zero. Each receipt seals the unchanged imported source files,
 Python/module hashes, official specimen and existing capture identities.
+
+## Qualified empty-mapping result
+
+Both exact initialized inputs complete option 3 with values 0 and 1. All sixteen
+captured mapping entries are -1. This qualification does **not** establish the
+nonempty mapping, staff-linked lifetime, plan numeric or gameplay branches.
+No production fixture/command/UI admission is added. Existing option-2 qualifier,
+all previous receipts, production code and save versions remain unchanged.
+
+| Input | Calls | Nonzero distinct starts | Nonzero ordered writes | Host generation elapsed |
+| --- | ---: | ---: | ---: | ---: |
+| Retained | 4 | 295 | 33 | 3.689108228 s |
+| Fresh | 4 | 362 | 34 | 0.388011024 s |
+
+Each campaign uses values 1,1,0, then restores the full post-first-1 checkpoint
+and executes 1 again. All calls reach original RET12 with exact EAX and preserved
+callee-saved registers. The repeated suffix matches all captured bytes, complete
+loaded image, ordered reads/effects and instruction starts. The value-zero call
+writes only its byte and preserves prior loop DWORDs. Each nonzero call writes
+initial option3 byte 1, fresh-only selector byte 0, then 32 DWORDs ffffffff in the
+original interleaved order. All eight mutated candidate controls reject. No RNG
+call/system boundary or unadmitted read/write/instruction executes on this path.
+Failed harness attempts in both campaigns: zero; the initial four censored calls
+remain visible and are never promoted into successful calls.
+
+Full receipts: [retained](evidence/pc-r8-option3-retained-empty-mapping-v1.json)
+SHA-256 `fd6ee4de7299e17badb1b4f12ba4650d26f5ffe25203a17a2d250eada4b65aec`;
+[fresh](evidence/pc-r8-option3-fresh-empty-mapping-v1.json)
+SHA-256 `e7b50a6658469e240e2c46868f390728018f6ddc88c81840b092cfcac927d74d`.
+The [execution record](evidence/pc-r8-option3-execution-v1.json) binds private timing
+artifacts and all measured per-call/overall durations. Full source dependencies,
+tools, upstream lock, official PE and input pins are bound in both receipts.
+Private timing sidecars retain each successful attempt's safe diagnostic trace;
+raw captures, pointers, binary bytes and proprietary names remain outside Git.
+
+Reproduce each script from the repository root with optimized Python and a new
+exclusive private output path. Do not run both sources concurrently. The first
+script reproduces the preserved boundary campaign; the second reproduces the
+separately qualified initialized empty-mapping branch. Append `--source retained`
+for the retained image/heap directory, or `--source fresh --build-receipt
+SEALED_R5_BUILD_RECEIPT` for the sealed sparse capture.
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 /home/derek/cm-proof/venv/bin/python -O \
+  scripts/qualify_option_three_dependencies.py OFFICIAL_EXE CAPTURE NEW_RECEIPT \
+  --source retained
+PYTHONDONTWRITEBYTECODE=1 /home/derek/cm-proof/venv/bin/python -O \
+  scripts/qualify_option_three_empty_mapping.py OFFICIAL_EXE CAPTURE NEW_RECEIPT \
+  --source retained
+```
+
+Affected checks: source compilation, JSON parsing, source dependency hash audit,
+relative evidence links, sanitized receipt inspection and `git diff --check` pass.
+No Rust/browser/build acceptance is claimed or needed for research-only new paths.
+Actual assigned investigator: GPT-6.1 Sol/medium; independent source reviewer:
+R7 investigator GPT-6 Astra/high. Token/cost totals are unavailable. Final exact
+research-revision review and delivery disposition are pending.
+
+The follow-on boundary is precise: no required bytes are missing for the qualified
+empty-mapping branch. Nonempty mapping requires a separately frozen real-input
+read/write and lifetime domain for 008968f0 (including possible mapping cleanup),
+returned staff IDs and signed plan fields. Estimate one bounded design/review and
+new qualification campaign if actual inputs exist; otherwise a sealed capture
+increment. No production option3 or general option3 estimate follows from this
+research result.
