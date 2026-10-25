@@ -98,8 +98,10 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     setup = sub.add_parser("setup", help="One-time private input configuration")
     setup.add_argument("--config", type=Path, required=True)
+    sub.add_parser("readiness", help="Read candidate research gates and source identities; no execution")
     start = sub.add_parser("start", help="Start an approved built-in profile")
-    start.add_argument("profile", choices=["synthetic", "regression", "research-squad"])
+    start.add_argument("profile", choices=["synthetic", "regression", "research-squad",
+                                          "research-anomalies", "research-consumers"])
     start.add_argument("--campaign")
     start.add_argument("--qualification-hours", type=float, default=0)
     for verb in ("status", "stop", "resume", "report", "restart"):
@@ -111,6 +113,10 @@ def main():
     args = parser.parse_args()
     root = args.root.expanduser().resolve()
     os.umask(0o077)
+    if args.command == "readiness":
+        from workloads import research_readiness
+        print(json.dumps(research_readiness(REPO), indent=2))
+        return
     if args.command == "setup":
         config = json.loads(args.config.read_text())
         if not isinstance(config, dict):
@@ -120,11 +126,12 @@ def main():
         print(f"Private configuration saved: {root / 'config.json'}")
         return
     if args.command == "start":
+        from workloads import build_profile, ensure_released_profile
+        ensure_released_profile(args.profile)
         if service_active():
             raise ValueError("A worker is already active; use status or stop first.")
         if not 0 <= args.qualification_hours <= 24:
             raise ValueError("Qualification hours must be between 0 and 24.")
-        from workloads import build_profile
         config_path = root / "config.json"
         config = json.loads(config_path.read_text()) if config_path.exists() else {}
         campaign = args.campaign or (args.profile + "-" + datetime.datetime.now(

@@ -9,7 +9,46 @@ import sys
 import time
 
 TEMPLATES = {'synthetic-progress-v1', 'rng-native-wasm-v1', 'original-r10-regression-v1',
-             'bosman-same-save-v1', 'research-squad-members-v1'}
+             'bosman-same-save-v1', 'research-squad-members-v1',
+             'research-squad-anomalies-v1', 'research-member-consumers-v1'}
+# These adapters are implemented candidates, not released execution profiles.
+# Changing this gate requires an exact independently reviewed release revision.
+RESEARCH_CANDIDATES = {
+    'research-anomalies': {'campaign': 'LAB-005', 'template': 'research-squad-anomalies-v1',
+                           'protocol': 'docs/research/LAB_005_V1.md'},
+    'research-consumers': {'campaign': 'LAB-006', 'template': 'research-member-consumers-v1',
+                          'protocol': 'docs/research/LAB_006_V1.md'},
+}
+RESEARCH_RELEASE_BLOCKER = ('Research release blocked: active qualification and its post-horizon '
+                            'replay/review must finish; exact source/protocol review, bounded pilot, '
+                            'resource measurement and selected-result replay remain required.')
+
+
+def ensure_released_profile(profile):
+    if profile in RESEARCH_CANDIDATES:
+        raise ValueError(RESEARCH_RELEASE_BLOCKER)
+
+
+def research_readiness(repo_root):
+    """Read source identities only. Never read private inputs or start a worker."""
+    repo = Path(repo_root)
+    rows = []
+    for profile, candidate in RESEARCH_CANDIDATES.items():
+        protocol = repo / candidate['protocol']
+        rows.append({**candidate, 'profile': profile, 'execution_approved': False,
+                     'executed': False, 'independently_accepted': False,
+                     'planned_jobs': 1, 'physical_attempts': 0,
+                     'protocol_sha256': sha(protocol), 'blocker': RESEARCH_RELEASE_BLOCKER,
+                     'proposed_limits': {'elapsed_seconds': 300, 'stall_seconds': 120,
+                                         'output_bytes': 2*1024**2, 'disk_bytes': 64*1024**2,
+                                         'min_free_bytes': 1024**3, 'max_attempts': 2}})
+    case_file = repo / 'docs/research/LAB_007_CASES_V1.json'
+    rows.append({'campaign': 'LAB-007', 'profile': None, 'execution_approved': False,
+                 'executed': False, 'independently_accepted': False,
+                 'planned_cases': 120, 'planned_jobs': 12, 'unstarted_cases': 120,
+                 'case_file_sha256': sha(case_file),
+                 'blocker': 'LAB-005/LAB-006 raw evidence and R10 extension admission require independent review; no executable adapter admitted.'})
+    return rows
 RNG_SHA = '1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16'
 IMAGE_SHA = 'ae11ce3ef6267ad55be6aa6387f676704b1bb8a6310507db6c5ccfe494d45c3a'
 HEAP_SHA = '30ee2baefad8f57f8760f30abc076586f2d13339bb1629f75346a5dcbc1357a0'
@@ -41,7 +80,20 @@ def _path(config, key):
 
 def _files(template, config, repo):
     result = [repo/'tools/lab/workloads.py', _path(config, 'python')]
-    if template == 'rng-native-wasm-v1':
+    if template == 'research-squad-anomalies-v1':
+        capture = _path(config, 'retained_capture')
+        result += [capture/'image.bin', capture/'heap.bin', repo/'docs/research/LAB_005_V1.md']
+        result += [repo/'scripts'/name for name in ('lab005.py', 'lab005_decoder_a.py', 'lab005_decoder_b.py', 'lab005_tests.py')]
+    elif template == 'research-member-consumers-v1':
+        result += [_path(config, key) for key in ('oracle_python', 'original_executable')]
+        result += [repo/'scripts/lab006.py', repo/'scripts/lab006_test.py', repo/'docs/research/LAB_006_V1.md',
+                   repo/'docs/research/evidence/pc-r10-command-static-v1.json']
+        venv = _path(config, 'oracle_python').parent.parent
+        result += [venv/'pyvenv.cfg']
+        directory = venv/'lib/python3.12/site-packages/capstone'
+        require(directory.is_dir(), 'qualified disassembler package unavailable')
+        result += [p for p in directory.rglob('*') if p.is_file() and (p.suffix == '.py' or '.so' in p.name)]
+    elif template == 'rng-native-wasm-v1':
         result += [_path(config, k) for k in ('node', 'rng_native', 'rng_wasm')]
         result += [repo/'scripts/r1/run_wasm.mjs', repo/'crates/cm-rng/fixtures/corpus.bin']
     elif template in ('original-r10-regression-v1', 'research-squad-members-v1'):
@@ -93,6 +145,8 @@ def validate(manifest, repo_root, config=None):
 def validate_job(manifest, job, repo_root, config=None):
     template, params = job.get('template_id'), job.get('parameters', {})
     require(template in TEMPLATES, 'unapproved template')
+    if template in {item['template'] for item in RESEARCH_CANDIDATES.values()}:
+        raise ValueError(RESEARCH_RELEASE_BLOCKER)
     require(isinstance(params, dict), 'parameters must be object')
     if template == 'synthetic-progress-v1':
         require(set(params) <= {'steps','delay_ms','mode'}, 'unknown synthetic parameter')
@@ -142,10 +196,10 @@ def result(manifest,job,attempt_dir,returncode):
                 'comparison_verdict':'not-comparable','details':{'reason':'missing workload endpoint'}}
     try:
         data=json.loads(path.read_text())
-        require(data['execution_status'] in ('succeeded','failed','infrastructure_failed'),'invalid execution result')
+        require(data['execution_status'] in ('succeeded','failed','infrastructure_failed','rejected'),'invalid execution result')
         require(data['comparison_verdict'] in ('not-run','equal','different','inconclusive','not-comparable'),'invalid verdict')
         require(data['template_id']==job['template_id'],'endpoint template mismatch')
-        if returncode!=0:
+        if returncode!=0 and data['execution_status'] != 'rejected':
             data['execution_status']='failed'
         return {key:data[key] for key in ('execution_status','comparison_verdict','details')}
     except (ValueError,KeyError,TypeError):
@@ -153,6 +207,7 @@ def result(manifest,job,attempt_dir,returncode):
 
 def build_profile(profile,config,repo_root,campaign_id):
     repo=Path(repo_root).resolve()
+    ensure_released_profile(profile)
     choices={'synthetic':['synthetic-progress-v1'],
              'regression':['rng-native-wasm-v1','original-r10-regression-v1','bosman-same-save-v1'],
              'research-squad':['research-squad-members-v1']}
@@ -185,10 +240,12 @@ def _progress(attempt,sequence):
     temp.write_text(json.dumps({'sequence':sequence}))
     temp.replace(attempt/'progress.json')
 
-def _run(command,attempt,name):
+def _run(command,attempt,name,require_success=True):
     with (attempt/(name+'.stdout')).open('xb') as out,(attempt/(name+'.stderr')).open('xb') as err:
         code=subprocess.call(command,stdout=out,stderr=err)
-    require(code==0,name+' failed')
+    if require_success:
+        require(code==0,name+' failed')
+    return code
 
 def _research(config):
     """Independent read-only all-slot structural question. Raw records stay private."""
@@ -383,6 +440,19 @@ def _execute(task):
             (attempt/'research-observations.json').write_text(json.dumps(observations,indent=2)+'\n')
             require(len(observations['controls'])==6 and all(observations['controls'].values()),'research controls did not discriminate')
             outcome.update(execution_status='succeeded',comparison_verdict='not-run',details=observations)
+        elif template in ('research-squad-anomalies-v1', 'research-member-consumers-v1'):
+            # validate_job above fails closed until a separately reviewed release.
+            number = '005' if template == 'research-squad-anomalies-v1' else '006'
+            interpreter = 'python' if number == '005' else 'oracle_python'
+            input_key = 'retained_capture' if number == '005' else 'original_executable'
+            code = _run([str(_path(config, interpreter)), '-I', str(repo/f'scripts/lab{number}.py'),
+                        str(_path(config, input_key)), str(attempt)], attempt, 'research', require_success=False)
+            endpoint = json.loads((attempt/f'lab{number}-result.json').read_text())
+            require(endpoint['execution_status'] in ('succeeded', 'failed', 'rejected'), 'invalid research status')
+            require(endpoint['comparison_verdict'] in ('equal', 'different', 'inconclusive', 'not-run', 'not-comparable'),
+                    'invalid research comparison')
+            require(code == 0 or endpoint['execution_status'] != 'succeeded', 'research process failed with successful endpoint')
+            outcome.update({key: endpoint[key] for key in ('execution_status', 'comparison_verdict', 'details')})
         validate(task['manifest'],repo,config)
         validate_job(task['manifest'],task['job'],repo,config)
         _progress(attempt,1000000)

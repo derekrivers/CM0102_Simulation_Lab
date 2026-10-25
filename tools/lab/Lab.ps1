@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Menu','Setup','Start','Status','Stop','Resume','Report','Replay','Restart')]
+    [ValidateSet('Menu','Setup','Start','Status','Stop','Resume','Report','Replay','Restart','Readiness')]
     [string]$Action = 'Menu',
     [string]$Value,
     [string]$Campaign,

@@ -1,0 +1,1351 @@
+{
+  "schema_version": 1,
+  "campaign": "LAB-007",
+  "execution_approved": false,
+  "case_list_sha256": "62ea04732223472ccf649eadaba9159b79f550c53dceb6faaa0b84c06eee97e2",
+  "case_order": "slot ascending, first member 0 then 1, assign/repeat/replace",
+  "member_identity": "same two independently admitted R10 actual members; labels only",
+  "reset": "complete admitted state before every case",
+  "jobs": [
+    {
+      "job_id": "001-retained-assignment",
+      "cases": [
+        {
+          "case_id": "001",
+          "slot": 0,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "002",
+          "slot": 0,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "003",
+          "slot": 0,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "004",
+          "slot": 0,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "005",
+          "slot": 0,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "006",
+          "slot": 0,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "007",
+          "slot": 1,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "008",
+          "slot": 1,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "009",
+          "slot": 1,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "010",
+          "slot": 1,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "002-retained-assignment",
+      "cases": [
+        {
+          "case_id": "011",
+          "slot": 1,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "012",
+          "slot": 1,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "013",
+          "slot": 2,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "014",
+          "slot": 2,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "015",
+          "slot": 2,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "016",
+          "slot": 2,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "017",
+          "slot": 2,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "018",
+          "slot": 2,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "019",
+          "slot": 3,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "020",
+          "slot": 3,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "003-retained-assignment",
+      "cases": [
+        {
+          "case_id": "021",
+          "slot": 3,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "022",
+          "slot": 3,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "023",
+          "slot": 3,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "024",
+          "slot": 3,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "025",
+          "slot": 4,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "026",
+          "slot": 4,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "027",
+          "slot": 4,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "028",
+          "slot": 4,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "029",
+          "slot": 4,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "030",
+          "slot": 4,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "004-retained-assignment",
+      "cases": [
+        {
+          "case_id": "031",
+          "slot": 5,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "032",
+          "slot": 5,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "033",
+          "slot": 5,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "034",
+          "slot": 5,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "035",
+          "slot": 5,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "036",
+          "slot": 5,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "037",
+          "slot": 6,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "038",
+          "slot": 6,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "039",
+          "slot": 6,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "040",
+          "slot": 6,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "005-retained-assignment",
+      "cases": [
+        {
+          "case_id": "041",
+          "slot": 6,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "042",
+          "slot": 6,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "043",
+          "slot": 7,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "044",
+          "slot": 7,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "045",
+          "slot": 7,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "046",
+          "slot": 7,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "047",
+          "slot": 7,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "048",
+          "slot": 7,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "049",
+          "slot": 8,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "050",
+          "slot": 8,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "006-retained-assignment",
+      "cases": [
+        {
+          "case_id": "051",
+          "slot": 8,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "052",
+          "slot": 8,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "053",
+          "slot": 8,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "054",
+          "slot": 8,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "055",
+          "slot": 9,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "056",
+          "slot": 9,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "057",
+          "slot": 9,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "058",
+          "slot": 9,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "059",
+          "slot": 9,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "060",
+          "slot": 9,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "007-retained-assignment",
+      "cases": [
+        {
+          "case_id": "061",
+          "slot": 10,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "062",
+          "slot": 10,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "063",
+          "slot": 10,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "064",
+          "slot": 10,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "065",
+          "slot": 10,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "066",
+          "slot": 10,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "067",
+          "slot": 11,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "068",
+          "slot": 11,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "069",
+          "slot": 11,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "070",
+          "slot": 11,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "008-retained-assignment",
+      "cases": [
+        {
+          "case_id": "071",
+          "slot": 11,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "072",
+          "slot": 11,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "073",
+          "slot": 12,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "074",
+          "slot": 12,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "075",
+          "slot": 12,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "076",
+          "slot": 12,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "077",
+          "slot": 12,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "078",
+          "slot": 12,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "079",
+          "slot": 13,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "080",
+          "slot": 13,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "009-retained-assignment",
+      "cases": [
+        {
+          "case_id": "081",
+          "slot": 13,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "082",
+          "slot": 13,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "083",
+          "slot": 13,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "084",
+          "slot": 13,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "085",
+          "slot": 14,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "086",
+          "slot": 14,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "087",
+          "slot": 14,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "088",
+          "slot": 14,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "089",
+          "slot": 14,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "090",
+          "slot": 14,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "010-retained-assignment",
+      "cases": [
+        {
+          "case_id": "091",
+          "slot": 15,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "092",
+          "slot": 15,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "093",
+          "slot": 15,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "094",
+          "slot": 15,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "095",
+          "slot": 15,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "096",
+          "slot": 15,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "097",
+          "slot": 16,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "098",
+          "slot": 16,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "099",
+          "slot": 16,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "100",
+          "slot": 16,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "011-retained-assignment",
+      "cases": [
+        {
+          "case_id": "101",
+          "slot": 16,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "102",
+          "slot": 16,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "103",
+          "slot": 17,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "104",
+          "slot": 17,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "105",
+          "slot": 17,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "106",
+          "slot": 17,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "107",
+          "slot": 17,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "108",
+          "slot": 17,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "109",
+          "slot": 18,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "110",
+          "slot": 18,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    },
+    {
+      "job_id": "012-retained-assignment",
+      "cases": [
+        {
+          "case_id": "111",
+          "slot": 18,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "112",
+          "slot": 18,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "113",
+          "slot": 18,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "114",
+          "slot": 18,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "115",
+          "slot": 19,
+          "first_member": 0,
+          "sequence": "assign-read",
+          "assignments": [
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "116",
+          "slot": 19,
+          "first_member": 0,
+          "sequence": "repeat-read",
+          "assignments": [
+            0,
+            0
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "117",
+          "slot": 19,
+          "first_member": 0,
+          "sequence": "replace-read",
+          "assignments": [
+            0,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "118",
+          "slot": 19,
+          "first_member": 1,
+          "sequence": "assign-read",
+          "assignments": [
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "119",
+          "slot": 19,
+          "first_member": 1,
+          "sequence": "repeat-read",
+          "assignments": [
+            1,
+            1
+          ],
+          "final_operation": "read"
+        },
+        {
+          "case_id": "120",
+          "slot": 19,
+          "first_member": 1,
+          "sequence": "replace-read",
+          "assignments": [
+            1,
+            0
+          ],
+          "final_operation": "read"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "review_id": "lab005-007-review-a-v1",
+  "reviewer": "independent subagent /root/lab005; LAB-005 author, not LAB-006/integration author",
+  "model_selection": "inherited coordinator model, no override; exact model identifier not exposed to this reviewer",
+  "review_date": "2026-10-25",
+  "scope": "Independent source/protocol review of LAB-006 and candidate lab integration; LAB-007 definition/blocker and delivery claim boundaries inspected. This is not independent review of own LAB-005 implementation.",
+  "verdict": "approved-candidate-source-only",
+  "execution_release_approved": false,
+  "real_pilot_executed": false,
+  "raw_evidence_accepted": false,
+  "source_sha256": {
+    "scripts/lab006.py": "d79744d68ea2b40a63c7272c57366aea5ca313732f2a2cf517a67d458e0d08e7",
+    "scripts/lab006_test.py": "25df8664e8f856299471a1cfa1ef05ab7f1fc47561fb15141917a162791b721e",
+    "docs/research/LAB_006_V1.md": "e6a37ebfcb080a2bb44f089eaa81a40137705d61af2934cbc53a6233c524a116",
+    "tools/lab/workloads.py": "00841b2d446851b720ff490975bd2515c6775d1a8e45b3fecb285dca583d2367",
+    "tools/lab/lab.py": "bb1081a0233dccb01db12c809edf8e30a73cf8cd5c910c79a540d8c52481ab95",
+    "tools/lab/report.py": "be15380f5852c52b6933aa924d8ae2da93d5387475c2ee1c46269e02e52bcb4f",
+    "tools/lab/test_research_candidates.py": "9286e3f07ea3677c0f7f8dea6f019f23ebb233a1d7d68caccf1b2e87dbad92bd",
+    "tools/lab/Lab.ps1": "982bb8be38ff54465921e27d17597b5870afa6800c037880db3f2ea6112eb212",
+    "scripts/lab007_cases.py": "cefe6a1bd923a65da14da4267fece7a7d59eae10fb2f036a4b84a6d56cb6a60e",
+    "docs/research/LAB_007_CASES_V1.json": "a75643084faa9ced9c7125625be35f5cec80b5d765943fe76433e326c7c79151",
+    "docs/research/LAB_007_BLOCKERS_V1.md": "9fdc859db7563814c21dda2a4a2d589269bff10f0b8b8a71d5dcb4ea31aa522d",
+    "docs/research/LAB_005_007_DELIVERY_V1.md": "fe98c9f6592468d5190982457dcb072381a1f2c068beccd8ec553c4e2d8a2378",
+    "docs/runbooks/local-lab.md": "39ddd624cbcded1e49592e6931aff4cfa543edf7a562decbe6f8b0a4d4cec684",
+    "docs/status/PROGRESS.md": "0a8c6f645b20352abea8f8301c88eb5a461ad424939abd10ba153c574ec44ce0"
+  },
+  "checks": [
+    {
+      "command": "python -m unittest discover -s scripts -p lab006_test.py -v",
+      "environment": "Windows Python 3.13.7, Capstone 5.0.7",
+      "tests": 9,
+      "result": "passed",
+      "suite_seconds": 0.106
+    },
+    {
+      "command": "/usr/bin/python3 -m unittest discover -s tools/lab -p test_research_candidates.py -v",
+      "environment": "Ubuntu WSL Python 3.12",
+      "tests": 8,
+      "result": "passed",
+      "suite_seconds": 0.279
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "resolved_findings": [
+    {
+      "priority": 2,
+      "file": "tools/lab/lab.py",
+      "finding": "Candidate CLI initially queried service/read private configuration before release gate; this contradicted the early rejection promise and suggested stopping the active worker.",
+      "resolution": "ensure_released_profile now executes before service/config; dedicated mocked CLI test proves neither access happens."
+    },
+    {
+      "priority": 2,
+      "file": "tools/lab/workloads.py",
+      "finding": "LAB-006 test source was absent from adapter file pins.",
+      "resolution": "scripts/lab006_test.py is now included in _files."
+    },
+    {
+      "priority": 3,
+      "file": "scripts/lab006.py",
+      "finding": "Attempt-directory symlink guard missing at direct internal endpoint.",
+      "resolution": "run now requires not attempt.is_symlink(); current synthetic suite passed."
+    }
+  ],
+  "outstanding_findings": [],
+  "inspection_evidence": [
+    "Both static ranges match prior reviewed public receipt hashes/endpoints/counts and all seven expected anchors match prior static inspector source.",
+    "Only admitted PE32 specimen and qualified detailed Capstone 5.0.7 accepted; full contiguous instruction inventory, boundaries, widths, signedness, memory operands and dependencies retained privately; no emulation or process execution.",
+    "Eleven synthetic controls exercise real invented instruction mutations, positive detailed facts, missing instruction, incomplete decode and wrong specimen; negative/boundary tests pass.",
+    "Candidate profile factory and per-job validator reject before private input access, CLI early guard verified, no configuration approval bypass or LAB-007 executor exists.",
+    "Report preserves rejected and queued denominators. LAB-007 generator covers exactly120 cases grouped12x10 and case hash tested.",
+    "Delivery/runbook/progress explicitly distinguish candidate implementation, source review, blocked execution, absent pilots/replays and pending raw acceptance; active-qualification state is attributed to lead inspection, not independently remeasured here.",
+    "Final test-only delta explicitly preserves rejected/not-run with nonzero child exit and succeeded/different as distinct execution/comparison outcomes; independently rerun eight candidate integration tests passed."
+  ],
+  "limitations": [
+    "No original specimen/capture opened, no original instructions executed, no builds, no heavy slot/service manipulation.",
+    "No pilot resource fit, retained scientific result, replay or dynamic eligibility/lifecycle interpretation established.",
+    "Final future release enabling profiles and LAB-007 admission require new exact review and raw-evidence gates.",
+    "LAB-005 implementation requires the separate other-agent review; this reviewer authored it."
+  ]
+}

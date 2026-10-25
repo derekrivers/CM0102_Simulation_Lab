@@ -4,6 +4,19 @@ Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FI
 
 ## Demonstrated evidence
 
+### LAB-005/006 candidate development; LAB-007 blocked — 25 October 2026
+
+Work is isolated on `codex/lab-005-007-bounded` in `lab-005-007-dev`.
+The actual qualification remained running, with clean accepted source
+`42a313887e46274a2932dbe8c04de7a5e8f2840d`; no build, new retained-input
+experiment, service change or evidence replacement was performed. The
+[handoff](../research/LAB_005_007_DELIVERY_V1.md) separates implementation,
+source review, execution release, pilot/replay and evidence acceptance.
+LAB-005/006 have candidate fixed adapters and synthetic controls; execution
+release fails closed. LAB-007 retains all 120 proposed cases in twelve groups
+of ten and a [precise blocker report](../research/LAB_007_BLOCKERS_V1.md).
+No new game-behaviour finding or merged/released campaign is claimed.
+
 ### Owner-directed lab delivery — started 25 October 2026
 
 Fetched main remains `ca6d465` (after PRs #44/#45); no later changes were
