@@ -94,3 +94,13 @@ synthetic programs/observer variants in fresh retained private directories and
 never launch the game. These are mechanism tests, not provenance qualification.
 The native production observer build and four-arm campaign remain pending exact
 independent review and lead allocation of the single heavy slot.
+Pre-execution review found and corrected an observer entry race: nesting depth
+must not become visible before signals are blocked. Each API now first uses raw
+x86-64 `rt_sigprocmask` with an eight-byte full kernel mask (including NPTL's two
+reserved signals), then publishes depth; only the outer entry saves/restores the
+prior mask. A pending SIGUSR1 control actually dup2-reuses the read descriptor:
+the first read binds its original identity before deferred handler delivery, and
+the next pread binds the replacement. Separate nested-API and preexisting-thread
+controls exercise exact counts and TSYNC/census rejection. Eleven controls pass;
+one initial signal-control helper compile failure is retained privately, corrected
+without weakening `-Werror` or any acceptance threshold.

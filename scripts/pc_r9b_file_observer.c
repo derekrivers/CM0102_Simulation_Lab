@@ -31,7 +31,7 @@ static int trace_fd = -1, active;
 static uint64_t events, errors, rows_used, abnormal_count, output_bytes;
 static const char *clean_root;
 static __thread unsigned depth;
-static __thread sigset_t previous_mask;
+static __thread uint64_t previous_mask;
 struct identity { uint64_t dev, ino; int64_t size; int known; char path[PATH_CAP]; };
 struct row {
     struct identity id;
@@ -66,18 +66,20 @@ static uint64_t product(uint64_t a,uint64_t b) {
 }
 static void enter(void) {
     int e=errno;
-    if (active && depth++==0) {
-        sigset_t mask; sigfillset(&mask);
-        /* All maskable signals: a blocked synchronous fault terminates rather than recovering. */
-        if (sigprocmask(SIG_BLOCK,&mask,&previous_mask)) _exit(120);
+    if (active) {
+        uint64_t mask=UINT64_MAX, old;
+        /* Mask BEFORE publishing depth. Raw kernel mask also covers the NPTL
+         * signals silently excluded by glibc sigprocmask. x86-64 has 64 bits. */
+        if (syscall(SYS_rt_sigprocmask,SIG_BLOCK,&mask,&old,sizeof mask)) _exit(120);
+        if (depth++==0) previous_mask=old;
     }
     errno=e;
 }
 static void leave(int e) {
-    if (active && --depth==0 && sigprocmask(SIG_SETMASK,&previous_mask,NULL)) _exit(119);
+    if (active && --depth==0 &&
+        syscall(SYS_rt_sigprocmask,SIG_SETMASK,&previous_mask,NULL,sizeof previous_mask)) _exit(119);
     errno=e;
-}
-static struct identity inspect(int fd) {
+}static struct identity inspect(int fd) {
     struct identity id={0};
     if (fd<0) return id;
     char path[64];struct stat st;
@@ -200,7 +202,7 @@ __attribute__((destructor)) static void finish(void) {
         "PCR9BDONE\t%"PRIu64"\t%"PRIu64"\t%"PRIu64"\t%"PRIu64"\n",events,rows_used,abnormal_count,errors);
     if(n<0 || syscall(SYS_write,trace_fd,footer,(size_t)n)!=n || syscall(SYS_fsync,trace_fd))_exit(122);
     syscall(SYS_close,trace_fd);trace_fd=-1;
-    if(sigprocmask(SIG_SETMASK,&previous_mask,NULL))_exit(119);
+    if(syscall(SYS_rt_sigprocmask,SIG_SETMASK,&previous_mask,NULL,sizeof previous_mask))_exit(119);
 }
 static int needs_mode(int flags){return(flags&O_CREAT)||((flags&O_TMPFILE)==O_TMPFILE);}
 #define OPEN_WRAP(n) \

@@ -200,6 +200,45 @@ FILE *fopen(const char *path,const char *mode){
         self.assertEqual(read['delivered_api_bytes_lower_bound'], 4)
         self.assertEqual(s['operations']['fread'], 1)
 
+    def test_signal_handler_fd_reuse_waits_until_identity_completed(self):
+        helper = self.helper_library('signal-reuse', r'''
+#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+static int victim=-1, once;
+static void handler(int signo){
+ (void)signo;int e=errno;
+ int other=open(getenv("CONTROL_REPLACEMENT"),O_RDONLY);if(other<0)_exit(54);
+ if(dup2(other,victim)!=victim){_exit(55);}close(other);errno=e;
+}
+ssize_t read(int fd,void *buf,size_t count){
+ ssize_t (*next)(int,void *,size_t);*(void **)(&next)=dlsym(RTLD_NEXT,"read");
+ if(!once++ && getenv("CONTROL_REPLACEMENT")){
+  uint64_t mask=0;if(syscall(SYS_rt_sigprocmask,SIG_SETMASK,NULL,&mask,sizeof mask))_exit(50);
+  if(!(mask&(UINT64_C(1)<<31)) || !(mask&(UINT64_C(1)<<32)))_exit(51);
+  struct sigaction action={0};action.sa_handler=handler;sigemptyset(&action.sa_mask);
+  if(sigaction(SIGUSR1,&action,NULL)){_exit(52);}victim=fd;
+  if(syscall(SYS_tgkill,getpid(),syscall(SYS_gettid),SIGUSR1))_exit(53);
+ }
+ return next(fd,buf,count);
+}
+''')
+        preload = str(self.root/'observer.so')+':'+str(helper)
+        self.assertEqual(self.invoke('signal-reuse', LD_PRELOAD=preload,
+            CONTROL_REPLACEMENT=str(self.root/'mapped-file')), 0)
+        s = use.parse_trace(self.root/'signal-reuse.tsv', self.members)
+        read = [r for r in s['rows'] if r['operation'] == 'read'][0]
+        pread = [r for r in s['rows'] if r['operation'] == 'pread'][0]
+        self.assertEqual(read['resolved_target'], str(self.root/'read-file'))
+        self.assertEqual(pread['resolved_target'], str(self.root/'mapped-file'))
+        self.assertEqual(s['positive_read_manifest_files'], 2)
+
     def test_all_frozen_observer_capacity_failures(self):
         original = use.observer_source().read_text()
         variants = {
