@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "delivery_pr": "https://github.com/derekrivers/CM0102_Simulation_Lab/pull/42",
+  "base_revision": "12a35b3863528edba15e4dccd687ea1d90a8e44f",
+  "reviewed_head": "26e3bd93c29f1c4d082839faa8c2da3b788eb6bb",
+  "merge_revision": "abc8ea49f8b47ace0729c54d9fe3a745d7c27951",
+  "merged_at_utc": "2026-10-25T12:44:33Z",
+  "independent_final_review": {
+    "model": "GPT-6.1 Sol",
+    "effort": "medium",
+    "decision": "approved-no-actionable-findings",
+    "private_audit": {
+      "bytes": 6477,
+      "sha256": "c1e389f0517b897abd6e6f4f4cff7f688a826ad5921943ab14d6e9d2bf587b5d"
+    },
+    "self_authored_r8_excluded": "R8 independently approved by GPT-6 Astra at unchanged 5d8d0291047da18547eb852ed6098345610ef875"
+  },
+  "checks": [
+    {
+      "name": "immutable-runtime-bootstrap",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40194077457/job/121171062424",
+      "workflowName": "Runtime Binding Base Guard"
+    },
+    {
+      "name": "runtime-binding",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40194077493/job/121171061916",
+      "workflowName": "Rust"
+    },
+    {
+      "name": "build",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40194077493/job/121171096697",
+      "workflowName": "Rust"
+    },
+    {
+      "name": "controller-policy-windows",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40194077493/job/121171394227",
+      "workflowName": "Rust"
+    }
+  ],
+  "result": {
+    "r7": "bounded-v5-connected-lookup-delivered",
+    "r8": "initialized-empty-mapping-research-qualified-production-unavailable",
+    "r9": "failed-observation-report-delivered-consumption-unknown"
+  },
+  "rust_serial_tests": 86,
+  "browser_operations": 552,
+  "persistent_profiles": 12,
+  "validation_receipt": "pc-r7-integrated-validation-v1.json",
+  "experimental_r9_source_on_main": false,
+  "original_windows_process_launched": false,
+  "deployed": false
+}

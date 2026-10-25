@@ -298,3 +298,12 @@ branch. A future bounded aggregation/compression design requires separate review
 The whole-game objective and P02/P04 gates remain open. No original Windows game
 process or deployment occurred. Final exact-head review, checks and merge identity
 are recorded in programme progress and the delivery PR.
+
+
+Protected batch delivery: [PR #42](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/42),
+merge abc8ea49f8b47ace0729c54d9fe3a745d7c27951, exact reviewed head
+26e3bd93c29f1c4d082839faa8c2da3b788eb6bb. Four required checks and independent
+final review passed before merge; [progress](../status/PROGRESS.md#protected-delivery-identity)
+and the [delivery receipt](../research/evidence/pc-r7-r9-delivery-v1.json) retain
+identities. This includes a truthful failed R9 result, not successful file-use
+qualification.
