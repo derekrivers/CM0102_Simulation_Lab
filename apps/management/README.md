@@ -3,7 +3,8 @@
 Rust owns state in one dedicated WASM worker; React submits commands and renders
 projections. The default squad and all plan labels are fictional. A reviewed private fixture
 additionally admits three actual ordinary-club/nonhuman-manager records and
-qualified first/second bank resolution. Human-manager controls stay unavailable. This is not a
+qualified first/second bank resolution. A separately admitted human profile supports
+direct registry slot selection; other human-manager workflows remain unavailable. This is not a
 reproduction of an original UI handler, a full tactics engine or a playable game.
 
 From the repository root, with the pinned toolchain:
