@@ -44,7 +44,11 @@
       "player_table_id_mismatch": 0,
       "aligned_full_player_links": 48,
       "player_check_scope": "Standalone standard-library structural check only; layout hypothesis, no lifetime/backlink qualification",
-      "executed_source_sha256": "59e5ea9be69efba75c577759c80fa614e3d4f50a5990d53e356634480792309e"
+      "executed_source_sha256": "59e5ea9be69efba75c577759c80fa614e3d4f50a5990d53e356634480792309e",
+      "retained_source": "pc-r10-projection-inventory-20261025-a3/source.py; recovered byte-exact executed file from final source plus three trailing CRLF sequences; SHA256 matches pre-normalization recorded identity",
+      "player_check_source": "pc-r10-projection-inventory-20261025-a3/player-check.py",
+      "player_check_source_sha256": "679848eae4bdf1f2f952d34012b7fde8adfc638dc3c4371af9df041564517a45",
+      "player_check_source_provenance": "Recovered verbatim logical Python stdin from executed tool transcript after run; not a contemporaneous pre-execution source seal; independent lane A raw parser corroborates result"
     }
   ],
   "validation": {
@@ -62,5 +66,5 @@
     "No member names, raw records, IDs or native pointers published",
     "No new Rust/save/profile/allowlist changes"
   ],
-  "final_source_change": "Trailing newline normalization only after a3; optimized five controls repeated on final source"
+  "final_source_change": "Executed a3 ends with three CRLF sequences after final code line; final script replaces those six bytes with one LF; all preceding bytes equal. Exact executed source retained privately. Final optimized controls repeated."
 }

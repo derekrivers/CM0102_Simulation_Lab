@@ -54,7 +54,7 @@ mismatches are **not** labeled loans. Filtering these seven entries would not
 produce a qualified complete squad. First-byte coverage is not object extent,
 allocation lifetime or permission to decode a player record. Fresh sparse state
 has no first-byte coverage at any of these player links. Retained coverage alone
-does not establish lifetime. No player records or attributes are decoded.
+does not establish lifetime. No player gameplay attributes are decoded; the later retained extent check reads player record IDs only.
 
 Immutable private attempts `pc-r10-projection-inventory-20261025-a1`, `-a2` and `-a3`
 retain receipts. A1 lacked a minus-one counter; A2 adds that discriminating
