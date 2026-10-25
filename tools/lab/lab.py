@@ -57,6 +57,14 @@ def service_active():
                           check=False).returncode == 0
 
 
+def worker_command_matches(command, root, campaign):
+    expected = [str(REPO / "tools/lab/core.py").encode(), b"--root", str(root).encode(),
+                b"--repo", str(REPO).encode(), b"start", campaign.encode(), b""]
+    return (len(command) == len(expected) + 1
+            and Path(os.fsdecode(command[0])).resolve() == Path(sys.executable).resolve()
+            and command[1:] == expected)
+
+
 def launch(root, campaign):
     if service_active():
         raise ValueError("A local lab worker is already active. Use status or stop first.")
@@ -177,7 +185,7 @@ def main():
         descriptor = os.pidfd_open(pid)
         try:
             command = Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0")
-            if str(REPO / "tools/lab/core.py").encode() not in command or campaign.encode() not in command:
+            if not worker_command_matches(command, root, campaign):
                 raise ValueError("Worker command identity differs. No process was signalled.")
             db = connect(root)
             with transaction(db):
