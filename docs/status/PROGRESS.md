@@ -298,3 +298,14 @@ The [browser increment](../research/PC_R10_BROWSER_JOURNEY.md) adds explicit loc
 Fresh validation passes 86 Rust tests serially, fmt, denied-warning workspace Clippy, fresh native/release WASM, strict TypeScript/build, 552 actual Chromium operations and twelve persistent profiles. Research controls and source/raw/artifact reviews are separately recorded. v1-v5 exact meanings/bytes, pins, CI and infrastructure are unchanged. No original Windows process or deployment ran.
 
 The player-visible milestone remains open: resolve original full member/unused-slot semantics, independently admit the projection, freeze compatible Rust/save state, port the qualified assignment/readback, then prove the real squad/action's browser save/reopen/continuation. Exact final-head review, four frozen checks and merge disposition belong to the delivery record.
+
+
+### R10/R9b accepted delivery identity
+
+[PR #44](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/44) merged as `44b172835568434d03393a687d0de52e56bf8910` from exact independently approved head `97e1b2a68a6297ac3ee93b1b356c243bfafdf061`. Fresh target remained `33e415f712e315548ccec9c7f63afd6bc7b33266`; actual merge parents confirm that target and head, and the merge tree exactly equals the reviewed tree. Merge used an expected-head SHA guard.
+
+Independent E final audit (10,236 bytes, SHA-256 `7c0cfe285f67e62a693fe2ba924a87cbf71db1c1685be655ca34bc73f724eae0`) covers the non-E lanes and lead updates. Independent C audit (6,684 bytes, SHA-256 `fd97f1719ef8bc6dbee90819c9b3499b9cbab61378f2d52e894bbc4ed6c778a2`) covers E and lead material, excluding self-authored C. Complementary earlier A/B/raw/artifact reviews fill authorship exclusions. No author was sole approver.
+
+All four frozen checks passed before merge on the exact head: [Rust 40198608589](https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40198608589) and [base guard 40198608650](https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40198608650). The [machine-readable delivery record](../research/evidence/pc-r10-r9b-delivery-v1.json) binds review/check/merge and scope identities. GitHub APIs reported no active legacy main protection/rules; the four-check requirement and exact-head guard were still enforced by this delivery, with no repository setting changed.
+
+Retained original command research and existing-v5 browser setup are delivered. R9b delivery is only its truthful failed report; experimental code stays off main. Complete real squad admission and the production lineup/save/reopen journey remain open. This record introduces no implementation or new acceptance result.

@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "delivery_pr": "https://github.com/derekrivers/CM0102_Simulation_Lab/pull/44",
+  "base_revision": "33e415f712e315548ccec9c7f63afd6bc7b33266",
+  "reviewed_head": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+  "merge_revision": "44b172835568434d03393a687d0de52e56bf8910",
+  "merge_parents": [
+    "33e415f712e315548ccec9c7f63afd6bc7b33266",
+    "97e1b2a68a6297ac3ee93b1b356c243bfafdf061"
+  ],
+  "merged_at_utc": "2026-10-25T13:43:16Z",
+  "expected_head_guard_used": true,
+  "target_refreshed_before_merge": true,
+  "merge_tree_equals_reviewed_tree": true,
+  "checks": [
+    {
+      "name": "controller-policy-windows",
+      "head_sha": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40198608589/job/121185098366"
+    },
+    {
+      "name": "build",
+      "head_sha": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40198608589/job/121184801465"
+    },
+    {
+      "name": "immutable-runtime-bootstrap",
+      "head_sha": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40198608650/job/121184771072"
+    },
+    {
+      "name": "runtime-binding",
+      "head_sha": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+      "status": "completed",
+      "conclusion": "success",
+      "details_url": "https://github.com/derekrivers/CM0102_Simulation_Lab/actions/runs/40198608589/job/121184769921"
+    }
+  ],
+  "independent_final_reviews": [
+    {
+      "reviewer": "E",
+      "model": "GPT-6.1 Sol",
+      "effort": "medium",
+      "decision": "approved-no-actionable-findings",
+      "head": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+      "private_audit": {
+        "bytes": 10236,
+        "sha256": "7c0cfe285f67e62a693fe2ba924a87cbf71db1c1685be655ca34bc73f724eae0"
+      },
+      "author_exclusions": "Self-authored E product/helper/docs/receipts covered by C; self-authored B reviews not sole approval; C/lead independently cover B."
+    },
+    {
+      "reviewer": "C",
+      "model": "GPT-6.1 Sol",
+      "effort": "medium",
+      "decision": "approved-no-actionable-findings",
+      "head": "97e1b2a68a6297ac3ee93b1b356c243bfafdf061",
+      "private_audit": {
+        "bytes": 6684,
+        "sha256": "fd97f1719ef8bc6dbee90819c9b3499b9cbab61378f2d52e894bbc4ed6c778a2"
+      },
+      "coverage": "E product/helper/docs/receipts and lead programme/validation/B status wording; own C work excluded and covered by A/E."
+    }
+  ],
+  "rust_serial_tests": 86,
+  "browser_operations": 552,
+  "persistent_profiles": 12,
+  "new_browser_journey_cases": 7,
+  "complete_legacy_browser_storage_receipts_unchanged": true,
+  "original_command": {
+    "result": "retained-two-record-initialized-slot-zero-assignment-readback-qualified-research",
+    "successful_calls": 11,
+    "censored_calls": 4,
+    "defective_models": 12,
+    "initial_failed_attempt_retained": true,
+    "successful_followup_seconds": 13.84996452,
+    "receipt": "pc-r10-command-retained-oracle-v1.json",
+    "production_admission": "none"
+  },
+  "real_input": {
+    "preexisting_nonempty_lineup_found": false,
+    "mapping_slots_empty_each": 20,
+    "unresolved_candidate_member_entries": 7,
+    "complete_squad_projection_admitted": false
+  },
+  "browser": "existing-qualified-v5-setup-and-actual-reopen-continuation-delivered-no-lineup-capability",
+  "r9b": {
+    "result": "failed-policy-experiment-report-only",
+    "successful_arms": 2,
+    "attempted_arms": 4,
+    "complete_observations": 0,
+    "attempted_observations": 2,
+    "observed_exit_codes": [
+      -31,
+      -31
+    ],
+    "observer_counters": "unknown",
+    "clean_tree_file_use_provenance": "unknown",
+    "original_bosman_comparison": "not-run",
+    "executed_source": "1007f45fc5f6267ee283ffc804754d39cf8c9f9a",
+    "experimental_report_head": "7445c3ae593ae21a7705fd25bb1e98230eef8324",
+    "experimental_branch": "codex/pc-r9b",
+    "experimental_code_on_main": false
+  },
+  "validation_receipts": [
+    "pc-r10-lead-validation-v1.json",
+    "pc-r10-integration-checks-v1.json",
+    "pc-r10-browser-validation-v1.json",
+    "pc-r10-browser-validation-v2.json"
+  ],
+  "branch_policy_observation": {
+    "legacy_endpoint_status": 404,
+    "legacy_message": "Branch not protected",
+    "branch_rules": [],
+    "settings_changed": false,
+    "frozen_four_checks_still_required": true,
+    "private_receipt": {
+      "bytes": 672,
+      "sha256": "8622240a049c41e26ff3d1372176f5655eb0f41de28a822e01d52bc98ed149b0"
+    }
+  },
+  "player_visible_milestone_complete": false,
+  "new_rust_save_profile_or_fingerprint": false,
+  "v1_v5_preserved": true,
+  "original_windows_process_launched": false,
+  "deployed": false
+}
