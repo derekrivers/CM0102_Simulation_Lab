@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "specimen_sha256": "0c78e7da6d0bcb4603fa179449bbe6d1b6b5e1c627a22c445d14d489bd9bff86",
+  "emulator": "unicorn 2.1.4",
+  "method": "official entry-to-return instructions over actual retained runtime state; no stubbed callees",
+  "capture": {
+    "source_capture_sha256": "302921d53add894761acb6ef425d930f8b83ff0a344efdf61c45fa94d1f5cfa8",
+    "image_sha256": "ae11ce3ef6267ad55be6aa6387f676704b1bb8a6310507db6c5ccfe494d45c3a",
+    "heap_sha256": "30ee2baefad8f57f8760f30abc076586f2d13339bb1629f75346a5dcbc1357a0",
+    "platform_revision": "f9583098d39c77ac6982a5aa9daec56d74454531"
+  },
+  "state": {
+    "registry_count": 16,
+    "registry_stride": 42735,
+    "tactical_slot_count": 5,
+    "tactical_slot_stride": 7885,
+    "ordinary_reciprocal_human_bindings": 1,
+    "registry_row_sha256": "5acfb13b37df041f03bf4a887abde1ac6f9ec4928709ab24112e545a2945f21a",
+    "club_record_sha256": "7670b026dae6db1671ea45a79ad516ae061bc4f446b809971dfecdf50d4a1ae5",
+    "staff_record_sha256": "394b8f3e5717bb6e4791de1dc8e62c0359d496467e10b562228d0dfb8e089dc7",
+    "complete_heap_bytes": 108564672
+  },
+  "private_fixture": {
+    "sha256": "986a2f582095c698413a6ab617a8c487bf0dfb78a7b7e953f7d83b282af7dc6d",
+    "bytes": 481
+  },
+  "instruction_ranges": [
+    {
+      "start": "005fbd00",
+      "end_exclusive": "005fbe11",
+      "sha256": "a3b0cb5213631502268653449c723a1e3924f3b50e57c37f0fa27ddb591be06a"
+    },
+    {
+      "start": "005fbe20",
+      "end_exclusive": "005fc004",
+      "sha256": "e87b1fc03afd62601885171d5fbd539960c1893220b2689a28969a26b10cb41b"
+    },
+    {
+      "start": "00600a50",
+      "end_exclusive": "00600c88",
+      "sha256": "cc6153dcf30517c0686132f37230fb079b8efb7f018259bd5384f8a986ae1cd6"
+    },
+    {
+      "start": "0053b900",
+      "end_exclusive": "0053b99f",
+      "sha256": "9e1991a802fbd9f8f648d69697664d3a9b680097b7bfc878d9a6508c96cadad3"
+    },
+    {
+      "start": "005409b0",
+      "end_exclusive": "00540a4c",
+      "sha256": "884811ef44ef43b428dedf6a6ed9eca60c94572d928b25c879871046bead0455"
+    },
+    {
+      "start": "005fd210",
+      "end_exclusive": "005fd2e2",
+      "sha256": "6f38c40cc8e08ee18624701904491e49711df5eeea526a3caac12257194cb4e5"
+    },
+    {
+      "start": "005fea50",
+      "end_exclusive": "005feb50",
+      "sha256": "5379529f3481bca68f75929eb7eda93663374f5fe3ff01bb4b600e83f17d8dd4"
+    },
+    {
+      "start": "005feb60",
+      "end_exclusive": "005fed42",
+      "sha256": "ff7c17b2d6aebfffc964a52147a4801aa9fa44522cf40e54b7ffb813c04caadb"
+    },
+    {
+      "start": "00896660",
+      "end_exclusive": "008967c1",
+      "sha256": "628599aa8b0921b1e7d8d9fca0191323230577765a01516aa6b67f9cc7db9515"
+    }
+  ],
+  "successful_instruction_starts": 345,
+  "successful_calls": 21,
+  "cases": [
+    {
+      "step": 0,
+      "option": 0,
+      "previous_slot": 0,
+      "selected_slot": 0,
+      "location": {
+        "registry_index": 15,
+        "slot": 0,
+        "byte_offset": 0
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 1,
+      "option": 1,
+      "previous_slot": 0,
+      "selected_slot": 1,
+      "location": {
+        "registry_index": 15,
+        "slot": 1,
+        "byte_offset": 7885
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 2,
+      "option": 1,
+      "previous_slot": 1,
+      "selected_slot": 1,
+      "location": {
+        "registry_index": 15,
+        "slot": 1,
+        "byte_offset": 7885
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 3,
+      "option": 0,
+      "previous_slot": 1,
+      "selected_slot": 0,
+      "location": {
+        "registry_index": 15,
+        "slot": 0,
+        "byte_offset": 0
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 4,
+      "option": 1,
+      "previous_slot": 0,
+      "selected_slot": 1,
+      "location": {
+        "registry_index": 15,
+        "slot": 1,
+        "byte_offset": 7885
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "step": 5,
+      "option": 0,
+      "previous_slot": 1,
+      "selected_slot": 0,
+      "location": {
+        "registry_index": 15,
+        "slot": 0,
+        "byte_offset": 0
+      },
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    }
+  ],
+  "checkpoint_continuation_equal": true,
+  "captured_outer_lookup": {
+    "path": "ordinary-bank-fallback",
+    "registry_flag_9a01": 1,
+    "registry_flag_9b25": 0,
+    "ordered_writes": []
+  },
+  "original_guard_producer": {
+    "entry": "005feb60",
+    "option": 2,
+    "enable_writes": [
+      {
+        "registry_offset": 39717,
+        "width": 1,
+        "value": 1
+      }
+    ],
+    "restore_writes": [
+      {
+        "registry_offset": 39717,
+        "width": 1,
+        "value": 0
+      }
+    ]
+  },
+  "connected_outer_lookup_cases": [
+    {
+      "option": 0,
+      "returned_slot": 0,
+      "byte_offset": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "option": 1,
+      "returned_slot": 1,
+      "byte_offset": 7885,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "option": 1,
+      "returned_slot": 1,
+      "byte_offset": 7885,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 1
+        }
+      ],
+      "rng_draws": 0
+    },
+    {
+      "option": 0,
+      "returned_slot": 0,
+      "byte_offset": 0,
+      "ordered_writes": [
+        {
+          "registry_offset": 39529,
+          "width": 1,
+          "value": 0
+        }
+      ],
+      "rng_draws": 0
+    }
+  ],
+  "defect_controls": {
+    "wrong-row": 6,
+    "wrong-slot": 6,
+    "wrong-bank-stride": 3,
+    "omitted-write": 6,
+    "word-instead-of-byte": 6,
+    "extra-rng-draw": 6,
+    "reordered-writes": 1
+  },
+  "unsupported_probes": [
+    {
+      "name": "null-manager-diagnostic",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "reason": "outside admitted state or write domain"
+    },
+    {
+      "name": "nonhuman-manager-diagnostic",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "reason": "outside admitted state or write domain"
+    },
+    {
+      "name": "holiday-option-three-larger-producer",
+      "execution_status": "censored",
+      "comparison_verdict": "not-comparable",
+      "reason": "outside admitted state or write domain"
+    }
+  ],
+  "complete_heap_and_image_checked": true,
+  "supported_rng_draws": 0,
+  "limitations": [
+    "Historical instrumented Bosman capture has no contemporaneous clean-input consumption seal",
+    "Direct selector command is a research API transition, not a reconstructed original UI handler",
+    "Preinitialized registry only; constructor/load/destructor, appointments and lifetime transitions unqualified",
+    "Only ordinary reciprocal human binding, explicit nonnull manager/club, selector options 0 and 1",
+    "Slots 2 through 4, national sides, null-current-manager fallback and diagnostics unsupported",
+    "Plan bytes are preserved but not decoded; no original-save, match or original-process parity"
+  ]
+}
