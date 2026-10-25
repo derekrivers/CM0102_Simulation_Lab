@@ -9,7 +9,7 @@ const hash=v=>createHash('sha256').update(v).digest('hex');
 const encoded=v=>JSON.stringify(canonical(v));
 const equal=(a,b,label)=>assert.equal(hash(encoded(a)),hash(encoded(b)),label);
 const native=ops=>{const p=spawnSync(path.join(root,'target/debug/management-corpus'),[],{input:JSON.stringify(ops),encoding:'utf8',maxBuffer:32*1024*1024});assert.equal(p.status,0,'native execution');return JSON.parse(p.stdout);};
-const command=(state,id,plan)=>({action:'command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.clubs[0].id,plan_id:plan}});
+const command=(state,id,plan)=>state.schema_version===3?{action:'human_command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.fixture.club_id,slot:plan%2}}:({action:'command',command:{session_id:state.session_id,command_id:id,expected_revision:state.revision,club_id:state.clubs[0].id,plan_id:plan}});
 let injection='';
 const assets=new Set(['index.html','app.js','worker.js','storage.js','style.css','cm_management.wasm']);
 const server=http.createServer((req,res)=>{const file=req.url==='/'?'index.html':req.url.slice(1);if(!assets.has(file)){res.writeHead(404).end();return;}
@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{const file=req.url==='/'?'index.html'
  const data=fs.readFileSync(path.join('dist',file));res.end(file==='storage.js'?data.toString()+injection:data);
 });
 const request=(page,op)=>page.evaluate(op=>window.managementDurableRequest(op),op);
-async function ready(page,url){await page.goto(url);await page.getByRole('button',{name:'Apply plan',exact:true}).waitFor();}
+async function ready(page,url){await page.goto(url);await page.locator('button').filter({hasText:/^Apply (plan|slot)$/}).waitFor();}
 async function editHead(page,change){return page.evaluate(async change=>{
  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('cm-management-checkpoints-v1',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
  await new Promise((resolve,reject)=>{const tx=db.transaction('checkpoints','readwrite'),store=tx.objectStore('checkpoints'),read=store.get('active');
@@ -41,8 +41,10 @@ async function head(page){return page.evaluate(async()=>{
   let page=context.pages()[0];await ready(page,url);
   const fixtures=[null,fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-managers-v1.json'),'utf8')];
   if(process.env.REFERENCE_FIXTURE)fixtures.push(fs.readFileSync(process.env.REFERENCE_FIXTURE,'utf8'));
+  fixtures.push(fs.readFileSync(path.join(root,'crates/cm-management/tests/fixtures/synthetic-human-registry.json'),'utf8'));
+  if(process.env.HUMAN_REFERENCE_FIXTURE)fixtures.push(fs.readFileSync(process.env.HUMAN_REFERENCE_FIXTURE,'utf8'));
   for(const fixture of fixtures){
-   const initial=fixture?{action:'import_reference',fixture}:{action:'reset'};
+   const initial=fixture?{action:JSON.parse(fixture).registry_row_sha256?'import_human_reference':'import_reference',fixture}:{action:'reset'};
    const first=await request(page,initial);assert.equal(first.ok,true);
    const a=command(first.state,'durable-a',1),one=await request(page,a),b=command(one.state,'durable-b',2),two=await request(page,b);
    assert.equal(two.durability.status,'saved');equal(two.state,native([initial,a,b]).at(-1).state,'native state before reopen');
@@ -124,6 +126,19 @@ async function head(page){return page.evaluate(async()=>{
   const stale=await request(other,command(base,'tab-stale',2));assert.equal(stale.ok,true);assert.equal(stale.durability.status,'failed');assert.match(stale.durability.error,/conflict/);
   equal((await head(page)).current.identity,latest.durability.durable,'stale tab cannot overwrite');await other.close();
   controls.push('concurrent stale tab cannot replace a newer committed checkpoint');
+
+  // Initial storage failure cannot grant a later retry another tab's token.
+  injection="\nconst originalOpen=openDatabase;let denyFirstOpen=true;openDatabase=()=>{if(denyFirstOpen){denyFirstOpen=false;return Promise.reject(new DOMException('denied','SecurityError'));}return originalOpen();};";
+  const failedTab=await context.newPage();await ready(failedTab,url);injection='';
+  const failedState=(await request(failedTab,{action:'state'})).state;
+  assert.equal(failedState.revision,0);
+  await request(page,{action:'import_reference',fixture:fixtures[1]});
+  const newerHead=await head(page);
+  const retry=await request(failedTab,command(failedState,'retry-after-first-open-failure',1));
+  assert.equal(retry.ok,true);assert.equal(retry.durability.status,'failed');assert.match(retry.durability.error,/conflict/);
+  equal(await head(page),newerHead,'failed recovery retry cannot adopt another session token');
+  await failedTab.close();
+  controls.push('transient initial-open failure followed by another tab session change cannot rebind a publication retry');
 
   const receipt={schema_version:1,browser_version:context.browser().version(),profiles:results,controls,limitations:['SecurityError and QuotaExceededError are injected at IndexedDB API boundaries; abort/corruption/interruption and retained checkpoints use actual browser storage','Chromium CDP quota override reported quota=1 but admitted tested IndexedDB writes; actual disk exhaustion was not qualified','origin-local browser transaction guarantees; no physical-media/power-loss claim','raw private saves and profile remain only in ignored local test output'],wasm_sha256:hash(fs.readFileSync('dist/cm_management.wasm'))};
   fs.writeFileSync(path.join(out,'storage-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt));
