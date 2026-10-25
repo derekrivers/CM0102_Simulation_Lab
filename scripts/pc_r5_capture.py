@@ -335,7 +335,7 @@ def run(a):
     report["artifacts"] = {p.relative_to(a.output).as_posix(): identity(p)
                            for p in sorted(a.output.rglob("*")) if p.is_file()}
     write(a.output/"receipt-private.json", report)
-    print(json.dumps({k:v for k,v in report.items() if k != "results"}, sort_keys=True))
+    print(json.dumps({k:v for k,v in report.items() if k not in ("results", "artifacts")}, sort_keys=True))
     return 0 if success and saves_equal and captures_complete and raw_equal else 1
 def main():
     os.umask(0o077)

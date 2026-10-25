@@ -70,5 +70,52 @@ Initial validation: eight redistributable controls cover complete/truncated outp
 oversized lengths, unsupported pointers, missing reciprocal human binding,
 symlink identity, immutable directory reuse, bounded output, closed-stream hangs, missing extents, overlapping ranges, count caps and timeout.
 C11 warning-clean syntax validation passes against the pinned runtime headers.
-Build/run awaits independent exact-revision instrumentation review and the
-coordinator's heavy-slot allocation. No fresh capture has yet been claimed.
+Independent coordinator review accepted exact driver/observer revision
+`e36b51604a36c00e52e0c031d250cd8f3458846c` before native compile/relink or
+execution and independently repeated the eight controls. Review first found
+and fixed closed-stream hangs, incomplete sparse-state admission and missing
+per-arm drift checks. No original process was launched.
+
+## Fresh result
+
+The [sanitized receipt](evidence/pc-r5-capture-v1.json) binds one fresh immutable
+private build and capture campaign. The separate derivative's executable hash
+is `2f471fb8c5b87f69cf51d5423e6ec4e92e95386ba33fda2b1827d01df7781451`;
+the retained qualified binary is unchanged. Only the observer was compiled;
+existing sealed objects were relinked. The complete campaign's contemporaneous
+before/after seals span 339.91 seconds, with four serial native runs taking
+83.12, 83.77, 83.56 and 83.25 seconds.
+
+All four runs reached the 14-day endpoint, had positive idle counts and stable
+per-arm/global identities. Their 18,975,625-byte saves are exactly identical:
+`8e3a60abb32ae8864e32052de34aa2fea00f1709ef54531220e949eb0ba16f11`.
+Enabled A and B each produced the same complete 3,849,184-byte sparse capture:
+`014808018f7b20f60abaac5c71a0c509747259e309563650afe0d0cc79da6f40`.
+All sixteen captured ranges match byte for byte; no field mask or tolerance
+was used. Both enabled logs contain one completed-capture marker; disabled
+arms contain none. Four of four admitted arms succeeded; two of two enabled
+captures are complete. This was one focused setup attempt, with no failed
+attempt removed from the denominator.
+
+Independent R4 parsing found one real reciprocal human-manager binding and
+sixteen complete registry rows. Fresh guard bytes are zero, allowing the
+connected original getter's registry-mutating branch directly, without the
+older capture's guard-priming step. R4's [independently parsed official-instruction oracle](PC_R4_HUMAN_REGISTRY.md#fresh-pinned-platform-sparse-replay) passes 21 calls across 290 original instruction starts, with no stubbed
+callees, ordered writes/ABI/continuation checks and complete captured-region
+plus official-image invariants. Its separate receipt SHA-256 is
+`39915e94bf65ca7c6586153dffa63b03160dc483119a58e8dc9e82fbc92fd911`.
+This links the fresh input to scoped original instructions; it does not
+establish original-process parity or admit a production fixture fingerprint.
+
+The enabled/disabled save equality supports noninterference at this bounded
+14-day save endpoint. It does not prove equality of every live byte or prove
+which clean data files were opened. The explicit consumption gap remains
+`unknown`. Execution, capture completeness, exact raw repetition, scoped
+noninterference and original instruction replay remain separate claims.
+
+The final delivery trims the driver's console summary to exclude the private
+artifact inventory. The executed driver remains the exact reviewed revision
+`e36b516`, whose file identity is in the receipt. Raw captures, saves,
+commands, logs, native pointers, record names, full input tables and build
+locators remain in the external private area. Public output contains structural
+counts, artifact identities and scoped outcomes only.
