@@ -1,5 +1,11 @@
 # Local unattended research lab
 
+LAB-005/006 development candidates and the LAB-007 admission blocker are tracked
+in [the bounded research handoff](../research/LAB_005_007_DELIVERY_V1.md).
+`lab.py readiness` reads their gates without loading private inputs. The new
+candidate launch names deliberately reject until a separately reviewed release;
+they must not interrupt the active qualification or its replay/review.
+
 This is the bounded local milestone, using one WSL worker and a private SQLite
 store. Full P01/P03 gates remain open. The worker executes approved templates;
 it cannot change source, rewrite reference results or admit hypotheses.

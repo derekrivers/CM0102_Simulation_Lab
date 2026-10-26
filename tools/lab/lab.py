@@ -98,8 +98,18 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     setup = sub.add_parser("setup", help="One-time private input configuration")
     setup.add_argument("--config", type=Path, required=True)
+    sub.add_parser("readiness", help="Read candidate research gates and source identities; no execution")
+    freeze = sub.add_parser("freeze", help="Freeze and reserve a candidate pilot; never configure or execute")
+    freeze.add_argument("profile", choices=["research-anomalies", "research-consumers"])
+    freeze.add_argument("--campaign", required=True)
+    freeze.add_argument("--out", type=Path, required=True)
+    admit = sub.add_parser("admit", help="Validate independent receipts and configure a frozen pilot; no launch")
+    admit.add_argument("manifest", type=Path)
+    admit.add_argument("--operational-review", type=Path, required=True)
+    admit.add_argument("--qualification-acceptance", type=Path, required=True)
     start = sub.add_parser("start", help="Start an approved built-in profile")
-    start.add_argument("profile", choices=["synthetic", "regression", "research-squad"])
+    start.add_argument("profile", choices=["synthetic", "regression", "research-squad",
+                                          "research-anomalies", "research-consumers"])
     start.add_argument("--campaign")
     start.add_argument("--qualification-hours", type=float, default=0)
     for verb in ("status", "stop", "resume", "report", "restart"):
@@ -111,6 +121,10 @@ def main():
     args = parser.parse_args()
     root = args.root.expanduser().resolve()
     os.umask(0o077)
+    if args.command == "readiness":
+        from workloads import research_readiness
+        print(json.dumps(research_readiness(REPO), indent=2))
+        return
     if args.command == "setup":
         config = json.loads(args.config.read_text())
         if not isinstance(config, dict):
@@ -119,12 +133,47 @@ def main():
         atomic_json(root / "config.json", config)
         print(f"Private configuration saved: {root / 'config.json'}")
         return
+    if args.command in {"freeze", "admit"}:
+        from workloads import build_profile, admission_module, validate
+        admission = admission_module()
+        if args.command == "freeze":
+            from core import IDENTIFIER
+            if not IDENTIFIER.fullmatch(args.campaign):
+                raise ValueError("Invalid campaign identifier")
+            if args.out.exists():
+                raise ValueError("Frozen manifest already exists; it is never replaced")
+            config = json.loads((root / 'config.json').read_text())
+            manifest = build_profile(args.profile, config, REPO, args.campaign, research_state_root=root)
+            reserved = admission.reservation(manifest, create=True)
+            # Exclusive publication prevents replacing another frozen experiment.
+            args.out.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            with args.out.open('xb') as stream:
+                stream.write(admission.canonical(manifest) + b'\n')
+                stream.flush()
+                os.fsync(stream.fileno())
+            print(json.dumps({'manifest': str(args.out.resolve()), 'execution_approved': False,
+                              'frozen_subject_sha256': admission.subject(manifest), 'reservation': reserved}, indent=2))
+        else:
+            manifest = json.loads(args.manifest.read_text())
+            if Path(manifest['provenance']['research_state_root']) != root:
+                raise ValueError("Frozen pilot belongs to a different private state root")
+            if 'pilot_admission' in manifest['provenance']:
+                raise ValueError("Supply the original frozen manifest, not a previously admitted manifest")
+            manifest['provenance']['pilot_admission'] = {
+                'operational_review': admission.reference(args.operational_review),
+                'qualification_acceptance': admission.reference(args.qualification_acceptance)}
+            validate(manifest, REPO, json.loads((root/'config.json').read_text()))
+            from core import configure
+            campaign = configure(root, REPO, manifest)
+            print(f"Pilot {campaign} admitted and ready; no worker launched. Use the isolated Windows launcher Resume with its lifetime holder.")
+        return
     if args.command == "start":
+        from workloads import build_profile, ensure_released_profile
+        ensure_released_profile(args.profile)
         if service_active():
             raise ValueError("A worker is already active; use status or stop first.")
         if not 0 <= args.qualification_hours <= 24:
             raise ValueError("Qualification hours must be between 0 and 24.")
-        from workloads import build_profile
         config_path = root / "config.json"
         config = json.loads(config_path.read_text()) if config_path.exists() else {}
         campaign = args.campaign or (args.profile + "-" + datetime.datetime.now(

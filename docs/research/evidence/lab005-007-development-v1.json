@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "kind": "bounded-research-development-handoff",
+  "date": "2026-10-25",
+  "implementation_revision": "519386d45f5f508d250b3794d522671bf647005c",
+  "branch": "codex/lab-005-007-bounded",
+  "base_revision": "8ae412aac6377f4bc824fa6f8c29d76c0c79bd99",
+  "delivery_status": "independently-reviewed-candidates; execution-release-blocked; not-merged-or-deployed",
+  "qualification_inspection": {
+    "state": "running",
+    "manifest_sha256": "0ac601252e55b485f5305d433c5f6c68c9d11e64cf07034f2488907061c3d711",
+    "observation_elapsed_seconds": 2821.2982466960093,
+    "observation_qualified": 1,
+    "active_seconds": 182.6596052829991,
+    "idle_seconds": 2595.346795622303,
+    "stop_reason": null,
+    "observed_at_utc": "2026-10-25T15:43:47.412972+00:00",
+    "source_revision": "42a313887e46274a2932dbe8c04de7a5e8f2840d",
+    "physical_attempts": 4,
+    "jobs": [
+      {
+        "job_id": "001-rng-native-wasm-v1",
+        "state": "succeeded",
+        "comparison_verdict": "equal",
+        "attempts": 1
+      },
+      {
+        "job_id": "002-original-r10-regression-v1",
+        "state": "succeeded",
+        "comparison_verdict": "equal",
+        "attempts": 1
+      },
+      {
+        "job_id": "003-bosman-same-save-v1",
+        "state": "succeeded",
+        "comparison_verdict": "not-run",
+        "attempts": 2
+      }
+    ]
+  },
+  "qualification_interpretation": "Running and eligible so far is not completed or independently accepted. Actual horizon, selected RNG replay and independent acceptance remain required.",
+  "preservation": {
+    "accepted_checkout_clean": true,
+    "accepted_checkout": "/home/derek/cm0102-lab",
+    "state_root": "/home/derek/.local/share/cm0102-lab",
+    "service_mutations": 0,
+    "heavy_builds": 0,
+    "retained_research_attempts": 0,
+    "raw_evidence_overwritten": 0,
+    "original_untracked_designs_preserved": true,
+    "development_programme_copy_only_change": "Trailing blank EOF removed for diff whitespace check"
+  },
+  "identities": {
+    "docs/research/LAB_005_V1.md": {
+      "working_bytes_sha256": "67e0e6b636648bd46b9ae0efdb1694798a804311fb3ec758689ccdce4171c472",
+      "git_blob_bytes_sha256": "67e0e6b636648bd46b9ae0efdb1694798a804311fb3ec758689ccdce4171c472"
+    },
+    "docs/research/LAB_006_V1.md": {
+      "working_bytes_sha256": "e6a37ebfcb080a2bb44f089eaa81a40137705d61af2934cbc53a6233c524a116",
+      "git_blob_bytes_sha256": "e6a37ebfcb080a2bb44f089eaa81a40137705d61af2934cbc53a6233c524a116"
+    },
+    "docs/research/LAB_007_CASES_V1.json": {
+      "working_bytes_sha256": "a75643084faa9ced9c7125625be35f5cec80b5d765943fe76433e326c7c79151",
+      "git_blob_bytes_sha256": "a75643084faa9ced9c7125625be35f5cec80b5d765943fe76433e326c7c79151"
+    },
+    "docs/research/LAB_007_BLOCKERS_V1.md": {
+      "working_bytes_sha256": "9fdc859db7563814c21dda2a4a2d589269bff10f0b8b8a71d5dcb4ea31aa522d",
+      "git_blob_bytes_sha256": "9fdc859db7563814c21dda2a4a2d589269bff10f0b8b8a71d5dcb4ea31aa522d"
+    },
+    "docs/research/evidence/lab005-007-review-a-v1.json": {
+      "working_bytes_sha256": "0262b64903fe776d82f877e7e35d0316f34b05dc0b307350a2f994fb50ae01b4",
+      "git_blob_bytes_sha256": "5db73f235e6ab08790392f34f6d22af1132e4184db6e1adfae53115356e00126"
+    },
+    "docs/research/evidence/lab005-007-review-b-v1.json": {
+      "working_bytes_sha256": "d84371a1bd81355db55314a66ae005bd4e19b3b231314b208b4d0874f6b1cd0d",
+      "git_blob_bytes_sha256": "71c088eb6bc6a44ed05c9decaa2bfaa699764970df07bb4a81a02fa0ea06800a"
+    }
+  },
+  "case_list_sha256": "62ea04732223472ccf649eadaba9159b79f550c53dceb6faaa0b84c06eee97e2",
+  "campaigns": [
+    {
+      "id": "LAB-005",
+      "implemented": "two independent decoders; controls; private ledgers; fixed adapter candidate",
+      "source_protocol_review": "approved-candidate-only by independent reviewer B",
+      "execution_release": false,
+      "planned_jobs": 1,
+      "planned_member_slots": 50,
+      "physical_attempts": 0,
+      "execution": "not-started",
+      "comparison": "not-run",
+      "hypothesis": "unresolved",
+      "pilot_resources": null,
+      "replay": "not-run",
+      "raw_evidence_acceptance": "pending"
+    },
+    {
+      "id": "LAB-006",
+      "implemented": "bounded static PE/disassembler endpoint; controls; private facts; fixed adapter candidate",
+      "source_protocol_review": "approved-candidate-only by independent reviewer A",
+      "execution_release": false,
+      "planned_jobs": 1,
+      "planned_ranges": 2,
+      "physical_attempts": 0,
+      "original_instructions_executed": 0,
+      "execution": "not-started",
+      "comparison": "not-run",
+      "hypothesis": "unresolved",
+      "pilot_resources": null,
+      "replay": "not-run",
+      "raw_evidence_acceptance": "pending"
+    },
+    {
+      "id": "LAB-007",
+      "implemented": "case definition and blocker only; no executor admitted",
+      "source_protocol_review": "case/blocker independently reviewed by B; emulator protocol not approved",
+      "execution_release": false,
+      "planned_jobs": 12,
+      "planned_cases": 120,
+      "unstarted_cases": 120,
+      "physical_attempts": 0,
+      "execution": "not-started",
+      "comparison": "not-run",
+      "hypothesis": "unresolved",
+      "pilot_resources": null,
+      "replay": "not-run",
+      "raw_evidence_acceptance": "pending"
+    }
+  ],
+  "checks": [
+    {
+      "suite": "LAB-005 synthetic",
+      "command": "C:/Python313/python.exe -B -O -m unittest discover -s scripts -p lab005_tests.py -v",
+      "tests": 9,
+      "passed": 9,
+      "test_seconds": 0.109,
+      "controls": 21
+    },
+    {
+      "suite": "LAB-006 synthetic",
+      "command": "C:/Python313/python.exe -B -m unittest discover -s scripts -p lab006_test.py -v",
+      "tests": 9,
+      "passed": 9,
+      "test_seconds": 0.105,
+      "controls": 11,
+      "optimized_repeat": "9 passed, 0.305 test seconds",
+      "capstone": "5.0.7"
+    },
+    {
+      "suite": "existing adapter regression",
+      "command": "python3 -m unittest discover -s tools/lab -p test_workloads.py -v",
+      "platform": "WSL Python 3.12.3",
+      "tests": 7,
+      "passed": 7,
+      "test_seconds": 12.591,
+      "git_environment": "GIT_DIR translated to Windows worktree metadata via /mnt/c; GIT_WORK_TREE set to development path; GIT_OPTIONAL_LOCKS=0"
+    },
+    {
+      "suite": "candidate admission/report/status accounting",
+      "command": "python3 -m unittest discover -s tools/lab -p test_research_candidates.py -v",
+      "platform": "WSL Python 3.12.3",
+      "tests": 8,
+      "passed": 8,
+      "test_seconds": 0.292,
+      "independent_repeats": "A: 8 passed 0.279s; B: 8 passed 0.691s"
+    },
+    {
+      "suite": "whitespace",
+      "command": "git diff origin/main --check",
+      "result": "passed after development-only EOF formatting fix"
+    }
+  ],
+  "retained_development_failures": [
+    "Initial existing-adapter test invocation: seven setup errors before assertions because Linux Git could not interpret Windows absolute worktree gitdir. Rerun passed with translated read-only Git environment; repository metadata unchanged.",
+    "Independent reviewer Windows candidate suite: five passed and one unavailable report-render test due existing Linux fcntl dependency; complete WSL suite rerun passed and later final eight-test suite passed.",
+    "First staged whitespace check reported copied programme trailing blank EOF; development copy trimmed only, original preserved, amended candidate commit and final check passed."
+  ],
+  "independent_review": {
+    "actual_models": "Both subagents inherited coordinator model; no override requested. Exact underlying model identifier was not available to the reviewers; no unavailable model claimed.",
+    "max_concurrent_subagents": 2,
+    "review_a": "LAB-006 and integration, 14 matching source/doc hashes; exact implementation commit acknowledged",
+    "review_b": "LAB-005, LAB-007 case/blocker and integration, 16 matching source/doc hashes; exact implementation commit acknowledged",
+    "scope": "No author is sole reviewer. Approval is code/protocol candidate only, no research release or empirical acceptance."
+  },
+  "byte_identity_note": "Review maps bind raw working-tree bytes. Windows core.autocrlf normalizes tracked blobs to LF; both forms for review receipts are explicitly recorded. Reviewers verified committed source corresponds to reviewed bytes with only CRLF normalization. Any new native execution checkout still needs exact release/input/tool pinning and review.",
+  "release_requirements": [
+    "Preserve actual qualification until completed and post-horizon replay/review accepted",
+    "Independently freeze release with native checkout, exact inputs/tools, structural ceilings and disk reservation",
+    "Run qualified LAB-005/LAB-006 pilots under unchanged service limits and retain all attempts",
+    "Demonstrate selected-result replay and independently review raw ledgers/facts",
+    "Only then assess R10 member admission and LAB-007 extension justification; freeze and review emulator before any case"
+  ],
+  "handoff": "docs/research/LAB_005_007_DELIVERY_V1.md"
+}

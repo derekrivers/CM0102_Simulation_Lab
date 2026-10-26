@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "review_kind": "independent exact operational admission review",
+  "reviewer": "qualification_review independent agent",
+  "implementation_author": "implementation agent",
+  "model_selection": "inherited parent model; no model override requested",
+  "reviewed_revision": "70def1244f01bf917aa112ee9e98d5922b864489",
+  "reviewed_at_utc": "2026-10-25T16:07:58.589058+00:00",
+  "source_clean": true,
+  "operational_decision": "approved-for-pilot subject to separate LL1 qualification acceptance",
+  "execution_released": false,
+  "source_sha256": {
+    "tools/lab/admission.py": "5f94e951cd675393955fde7faab5426db96832a8076051023a8abfb2ecfc9baa",
+    "tools/lab/core.py": "65fde966b8823d070e9e6b940109410931df0c1cfb3574c3280b6b43f71c718d",
+    "tools/lab/lab.py": "f825068cb46a02fb685b6704a1707ded4d7beee4500027e7c2ad35031cb3c0ca",
+    "tools/lab/workloads.py": "93359d64b927333913a9efed687913911c41792de74313dd114f284d2a6e906f",
+    "tools/lab/Lab.ps1": "82b78347d02c963c9d312b2b2a59dd9562c294bb9775ce2a961b89be284ec148",
+    "tools/lab/test_admission.py": "048bb0642c1f8122bef65c0199ad07b62829705aa04bc4a706c2c2edb456c559",
+    "scripts/lab005.py": "6bf9232223889a85170419d260c1f485124fc04ff4fbf31d2f6d084362d305b9",
+    "scripts/lab005_decoder_a.py": "5e262732b8b7e8d845caca5f896aabf594a9068d60c1a6c3e3e1dcdfe59f43f9",
+    "scripts/lab005_decoder_b.py": "7d7cfb08e985e0ad673703104329b43f715fcc659a834916063b9dedbd340cf0",
+    "scripts/lab006.py": "d79744d68ea2b40a63c7272c57366aea5ca313732f2a2cf517a67d458e0d08e7"
+  },
+  "profiles": [
+    {
+      "profile_id": "research-anomalies",
+      "campaign_id": "lab005-pilot-v1",
+      "frozen_subject_sha256": "e8bcbc4f09b698c9a0048afeec62079372bf79763a756957e392ef9297fbc977",
+      "frozen_manifest_canonical_sha256": "340b0b148890f5d05adf071588ed5093bc2face65584e0d37c5c42e9a2795a33",
+      "frozen_manifest_file_sha256": "6d00c5adfb740dfd33193be0ecf1d127a666d4db635ab034db97e4d1aebbc81d",
+      "unique_pins_verified": 17,
+      "required_job_pin_set_exact": true,
+      "tool_versions": {
+        "git": "git version 2.43.0",
+        "oracle_python": "Python 3.12.3",
+        "python": "Python 3.12.3"
+      },
+      "limits": {
+        "disk_bytes": 67108864,
+        "elapsed_seconds": 300,
+        "max_attempts": 2,
+        "max_jobs": 1,
+        "min_free_bytes": 1073741824,
+        "output_bytes": 2097152,
+        "stall_seconds": 120
+      },
+      "disk_reservation": {
+        "logical_bytes": 562036736,
+        "physically_allocated_bytes": 562040832,
+        "record_sha256": "fdc9dd1cb104f1521726994218d87fe5497821d712671c972d16619cfcac74a8",
+        "consumed_attempts": 0,
+        "mode": "0600",
+        "pilot_and_selected_replay_max_attempts": 4
+      },
+      "private_operational_receipt_sha256": "0c14311a94875a2dd5a6c6fdcb4736ade28400d2252a4ee68226511808e58dfa",
+      "private_operational_receipt_basename": "lab005-operational-review.json",
+      "operational_decision": "approved-for-pilot",
+      "execution_released": false
+    },
+    {
+      "profile_id": "research-consumers",
+      "campaign_id": "lab006-pilot-v1",
+      "frozen_subject_sha256": "dda164440474bd15b7f557df601c78f2049685011bbbe29aeb9794f3fd9c2a22",
+      "frozen_manifest_canonical_sha256": "6f50abc16da6583abeb95a4a061ea2144cd0aad5bf22362a9bfe1fb38c54a5fd",
+      "frozen_manifest_file_sha256": "cc507724aac8d6c3d6fe8b30161be28e171596cbf30356a59fe5644ad9e9d637",
+      "unique_pins_verified": 54,
+      "required_job_pin_set_exact": true,
+      "tool_versions": {
+        "capstone": "5.0.7",
+        "git": "git version 2.43.0",
+        "oracle_python": "Python 3.12.3",
+        "python": "Python 3.12.3"
+      },
+      "limits": {
+        "disk_bytes": 67108864,
+        "elapsed_seconds": 300,
+        "max_attempts": 2,
+        "max_jobs": 1,
+        "min_free_bytes": 1073741824,
+        "output_bytes": 2097152,
+        "stall_seconds": 120
+      },
+      "disk_reservation": {
+        "logical_bytes": 562036736,
+        "physically_allocated_bytes": 562040832,
+        "record_sha256": "8adc85a2c8677695087992d38554dc585e6b0db167a1d517390e985d7109ad9a",
+        "consumed_attempts": 0,
+        "mode": "0600",
+        "pilot_and_selected_replay_max_attempts": 4
+      },
+      "private_operational_receipt_sha256": "5405c51a32a979f302d28c02adda90430657003dc7b8afdedf106575a5e50470",
+      "private_operational_receipt_basename": "lab006-operational-review.json",
+      "operational_decision": "approved-for-pilot",
+      "execution_released": false
+    }
+  ],
+  "independent_checks": [
+    {
+      "command": "python3 -B -m unittest discover -s DEVELOPMENT/tools/lab -p test_admission.py -v",
+      "outcome": "passed",
+      "tests": 9,
+      "seconds": 0.515,
+      "scope": "invented local evidence; real tiny reservation files only; no live worker or retained-input campaign"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s DEVELOPMENT/tools/lab -p test_research_candidates.py -v",
+      "outcome": "passed",
+      "tests": 8,
+      "seconds": 0.853,
+      "scope": "candidate gates, status separation, immutable LAB-007 case definition"
+    },
+    {
+      "case": "actual-interim-qualification-receipt",
+      "outcome": "rejected-as-required",
+      "observation_qualified": 1,
+      "receipt_kind": "qualification-interim-audit-v1",
+      "receipt_decision": "incomplete",
+      "reason": "qualification not independently accepted"
+    },
+    {
+      "case": "materialized-native-freeze",
+      "outcome": "verified",
+      "details": "clean exact source; canonical file identity; required complete job pin sets; actual input/tool/source hashes; config digest; actual 0600 non-sparse allocations; no lab.sqlite3/jobs/attempts created"
+    },
+    {
+      "case": "Windows launcher isolation",
+      "outcome": "source-review-passed",
+      "details": "explicit LauncherDirectory and adjacent settings retain original installation; admit configures only, separate Windows Resume/Replay uses existing holder and fresh token ceremony; dynamic isolated holder launch awaits qualified pilot"
+    },
+    {
+      "case": "actual-native-admit-with-current-interim-receipt",
+      "outcome": "rejected-as-required",
+      "profiles": [
+        {
+          "profile": "005",
+          "exit_code": 2,
+          "reason": "qualification not independently accepted",
+          "database_created": false
+        },
+        {
+          "profile": "006",
+          "exit_code": 2,
+          "reason": "qualification not independently accepted",
+          "database_created": false
+        }
+      ],
+      "scope": "actual frozen manifests and independent operational receipts; no database, jobs, worker or service created"
+    }
+  ],
+  "resolved_findings": [
+    "Canonical JSON policy now matches core including Unicode.",
+    "Qualification gate verifies raw RNG files and exact controls, R10/Bosman endpoints, original source/config/tool pins and full result/inventory publications.",
+    "Reservation requires allocated blocks, one pilot and one replay, four physical attempts; journal recovery idempotence and sparse/allocation failures tested.",
+    "Freeze enforces bounded ordinary inputs and qualified Python/Capstone versions before retained endpoint execution."
+  ],
+  "open_blocking_operational_findings": [],
+  "decoder_contract_review": "LAB-005 full ordered fifty-slot/staff/player ledgers and LAB-006 bounded instruction-fact implementation unchanged; inherited independent decoder reviews remain scoped source/control evidence. Actual retained-input pilot and raw evidence not inspected because execution has not occurred.",
+  "qualification_audit_commit": "9dab85d2faf6bc08adad08c0f1b51d78f319d376",
+  "remaining_gates": [
+    "Actual LL1 eligible horizon completion, selected post-horizon RNG replay and independent final acceptance.",
+    "Sequential LAB-005/006 pilots with actual CPU/memory/disk/stall measurements.",
+    "Complete decoder ledgers and bounded instruction facts raw-evidence review, selected-result replay and independent acceptance.",
+    "LAB-007 decision from accepted LAB-005/006 findings and existing R10 admission; no executor currently admitted."
+  ],
+  "public_privacy": "Counts, source/tool hashes and operational metadata only; raw game data, ledgers, instructions and private configuration remain private.",
+  "decision": "conditional-operational-approval"
+}

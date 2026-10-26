@@ -1,8 +1,79 @@
 # Programme progress
 
-Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
+Updated 26 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
 
 ## Demonstrated evidence
+
+### LL1 and LAB-005/006 executed and independently accepted — 26 October 2026
+
+LL1 completed 86,400.014999163 actual monotonic seconds and its post-horizon
+selected RNG replay reproduced the original native/WASM artifacts exactly.
+Independent final decision: **passed for scoped LL1**. All original/replay
+publications, complete inventories, input/tool/source pins, retained recovery
+and active/idle/uncredited accounting were reviewed; the implementer cross-reviewed.
+Full P01/P03 and the seventy-two-hour requirement remain open.
+
+LAB-005 and LAB-006 then ran sequentially through independently reviewed source
+`70def124`, frozen manifests and the isolated Windows launcher/holder. Both pilots
+and both selected replays succeeded/equal in one attempt each within frozen
+resources. LAB-005 completely accounted for fifty slots, 9,520 staff and 7,214
+players; its forty-three reciprocal list candidates equal the inverse set, with
+all sixty-one associations and seven slot anomalies retained. Both complete
+ledgers, controls and comparison reproduced byte-for-byte. LAB-006 reproduced
+all thirty-eight bounded static instruction facts, seven anchors and eleven
+controls, with byte-identical private/public replay results and zero original
+instruction execution. Independent raw review accepted both scoped findings.
+
+The [delivery record](../research/LAB_005_007_DELIVERY_V1.md) preserves exact
+campaign identities, measured resources, private evidence locations and limits.
+The accepted qualification/pilot checkouts remain clean and fixed. PR #48 is
+being refreshed and checked for merge; no merge is claimed by this entry.
+LAB-007's narrow same-two-member slot extension is justified for implementation
+and independent review; all120cases/twelvejobs remain unstarted until its new
+reset, evidence, instruction-boundary and resource admission pass. Complete squad,
+production lineup/save, full eligibility, UI, R9b and LAB-008 remain outside scope.
+
+
+### LAB-005/006 operational admission reviewed; execution waiting — 25 October 2026
+
+Operational source `70def1244f01bf917aa112ee9e98d5922b864489` now has independent
+conditional pilot approval. Both actual manifests are frozen in separate native
+WSL state, with seventeen/fifty-four source/input/tool pins independently checked
+and 536 MiB physically reserved per profile for pilot/replay/recovery. The clean
+native execution checkout stays fixed at this source revision. No pilot job,
+attempt, resource measurement, scientific finding or selected replay is claimed.
+
+Validation passed: nine admission, eight candidate, twenty-one isolated core and
+seven workload tests; independent review repeated the admission/candidate suites
+and rejected the actual incomplete qualification receipt. The implementer also
+cross-reviewed the independent interim qualification audit. Source review and
+materialized-manifest evidence are recorded in the
+[operational review](../research/evidence/lab005-006-operational-review-v1.json)
+and [delivery handoff](../research/LAB_005_007_DELIVERY_V1.md).
+
+The existing qualification remains running on unchanged clean `42a3138`, with
+all ninety pins, forty-eight retained artifact entries and four publications
+verified by the interim audit. Actual eligible horizon completion, post-horizon
+RNG replay and independent final acceptance remain mandatory before slot release.
+The earliest horizon is 26 October 2026 at 14:56:45 London time. Its final decision
+must be passed, failed or censored; today's status is incomplete. The existing
+16:00 London follow-up is coordinated in the current admission chat. PR #48 stays
+draft pending sequential pilots/replay, resource and raw-evidence acceptance,
+target-branch refresh, exact revision review and repository checks. LAB-007 remains
+unadmitted until accepted LAB-005/006 findings justify the frozen extension.
+
+### LAB-005/006 candidate development; LAB-007 blocked — 25 October 2026
+
+Work is isolated on `codex/lab-005-007-bounded` in `lab-005-007-dev`.
+The actual qualification remained running, with clean accepted source
+`42a313887e46274a2932dbe8c04de7a5e8f2840d`; no build, new retained-input
+experiment, service change or evidence replacement was performed. The
+[handoff](../research/LAB_005_007_DELIVERY_V1.md) separates implementation,
+source review, execution release, pilot/replay and evidence acceptance.
+LAB-005/006 have candidate fixed adapters and synthetic controls; execution
+release fails closed. LAB-007 retains all 120 proposed cases in twelve groups
+of ten and a [precise blocker report](../research/LAB_007_BLOCKERS_V1.md).
+No new game-behaviour finding or merged/released campaign is claimed.
 
 ### Owner-directed lab delivery — started 25 October 2026
 

@@ -1,0 +1,619 @@
+{
+  "schema_version": 1,
+  "kind": "research-design-catalog",
+  "status": "draft-for-protocol-review",
+  "created": "2026-10-25",
+  "source_revision": "8ae412aac6377f4bc824fa6f8c29d76c0c79bd99",
+  "executable_manifest": false,
+  "notice": "Design metadata only. This file is not consumed by the worker and grants no execution or evidence-promotion authority. Existing-profile entries refer to existing approved templates; every new experiment needs its own reviewed exact protocol, adapter, input identities and pilot.",
+  "defaults": {
+    "new_experiments_approved": false,
+    "worker_count": 1,
+    "max_attempts": 2,
+    "retry_policy": "Infrastructure interruption only; never retry a semantic disagreement to replace it.",
+    "stop_conditions": {
+      "max_failures": 1,
+      "stop_on_divergence": true
+    },
+    "observation_seconds": 0,
+    "resource_policy": "Retain current one-CPU, 2 GiB, zero-swap, 128-task service envelope. If pilot cannot fit, block and separately review changes; no automatic increase.",
+    "evidence_policy": "Keep raw evidence private, retain every planned case and attempt, distinguish execution/comparison/hypothesis, require independent pre/post review; never auto-promote."
+  },
+  "budget_classes": {
+    "regression": {
+      "elapsed_seconds_per_attempt": 1800,
+      "stall_seconds": 660,
+      "output_bytes": 2097152,
+      "disk_bytes": 536870912,
+      "min_free_bytes": 1073741824,
+      "status": "Existing profile limits; regression is three jobs."
+    },
+    "structural": {
+      "elapsed_seconds_per_attempt": 300,
+      "stall_seconds": 120,
+      "output_bytes": 2097152,
+      "disk_bytes": 67108864,
+      "min_free_bytes": 1073741824,
+      "status": "Proposed ceiling; pilot and adapter review required."
+    },
+    "oracle": {
+      "elapsed_seconds_per_attempt": 600,
+      "stall_seconds": 120,
+      "output_bytes": 2097152,
+      "disk_bytes": 536870912,
+      "min_free_bytes": 1073741824,
+      "status": "Proposed ceiling; requires chunking and real case-completion progress."
+    },
+    "reference": {
+      "elapsed_seconds_per_attempt": 1800,
+      "stall_seconds": 660,
+      "output_bytes": 2097152,
+      "disk_bytes": 536870912,
+      "min_free_bytes": 1073741824,
+      "status": "Proposed admission ceiling, not a feasibility estimate. Block if raw evidence cannot fit."
+    },
+    "browser": {
+      "elapsed_seconds_per_attempt": 900,
+      "stall_seconds": 120,
+      "output_bytes": 2097152,
+      "disk_bytes": 536870912,
+      "min_free_bytes": 1073741824,
+      "status": "Proposed; actual browser must fit the existing host/service envelope."
+    }
+  },
+  "experiments": [
+    {
+      "id": "LAB-001",
+      "title": "Existing RNG parity baseline",
+      "wave": 0,
+      "readiness": "existing-profile",
+      "approved_for_new_execution": false,
+      "existing_profile": "regression",
+      "existing_template": "rng-native-wasm-v1",
+      "dependencies": [],
+      "question": "Does the accepted native/WASM corpus still reproduce its retained exact identity?",
+      "inputs": [
+        "Pinned synthetic corpus, native binary, WASM binary, Node and runner"
+      ],
+      "case_matrix": "One frozen corpus; use the existing regression profile, which also runs LAB-002 and LAB-003.",
+      "evidence": "75,952 bytes, both output hashes, four defect-control counts, exact comparison.",
+      "controls": "All four existing discriminating controls.",
+      "claim_limit": "Qualified sampled synthetic CRT/small-bound scope only; no whole-game seeding claim.",
+      "budget_class": "regression",
+      "max_jobs": 1,
+      "source": "docs/research/PC_R1_RNG.md"
+    },
+    {
+      "id": "LAB-002",
+      "title": "Existing original instruction baseline",
+      "wave": 0,
+      "readiness": "existing-profile",
+      "approved_for_new_execution": false,
+      "existing_profile": "regression",
+      "existing_template": "original-r10-regression-v1",
+      "dependencies": [],
+      "question": "Does the retained original R10 instruction corpus still reproduce its receipt?",
+      "inputs": [
+        "Pinned official executable, retained image/heap, qualified oracle interpreter"
+      ],
+      "case_matrix": "Existing eleven successful calls and four censored probes, unchanged.",
+      "evidence": "Exact oracle receipt, twelve controls, continuation and censored denominator.",
+      "controls": "Existing twelve defective models.",
+      "claim_limit": "Retained two-record slot-zero domain only; censored probes are not rejection parity.",
+      "budget_class": "regression",
+      "max_jobs": 1,
+      "source": "docs/research/PC_R10_COMMAND.md"
+    },
+    {
+      "id": "LAB-003",
+      "title": "Existing Bosman endpoint baseline",
+      "wave": 0,
+      "readiness": "existing-profile",
+      "approved_for_new_execution": false,
+      "existing_profile": "regression",
+      "existing_template": "bosman-same-save-v1",
+      "dependencies": [],
+      "question": "Does the qualified Bosman platform reproduce its internal same-save endpoint?",
+      "inputs": [
+        "Pinned qualified Bosman deployment, clean input tree, request/config"
+      ],
+      "case_matrix": "Classic, seed 1, fixed clock, fourteen days, normal/again; unchanged.",
+      "evidence": "Supervisor endpoint, save identities, input/tool identities and complete attempts.",
+      "controls": "Existing admission and supervisor endpoint checks; no new control capability claimed.",
+      "claim_limit": "Internal Bosman replay only; original-process comparison remains not-run.",
+      "budget_class": "regression",
+      "max_jobs": 1,
+      "source": "docs/runbooks/local-lab.md"
+    },
+    {
+      "id": "LAB-004",
+      "title": "Existing squad set completeness",
+      "wave": 0,
+      "readiness": "existing-profile",
+      "approved_for_new_execution": false,
+      "existing_profile": "research-squad",
+      "existing_template": "research-squad-members-v1",
+      "dependencies": [],
+      "question": "Do reciprocal complete list candidates equal an independent full staff-table inverse association?",
+      "inputs": [
+        "Exact admitted retained image/heap"
+      ],
+      "case_matrix": "All fifty list slots and every staff record; existing six controls.",
+      "evidence": "List/inverse/intersection differences, exclusion counts and set hashes.",
+      "controls": "Unaligned link, wrong ID, short record, dropped member, duplicate member, changed backpointer.",
+      "claim_limit": "43 candidates and seven list anomalies are structural observations; no eligibility or lifetime admission.",
+      "budget_class": "regression",
+      "max_jobs": 1,
+      "source": "docs/research/LOCAL_LAB_RESEARCH_V1.md"
+    },
+    {
+      "id": "LAB-005",
+      "title": "Account for every squad-list anomaly",
+      "wave": 1,
+      "readiness": "adapter-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-004"
+      ],
+      "question": "Can two independent decoders account identically for all fifty slots, including the seven anomalies?",
+      "inputs": [
+        "Same retained image/heap as LAB-004; independent parser source"
+      ],
+      "case_matrix": "Exactly fifty slot rows plus full-table inverse scan; classify all links by capture coverage, alignment, stable ID and reciprocal links.",
+      "evidence": "Private ordered slot ledger, independent parser agreement, each exclusion reason, 61 association denominator and residual unknowns.",
+      "controls": "Positive complete-record fixture; unaligned pointer, duplicate, bad ID, missing extent, foreign club, and dropped slot mutations.",
+      "claim_limit": "Classifications do not name invalid values as sentinels or foreign associations as loans.",
+      "budget_class": "structural",
+      "max_jobs": 1,
+      "source": "docs/research/PC_R10_PROJECTION.md"
+    },
+    {
+      "id": "LAB-006",
+      "title": "Map actual member-list consumers",
+      "wave": 1,
+      "readiness": "adapter-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-005"
+      ],
+      "question": "Which checks do bounded original call sites apply before counting or assigning a member?",
+      "inputs": [
+        "Pinned official PE, Capstone, static R10 receipt and retained private slot ledger"
+      ],
+      "case_matrix": "Two already identified code regions: 0090d429..0090d45b and 0076263b..0076267d; bounded call-target inventory only.",
+      "evidence": "Instruction-range hashes, exact branches/reads, call edges and unresolved entry/exit paths.",
+      "controls": "Known instruction facts as positive controls; changed specimen byte, branch target and signedness as negative controls.",
+      "claim_limit": "Static predicates do not prove whole-call behaviour or explain anomaly lifecycle.",
+      "budget_class": "structural",
+      "max_jobs": 1,
+      "source": "docs/research/PC_R10_COMMAND.md"
+    },
+    {
+      "id": "LAB-007",
+      "title": "Extend retained assignment/readback matrix",
+      "wave": 1,
+      "readiness": "protocol-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-005",
+        "LAB-006",
+        "LAB-002"
+      ],
+      "question": "Within the retained zero-cache ordinary-club domain, what do slot position and operation order change?",
+      "inputs": [
+        "Exact retained state, official instructions and the same two independently admitted member identities"
+      ],
+      "case_matrix": "Candidate frozen matrix: 20 slots x 2 members x 3 sequences (assign/read; repeat/read; A-to-B/read) = 120 cases; reset to the same state per case.",
+      "evidence": "Full before/after image and heap hashes, ordered writes, ABI/EAX, mapping readback, untouched regions and RNG state where captured.",
+      "controls": "Known slot-zero positive case; wrong row stride, signed-byte conversion, missing write and extra write defective models.",
+      "claim_limit": "Other slots require new protocol review; no original UI, eligibility, swap, nonzero-cache or national-club claim.",
+      "budget_class": "oracle",
+      "max_jobs": 12,
+      "source": "docs/research/PC_R10_COMMAND.md"
+    },
+    {
+      "id": "LAB-008",
+      "title": "Checkpoint continuation of command sequences",
+      "wave": 1,
+      "readiness": "protocol-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-007"
+      ],
+      "question": "Does complete emulated checkpoint restoration preserve the exact next transitions?",
+      "inputs": [
+        "Qualified LAB-007 oracle, complete mapped memory and emulator register state"
+      ],
+      "case_matrix": "One frozen eight-command sequence; seven internal split points x two fresh replays = fourteen paired cases.",
+      "evidence": "Uninterrupted/restored ordered effects, all captured state and endpoint identities at each split.",
+      "controls": "Omit one mapping write, change a register and drop a captured mutable region; each must discriminate.",
+      "claim_limit": "Emulator continuation only; not original save-file compatibility or Rust implementation parity.",
+      "budget_class": "oracle",
+      "max_jobs": 2,
+      "source": "docs/research/PC_R10_COMMAND.md"
+    },
+    {
+      "id": "LAB-009",
+      "title": "RNG boundaries and state consumption",
+      "wave": 1,
+      "readiness": "protocol-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-001"
+      ],
+      "question": "Does original-instruction/native/WASM equality hold at signed bounds and table-wrap boundaries inside the admitted domain?",
+      "inputs": [
+        "Official instruction oracle, pinned synthetic table, parameterized native/WASM corpus adapter"
+      ],
+      "case_matrix": "Bounds [-65535,-32768,-1,0,1,32767,65535] x cursors [-1,0,50998,50999] x offsets [0,65535] x CRT states [0,1,2147483647,4294967295] = 224 cases.",
+      "evidence": "Return and every exposed state field after each call, exact bytes and all three backend identities.",
+      "controls": "Zero must preserve state; defective wrap, signed remainder and extra-CRT-draw models.",
+      "claim_limit": "No wider words/offsets, x87 large bounds or OS-time seeding.",
+      "budget_class": "oracle",
+      "max_jobs": 4,
+      "source": "docs/research/PC_R1_RNG.md"
+    },
+    {
+      "id": "LAB-010",
+      "title": "Tactical selection branch corpus",
+      "wave": 1,
+      "readiness": "adapter-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-002"
+      ],
+      "question": "Can the already qualified tactical-selection and effective-plan branches be replayed through the lab without scope drift?",
+      "inputs": [
+        "Existing qualified registry/producer/effective-plan scripts and their exact admitted captures/receipts"
+      ],
+      "case_matrix": "Wrap existing frozen cases only; inventory every script/case before freezing; at most eight logical jobs.",
+      "evidence": "Exact existing receipt comparison, branch/case denominator, controls and continuation.",
+      "controls": "Existing script controls plus wrong receipt/schema rejection.",
+      "claim_limit": "Adapter work broadens lab automation, not admitted behaviour; option-3 nonempty paths stay unknown.",
+      "budget_class": "oracle",
+      "max_jobs": 8,
+      "source": "docs/research/PC_R7_EFFECTIVE_PLAN.md"
+    },
+    {
+      "id": "LAB-011",
+      "title": "Qualify complete reference capture",
+      "wave": 2,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-005"
+      ],
+      "question": "Can a qualified reference route capture complete linked records and their provenance reproducibly?",
+      "inputs": [
+        "Reviewed capture backend, exact official specimen/data identity or separately identified Bosman route"
+      ],
+      "case_matrix": "Three captures from one identical frozen start; deterministic region list fixed before execution.",
+      "evidence": "Region coverage, nonoverlap, full linked extents, raw hashes, endpoint/save identity and exact backend lineage.",
+      "controls": "Missing region, overlap, changed input and truncated record rejection; paired uninstrumented endpoint.",
+      "claim_limit": "R5 sparse captures lack player coverage; equal snapshots alone do not prove object lifetime or original parity.",
+      "budget_class": "reference",
+      "max_jobs": 3,
+      "source": "docs/research/PC_R5_CAPTURE.md"
+    },
+    {
+      "id": "LAB-012",
+      "title": "Member lifecycle across original transitions",
+      "wave": 2,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-006",
+        "LAB-011"
+      ],
+      "question": "When do candidate membership links become valid, change club, or disappear during a real transition?",
+      "inputs": [
+        "Qualified command/advance/capture route, complete before/after state and identified original consumers"
+      ],
+      "case_matrix": "At most four separately reset cases: no-op; one day; one qualified removal; one qualified addition. Freeze exact commands only after capability qualification.",
+      "evidence": "Stable IDs, allocation/lifetime evidence where available, ordered writes, all fifty slots before/after and consumer results.",
+      "controls": "No-op stability and decoder mutation controls; baseline/instrumented endpoint comparison.",
+      "claim_limit": "Uncaptured lifetime remains unknown; do not infer a transfer/loan meaning from pointer changes alone.",
+      "budget_class": "reference",
+      "max_jobs": 4,
+      "source": "docs/research/PC_R10_PROJECTION.md"
+    },
+    {
+      "id": "LAB-013",
+      "title": "Repair clean-input consumption observation",
+      "wave": 2,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [],
+      "question": "Can a bounded observer prove which clean files are consumed without altering the endpoint?",
+      "inputs": [
+        "Reviewed repair of failed R9b observer, frozen policy and identical clean tree"
+      ],
+      "case_matrix": "Four arms: baseline, observer-disabled, observer-enabled, repeated observer-enabled; same original qualified duration/seed only.",
+      "evidence": "Complete trace counters/footer, forbidden syscall if any, opened/read/mapped file identities and paired endpoints.",
+      "controls": "Intentionally truncated trace rejected; disabled observer endpoint equality; bounded known-read fixture.",
+      "claim_limit": "SIGSYS/incomplete traces remain failed evidence; mere file presence is not consumption.",
+      "budget_class": "reference",
+      "max_jobs": 4,
+      "source": "docs/research/PC_R9B_FILE_USE.md"
+    },
+    {
+      "id": "LAB-014",
+      "title": "Qualify fresh-run seed reproducibility",
+      "wave": 2,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-003",
+        "LAB-013"
+      ],
+      "question": "For an expanded, separately qualified Bosman profile, do seed and fixed clock determine repeated fresh endpoints?",
+      "inputs": [
+        "New reviewed Bosman seed adapter; pinned complete input consumption evidence"
+      ],
+      "case_matrix": "Seeds [1,2,3,4] x three fresh repeats, each fourteen days, fixed clock; twelve logical jobs.",
+      "evidence": "Within-seed exact endpoint equality, between-seed differences, complete save hashes and resource metrics.",
+      "controls": "Same-seed positive repeat; injected clock/seed mismatch admission controls.",
+      "claim_limit": "Current production template admits seed 1 only; Bosman results still do not certify the original.",
+      "budget_class": "reference",
+      "max_jobs": 12,
+      "source": "docs/research/BACKEND_CAPABILITIES.md"
+    },
+    {
+      "id": "LAB-015",
+      "title": "Daily world-state deltas",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-011",
+        "LAB-013"
+      ],
+      "question": "Which identified state fields change at each daily boundary, and in what order?",
+      "inputs": [
+        "Qualified day-step reference adapter and independently validated semantic decoder"
+      ],
+      "case_matrix": "One start, seven daily steps, two independently reset repeats = fourteen day observations.",
+      "evidence": "Date progression, ordered event/field deltas, untouched-field hashes, RNG capture coverage and unknown byte ranges.",
+      "controls": "No-op snapshot; dropped event and reordered event mutations.",
+      "claim_limit": "Undecoded byte changes remain unknown; date advance is not evidence of every subsystem running.",
+      "budget_class": "reference",
+      "max_jobs": 2,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-016",
+      "title": "Original save/load continuation",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-015"
+      ],
+      "question": "Does loading an original save reproduce subsequent reference transitions exactly?",
+      "inputs": [
+        "Qualified original save/load and state export; frozen seven-day command sequence"
+      ],
+      "case_matrix": "Save at day boundaries 0,1,3,6; compare each loaded suffix against uninterrupted run; four paired cases.",
+      "evidence": "Raw saves and decoded state, complete continuation, RNG/scheduler capture gaps and precise first difference.",
+      "controls": "Corrupt/truncate fixture rejection; omit a captured RNG/scheduler component in comparator controls.",
+      "claim_limit": "Rust checkpoint equality and Bosman internal same-save equality do not establish original save compatibility.",
+      "budget_class": "reference",
+      "max_jobs": 4,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-017",
+      "title": "Contract and transfer transaction boundaries",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-015",
+        "LAB-016"
+      ],
+      "question": "What exact command results and state writes occur at one qualified contract or transfer boundary?",
+      "inputs": [
+        "Original command adapter, decoded contract/finance/ownership state, proven valid fixture"
+      ],
+      "case_matrix": "One rule boundary per protocol: below/at/above a reference-identified threshold x two reset repeats = six cases; use distinct fixtures/protocols for renewal, transfer and loan.",
+      "evidence": "Acceptance/rejection, counteroffer if any, balances, obligations, ownership, dates and RNG consumed.",
+      "controls": "No-command baseline; changed threshold, sign and omitted ledger-entry comparators.",
+      "claim_limit": "Thresholds, loan rules and transfer deadlines are hypotheses until observed; no modern-rule import.",
+      "budget_class": "reference",
+      "max_jobs": 6,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-018",
+      "title": "Training, condition and recovery",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-015",
+        "LAB-016"
+      ],
+      "question": "Does one identified training setting alter condition/development over a fixed interval?",
+      "inputs": [
+        "Qualified training command, condition/attribute decoder and full RNG capture or explicitly limited pairing"
+      ],
+      "case_matrix": "Baseline vs one setting x eight predetermined start/RNG states x seven days = sixteen trajectories; freeze setting and states before execution.",
+      "evidence": "Daily condition, injuries/development where decoded, paired differences, event/RNG order and all censored runs.",
+      "controls": "No-setting-change paired repeat; swapped player and missing day comparator controls.",
+      "claim_limit": "Eight states support exploratory paired observations only; no population balance claim or independent-sample assumption.",
+      "budget_class": "reference",
+      "max_jobs": 16,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-019",
+      "title": "Detailed match determinism and tactics",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-016"
+      ],
+      "question": "Does a detailed match replay exactly, and what changes when one tactical command changes?",
+      "inputs": [
+        "Qualified original detailed-match adapter, valid lineup, event decoder, complete initial state"
+      ],
+      "case_matrix": "Baseline vs one tactical setting x four fixed complete starting states x two repeats = sixteen matches.",
+      "evidence": "Ordered events, score, substitutions, player condition/ratings, all writebacks and RNG consumption coverage.",
+      "controls": "Same-input repeats; dropped/reordered event, wrong score and omitted writeback controls.",
+      "claim_limit": "Causal comparison is conditional on captured state; four states cannot establish tactic strength.",
+      "budget_class": "reference",
+      "max_jobs": 16,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-020",
+      "title": "Quick-match path and writeback",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-019"
+      ],
+      "question": "Which invariants and writebacks differ between identified detailed and quick result paths?",
+      "inputs": [
+        "Independently qualified quick-match and detailed-match routes; valid equivalent starting fixtures"
+      ],
+      "case_matrix": "Two paths x four frozen starting states x two repeats = sixteen matches.",
+      "evidence": "Path selection, each path's reproducibility, scores/event availability, table/player/finance writes and missing exports.",
+      "controls": "Wrong-path detection; missing table update and duplicate appearance-count controls.",
+      "claim_limit": "Do not require identical scores across different algorithms or infer quick-path parity from detailed matches.",
+      "budget_class": "reference",
+      "max_jobs": 16,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-021",
+      "title": "Competition ordering and tie-break rules",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-015"
+      ],
+      "question": "Which original ordering rule resolves a specific competition-table tie?",
+      "inputs": [
+        "One identified 2001 competition, qualified standings routine or original valid states"
+      ],
+      "case_matrix": "Up to eight witnessed/valid tie scenarios selected to distinguish candidate rules, each repeated once; sixteen cases.",
+      "evidence": "Input records, compared fields/order, final ranks and branches; every unresolved tie retained.",
+      "controls": "Deliberately reversed comparison and omitted tie-break defective models.",
+      "claim_limit": "No fabricated live league states; synthetic oracle states labelled separately; one competition does not generalize.",
+      "budget_class": "reference",
+      "max_jobs": 16,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-022",
+      "title": "Season rollover and population lifecycle",
+      "wave": 4,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-015",
+        "LAB-016",
+        "LAB-021"
+      ],
+      "question": "Which persistent changes occur across one identified season boundary?",
+      "inputs": [
+        "Qualified advance/save continuation, decoded calendar, competition and person identifiers"
+      ],
+      "case_matrix": "Two independently reset valid pre-boundary states x seven-day window; bounded daily checkpoints.",
+      "evidence": "Promotion/relegation, scheduled fixtures, contract dates, retirement/new identities where decoded, history and unresolved deltas.",
+      "controls": "No-boundary window; dropped entity, duplicate fixture and missing history controls.",
+      "claim_limit": "Two windows do not qualify a whole season, every nation, or regeneration semantics.",
+      "budget_class": "reference",
+      "max_jobs": 2,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-023",
+      "title": "Scouting information and news consequences",
+      "wave": 3,
+      "readiness": "capability-blocked",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-015",
+        "LAB-016"
+      ],
+      "question": "What visible knowledge and follow-up state change after one scouting action or inbox response?",
+      "inputs": [
+        "Qualified original commands, visibility/message decoder and valid reference-created fixtures"
+      ],
+      "case_matrix": "Two separate subprotocols: no-action/action x two valid fixtures x two repeats; sixteen cases total.",
+      "evidence": "Known/hidden fields, message identity/date, response availability, scheduled consequences and full state deltas.",
+      "controls": "No-action repeat; leaking hidden field and dropping scheduled consequence controls.",
+      "claim_limit": "Reports and messages may expose presentation only; hidden attributes or causal effects require explicit evidence.",
+      "budget_class": "reference",
+      "max_jobs": 16,
+      "source": "docs/research/COVERAGE_REGISTER.md"
+    },
+    {
+      "id": "LAB-024",
+      "title": "Rust/native/browser evidence bridge",
+      "wave": 4,
+      "readiness": "adapter-needed",
+      "approved_for_new_execution": false,
+      "existing_profile": null,
+      "existing_template": null,
+      "dependencies": [
+        "LAB-008",
+        "LAB-010"
+      ],
+      "question": "For each subsequently admitted behaviour, do Rust native and actual browser execution preserve the reviewed contract and saved continuation?",
+      "inputs": [
+        "Reviewed behaviour contract, implemented Rust command/save profile, actual browser driver, original evidence receipt"
+      ],
+      "case_matrix": "For the first admitted slice: same frozen command corpus native/WASM; two fresh browser sessions with close/reopen; retain existing profile regressions.",
+      "evidence": "Exact canonical state, save bytes, continuation, UI command/result receipts and rejected-input cases.",
+      "controls": "Wrong command, stale save, altered field and failed persistence controls.",
+      "claim_limit": "Existing v1-v5 checks can be wrapped separately; new squad behaviour remains gated on original admission and separate implementation.",
+      "budget_class": "browser",
+      "max_jobs": 4,
+      "source": "docs/research/PC_R10_BROWSER_JOURNEY.md"
+    }
+  ]
+}

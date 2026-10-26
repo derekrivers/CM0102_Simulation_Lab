@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "kind": "independent-lab005-006-executed-acceptance-v1",
+  "decision": "passed",
+  "reviewer": "qualification_review independent agent",
+  "implementation_author": "implementation agent",
+  "reviewed_at_utc": "2026-10-26T16:11:37.230727+00:00",
+  "execution_source_revision": "70def1244f01bf917aa112ee9e98d5922b864489",
+  "source_clean": true,
+  "qualification_acceptance_receipt_sha256": "5ab5c5ef4a92884f808b5c5b1bbab1d3ca0ed0020f549e11e9494c4aa852d35f",
+  "campaigns": [
+    {
+      "all_pins_verified": true,
+      "attempt_id": "94313083898940548c11d9edbc57127a",
+      "campaign_id": "lab005-pilot-v1",
+      "comparison_verdict": "equal",
+      "complete_inventory_verified": true,
+      "cpu_seconds_delta": 3.377531,
+      "elapsed_wall_seconds": 4.0182342529296875,
+      "execution_status": "succeeded",
+      "holder_sha256": "5a7a9ac636b213d983f50f0bb1fd4503e5cd19f52f674101d149eb143d070e6b",
+      "holder_terminal": true,
+      "inventory_entries": 13,
+      "last_progress_sequence": 1000000,
+      "manifest_sha256": "c709900aa4dc9433af8fff9d4e9aadd8134480d0958b1e853458c60a30c9d766",
+      "output_bytes": 65,
+      "pin_count": 17,
+      "publication_state": "published",
+      "resource_limits_satisfied": true,
+      "result_sha256": "02f92658bfdda82b28ed73e739516ee18ae9ce7ff560d4de24871cbc20bcd16c",
+      "retained_attempt_bytes": 9017051,
+      "service_lifetime_peak_bytes": 193245184,
+      "snapshot_sha256": "e3f9963782997cb415361e099c952100bae260c97aeef4a4e41ef87b9adcd7c2"
+    },
+    {
+      "all_pins_verified": true,
+      "attempt_id": "2c7ea592a5f14d9cb3eb6a2584a5add7",
+      "campaign_id": "lab005-pilot-v1-replay-eaf0808b1bf6",
+      "comparison_verdict": "equal",
+      "complete_inventory_verified": true,
+      "cpu_seconds_delta": 3.356335,
+      "elapsed_wall_seconds": 4.0774290561676025,
+      "execution_status": "succeeded",
+      "holder_sha256": "8d0fedb0abd04b3d18be7249c0f3ed027bd64e859162da5a45c7b0bd33fff1c8",
+      "holder_terminal": true,
+      "inventory_entries": 13,
+      "last_progress_sequence": 1000000,
+      "manifest_sha256": "9d6776ffd0115b033ef23e8d62feb154f4cb438bc6c8828672bba0412f18f3f2",
+      "output_bytes": 65,
+      "pin_count": 17,
+      "publication_state": "published",
+      "resource_limits_satisfied": true,
+      "result_sha256": "f434603b81bf6033549aa8d057f52c5b0309a5ab371064976b18907d7cf6310c",
+      "retained_attempt_bytes": 9017249,
+      "service_lifetime_peak_bytes": 192315392,
+      "snapshot_sha256": "81f5c6bd20edb1f764cabc5ee8b094e46923a8d84d82a64eee98869142d8657a"
+    },
+    {
+      "all_pins_verified": true,
+      "attempt_id": "4c8bc3c146e0418bb12809581b269d1a",
+      "campaign_id": "lab006-pilot-v1",
+      "comparison_verdict": "equal",
+      "complete_inventory_verified": true,
+      "cpu_seconds_delta": 2.056546,
+      "elapsed_wall_seconds": 2.3247902393341064,
+      "execution_status": "succeeded",
+      "holder_sha256": "eed2083988a4a5e066c0a56cb2fa5579e0715b1a0fd14eee24001e73e109f8c4",
+      "holder_terminal": true,
+      "inventory_entries": 10,
+      "last_progress_sequence": 1000000,
+      "manifest_sha256": "9aba7ef347a07e13b8ace236cf9b7bcf318f93286494b459082229d2d5f86bcb",
+      "output_bytes": 773,
+      "pin_count": 54,
+      "publication_state": "published",
+      "resource_limits_satisfied": true,
+      "result_sha256": "6b9ce79a8f9c600d666f997429672c97b8b686bf8e0e9b17fae1b094d9d5b6ab",
+      "retained_attempt_bytes": 54884,
+      "service_lifetime_peak_bytes": 48455680,
+      "snapshot_sha256": "3369a381dad0898d98deede42971d0eeecf6e6ba789c3fe484ecec7ae35c6586"
+    },
+    {
+      "all_pins_verified": true,
+      "attempt_id": "9230d07f1b1a4c09bb3b5b9662099783",
+      "campaign_id": "lab006-pilot-v1-replay-8a479a1b4724",
+      "comparison_verdict": "equal",
+      "complete_inventory_verified": true,
+      "cpu_seconds_delta": 1.910786,
+      "elapsed_wall_seconds": 1.9935591220855713,
+      "execution_status": "succeeded",
+      "holder_sha256": "91568595ab58251f070c4dc6cfa9b082922f7c6748d5e8dfc8d463739525f8d2",
+      "holder_terminal": true,
+      "inventory_entries": 10,
+      "last_progress_sequence": 1000000,
+      "manifest_sha256": "bec16059dbba31819d0a1d296ada7456c43edcd76a580fbf54499cc4913d47f7",
+      "output_bytes": 773,
+      "pin_count": 54,
+      "publication_state": "published",
+      "resource_limits_satisfied": true,
+      "result_sha256": "b5042196a48a62a34182b44ff73526578aa1d9c1bbf09c97ccff93c35879643f",
+      "retained_attempt_bytes": 55086,
+      "service_lifetime_peak_bytes": 46657536,
+      "snapshot_sha256": "4bc9fc652195a3288ceb92922ef8f8a256982bd05311b58ed60deedfcae77776"
+    }
+  ],
+  "complete_retained_inventory_entries_verified": 46,
+  "physical_attempts": 4,
+  "failed_or_censored_attempts": 0,
+  "resource_scope": "Per-attempt elapsed wall time and cgroup CPU deltas; memory.peak is service lifetime peak. Retained bytes include result publication. All originals/replays bounded, no OOM/stall/deadline/output/disk failure.",
+  "lab005": {
+    "execution": "succeeded",
+    "comparison": "equal",
+    "hypothesis": "supported",
+    "hypothesis_scope": "Exact captured structural set equality with no duplicate candidate slots; not whole-squad eligibility.",
+    "decoder_ledgers": 2,
+    "slots_each": 50,
+    "staff_records_each": 9520,
+    "player_records_each": 7214,
+    "counts": {
+      "associated": 61,
+      "duplicate_candidate_slots": 0,
+      "duplicate_player_slots": 0,
+      "duplicate_staff_slots": 0,
+      "duplicate_staff_table_player_links": 0,
+      "excluded_association": 9459,
+      "intersection": 43,
+      "inverse_candidates": 43,
+      "inverse_only": 0,
+      "list_only": 0,
+      "listed_candidates": 43,
+      "missing_observations": 0,
+      "player_id_mismatch": 0,
+      "player_missing_records": 0,
+      "players": 7214,
+      "slot_flags": {
+        "foreign-club": 5,
+        "outside-staff": 2
+      },
+      "slot_primary": {
+        "candidate": 43,
+        "foreign-club": 5,
+        "outside-staff": 2
+      },
+      "slots": 50,
+      "staff": 9520,
+      "staff_flags": {
+        "foreign-club": 9459,
+        "null-player": 2306
+      },
+      "staff_primary": {
+        "candidate": 43,
+        "foreign-club": 9459,
+        "null-player": 18
+      },
+      "unknown_association": 0
+    },
+    "scientific_hashes": {
+      "inverse_set": "d9474b78eafe0af6a1246c52a412a32693725f5c0d5b2432627f80ecedc8f7fc",
+      "ledger": "dc30e9a3e549b6071004ba3f1f76a8e8a7e4b2df6e732fd2e4bb4d1afdc80caa",
+      "listed_set": "d9474b78eafe0af6a1246c52a412a32693725f5c0d5b2432627f80ecedc8f7fc",
+      "players": "f6609b00246eca32aa335479bb6559b3667b28e25a51bc49202062ea0ce33b16",
+      "slots": "4cdc3048fc9a5c3ae5b6990eab07b97bd553d0d698080b373a8a810353c1f679",
+      "staff": "d01bad939fc5dba179931ec41e6852af2328bd04373f2c7549beed8b356b48fa"
+    },
+    "controls_passed": 21,
+    "controls_total": 21,
+    "complete_raw_review": "Independently derived unique club binding and every slot/staff/player field, full-record hash, association, identity, classification and duplicate flag from captured bytes; checked both complete ledgers and all exclusions.",
+    "replay_private_byte_equality": [
+      "decoder-a.json",
+      "decoder-b.json",
+      "controls.json",
+      "comparison.json"
+    ],
+    "replay_public_scientific_fields_equal": true,
+    "separate_resource_metadata_fields": [
+      "details.wall_seconds",
+      "details.cpu_seconds",
+      "details.peak_rss_kib"
+    ],
+    "private_file_sha256": {
+      "decoder-a.json": "d81db11f0099ae9d225d6aa4bd5621157981072014261247156c2dd7b370c484",
+      "decoder-b.json": "d81db11f0099ae9d225d6aa4bd5621157981072014261247156c2dd7b370c484",
+      "controls.json": "64243ca88667c6f7b2a83c85319d8a2ab4f7dbe14c501577347e047c455eb395",
+      "comparison.json": "992974e8b9ecc33b8ff94e1b78cc97e9d5b606c9d10ed8afc2310f2af80bbf15"
+    },
+    "existing_r10_selected_record_pairs": 2,
+    "each_r10_selected_pair_unique_in_candidates": true
+  },
+  "lab006": {
+    "execution": "succeeded",
+    "comparison": "equal",
+    "hypothesis": "supported",
+    "hypothesis_scope": "Frozen static predicates reproduced; static facts do not establish caller entry-state validity, lifecycle or full eligibility.",
+    "range_count": 2,
+    "range_byte_counts": [
+      50,
+      66
+    ],
+    "instruction_counts": [
+      15,
+      23
+    ],
+    "instruction_count": 38,
+    "matched_anchors": 7,
+    "expected_anchors": 7,
+    "controls_passed": 11,
+    "controls_total": 11,
+    "external_call_dependencies": 1,
+    "original_instructions_executed": 0,
+    "instruction_facts_sha256": "f0369ddaa6a78006e37b750b142fae03742d78f7947867d4103350b30ceb0433",
+    "private_receipt_sha256": "da22ee810305cbdd95827579ac5f7f3d878d513585071549b2761eece953e842",
+    "result_sha256": "2fba25b8e20075d7cb8b9fc7147d93288a761eb80fea049bfd6e7704ba20f612",
+    "complete_raw_review": "Inspected all38instruction facts, operand widths/access/signedness, LEA versus reads and stack effects; independently verified contiguous complete instruction byte spans against exact PE sections, all internal targets at instruction boundaries, frozen range seals and full fact hash.",
+    "replay_private_and_result_bytes_equal": true,
+    "interpretation": [
+      "Nonzero slot counting does not validate a pointed record or distinguish nonzero foreign links.",
+      "The observed staff/manager club equality distinguishes a safely available foreign-club record; it does not establish complete eligibility or make invalid pointers safe.",
+      "The association caller has a signed16-iteration loop. Its external assignment call is the existing R10 dependency; static inspection does not establish UI support for20slots."
+    ]
+  },
+  "lab007_decision": {
+    "decision": "justified-for-reviewed-implementation",
+    "execution_authorized": false,
+    "planned_cases": 120,
+    "planned_jobs": 12,
+    "cases_per_job": 10,
+    "basis": "Accepted complete structural/instruction evidence introduces no blocker to testing only the same two already admitted R10 records across the frozen20slot matrix. Exact selected record hash pairs remain unique structural candidates; no membership widening.",
+    "requirements_before_execution": [
+      "Independently reviewed exact emulator adapter and frozen protocol/source/input/tool manifests.",
+      "Complete reset for every case from unchanged admitted capture and full state/RNG preservation.",
+      "Instruction/read/call/write/ABI allowlists, untouched-state comparison, discriminating controls and first-boundary censorship.",
+      "Complete before/after evidence,12jobs/120case denominator and measured disk/resource admission within frozen ceilings."
+    ],
+    "exclusions": [
+      "No new player admission or full eligibility/lifecycle/sentinel/loan interpretation.",
+      "No UI/production lineup/save semantics or inference that caller supports20UIpositions."
+    ]
+  },
+  "public_privacy": "No raw captured fields, record identities, game bytes or private filesystem paths; raw ledgers/instruction facts and complete snapshots remain private."
+}

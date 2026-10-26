@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-25",
+  "reviewer": "independent subagent B (LAB-006 author, not author of reviewed files)",
+  "scope": "LAB-005 exact source/protocol; LAB-007 case definition and blocker; candidate readiness/admission/report integration",
+  "source_sha256": {
+    "scripts/lab005.py": "6bf9232223889a85170419d260c1f485124fc04ff4fbf31d2f6d084362d305b9",
+    "scripts/lab005_decoder_a.py": "5e262732b8b7e8d845caca5f896aabf594a9068d60c1a6c3e3e1dcdfe59f43f9",
+    "scripts/lab005_decoder_b.py": "7d7cfb08e985e0ad673703104329b43f715fcc659a834916063b9dedbd340cf0",
+    "scripts/lab005_tests.py": "bdefd5557285489b455735d24dd8d135ee83cbdae69d0ec633a0ead2ede09813",
+    "docs/research/LAB_005_V1.md": "67e0e6b636648bd46b9ae0efdb1694798a804311fb3ec758689ccdce4171c472",
+    "scripts/lab007_cases.py": "cefe6a1bd923a65da14da4267fece7a7d59eae10fb2f036a4b84a6d56cb6a60e",
+    "docs/research/LAB_007_CASES_V1.json": "a75643084faa9ced9c7125625be35f5cec80b5d765943fe76433e326c7c79151",
+    "docs/research/LAB_007_BLOCKERS_V1.md": "9fdc859db7563814c21dda2a4a2d589269bff10f0b8b8a71d5dcb4ea31aa522d",
+    "tools/lab/workloads.py": "00841b2d446851b720ff490975bd2515c6775d1a8e45b3fecb285dca583d2367",
+    "tools/lab/lab.py": "bb1081a0233dccb01db12c809edf8e30a73cf8cd5c910c79a540d8c52481ab95",
+    "tools/lab/Lab.ps1": "982bb8be38ff54465921e27d17597b5870afa6800c037880db3f2ea6112eb212",
+    "tools/lab/report.py": "be15380f5852c52b6933aa924d8ae2da93d5387475c2ee1c46269e02e52bcb4f",
+    "tools/lab/test_research_candidates.py": "9286e3f07ea3677c0f7f8dea6f019f23ebb233a1d7d68caccf1b2e87dbad92bd",
+    "docs/research/LAB_005_007_DELIVERY_V1.md": "fe98c9f6592468d5190982457dcb072381a1f2c068beccd8ec553c4e2d8a2378",
+    "docs/runbooks/local-lab.md": "39ddd624cbcded1e49592e6931aff4cfa543edf7a562decbe6f8b0a4d4cec684",
+    "docs/status/PROGRESS.md": "0a8c6f645b20352abea8f8301c88eb5a461ad424939abd10ba153c574ec44ce0"
+  },
+  "decision": "approved-as-gated-implementation-candidate-only",
+  "execution_release_approved": false,
+  "real_input_pilot_performed": false,
+  "raw_research_evidence_reviewed": false,
+  "replay_demonstrated": false,
+  "production_admission": "none",
+  "checks": [
+    {
+      "kind": "source-review",
+      "result": "passed",
+      "detail": "Two decoders independently implement layout reads, classification precedence, slot ordering and full staff/player scans; neither imports classification from the other."
+    },
+    {
+      "kind": "source-review",
+      "result": "passed",
+      "detail": "All fifty slots remain in ordered ledgers; complete associations/exclusions, duplicate flags, missing extents and wrong identities are retained. Comparison is exact with no masks. Missing extent or inconsistent table identities leaves the hypothesis unresolved."
+    },
+    {
+      "kind": "source-review",
+      "result": "passed",
+      "detail": "Changed specimen rejects before decode; private artifacts are exclusive. Public outcomes expose counts/hashes and separate execution, comparison and hypothesis fields."
+    },
+    {
+      "kind": "source-review",
+      "result": "passed",
+      "detail": "LAB-007 contains exactly120 label-only cases in12 consecutive10-case jobs, correct three sequences and deterministic canonical hash, complete reset declaration and no executable adapter. Blockers retain all120 unstarted and zero physical attempts."
+    },
+    {
+      "kind": "source-review",
+      "result": "passed",
+      "detail": "Both candidate profiles and hand-crafted candidate jobs fail closed before input preparation; no manifest parameter or claimed approval bypasses gate. Readiness reads source identities only. Report preserves rejected/queued denominators."
+    },
+    {
+      "kind": "test",
+      "command": "python -m unittest discover -s scripts -p lab005_tests.py -v",
+      "interpreter": "C:/Python313/python.exe, Python3.13.7",
+      "result": "passed",
+      "tests": 8,
+      "reported_test_seconds": 0.107,
+      "inputs": "invented synthetic regions only"
+    },
+    {
+      "kind": "test",
+      "command": "python -m unittest discover -s tools/lab -p test_research_candidates.py -v",
+      "interpreter": "Windows Python3.13.7",
+      "result": "platform-unavailable-for-one-test",
+      "passed": 5,
+      "errors": 1,
+      "reason": "Existing core.py imports Linux fcntl; report rendering test cannot run on Windows. Failure retained and complete suite rerun on WSL."
+    },
+    {
+      "kind": "test",
+      "command": "wsl -d Ubuntu -u derek -- python3 -m unittest discover -s /mnt/c/Users/derek/OneDrive/Documents/ChatGPT/CM Simulator PC/lab-005-007-dev/tools/lab -p test_research_candidates.py -v",
+      "interpreter": "WSL Ubuntu python3",
+      "result": "passed",
+      "tests": 6,
+      "reported_test_seconds": 0.858,
+      "inputs": "synthetic manifest/report fixtures only; no worker or heavy slot acquired"
+    },
+    {
+      "kind": "test",
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "kind": "test",
+      "command": "wsl -d Ubuntu -u derek -- python3 -m unittest discover -s \"DEVELOPMENT_CHECKOUT/tools/lab\" -p test_research_candidates.py -v",
+      "interpreter": "WSL Ubuntu python3",
+      "result": "passed",
+      "tests": 7,
+      "reported_test_seconds": 0.762,
+      "scope": "Final source after CLI pre-service/private-config gate and disassembler test-source pin addition; synthetic only"
+    },
+    {
+      "kind": "documentation-review",
+      "result": "passed",
+      "detail": "Delivery handoff, runbook and progress distinguish implementation from execution release, all pilots/replay/raw acceptance pending, all120 LAB-007 cases unstarted. Commands recognize candidates but deliberately reject; existing preserved qualification is not claimed complete. Live status statements are lead-supplied observation, not independently re-observed by this reviewer."
+    },
+    {
+      "kind": "test",
+      "command": "python -m unittest discover -s scripts -p lab005_tests.py -v",
+      "interpreter": "C:/Python313/python.exe, Python3.13.7",
+      "result": "passed",
+      "tests": 9,
+      "reported_test_seconds": 0.105,
+      "scope": "Final missing-binding-field delta; two ordinary clubs and four absent-field variants checked independently in both parsers; all prior controls including omitted slot remain passing"
+    },
+    {
+      "kind": "test",
+      "command": "wsl -d Ubuntu -u derek -- python3 -m unittest discover -s \"DEVELOPMENT_CHECKOUT/tools/lab\" -p test_research_candidates.py -v",
+      "interpreter": "WSL Ubuntu python3",
+      "result": "passed",
+      "tests": 8,
+      "reported_test_seconds": 0.691,
+      "scope": "Final test-only addition independently inspected: result API preserves rejected/not-run on nonzero exit and succeeded/different on zero exit, including hypothesis details. No executable integration delta."
+    }
+  ],
+  "resolved_review_findings": [
+    {
+      "finding": "LAB-005 hypothesis vocabulary and specimen failure status required normalization",
+      "resolution": "supported/contradicted/unresolved plus separate reason; input mismatch rejected/not-run; protocol/tests updated and rerun"
+    },
+    {
+      "finding": "Failure outcomes needed explicit planned/observed decoder accounting",
+      "resolution": "Two planned decoder ledgers include50 planned slots each, observed counts, known/null table denominators and completed/failed/unstarted summary"
+    },
+    {
+      "finding": "Candidate CLI could inspect service/config before release rejection",
+      "resolution": "ensure_released_profile is called first in start; final seven-test suite proves neither service nor private read occurs"
+    },
+    {
+      "finding": "Lead identified that missing manager fields on another ordinary club could be skipped while claiming a unique binding",
+      "resolution": "Independently reviewed both decoder implementations: any absent ordinary manager DWORD censors with retained dimensions; potential reserved manager ID/backpointer and club ID must all be captured. New ninth test checks four missing-field variants in both decoders. Full-club extent is deliberately not required so omitted member-slot accounting remains testable."
+    }
+  ],
+  "open_blocking_source_findings": [],
+  "remaining_gates": [
+    "Current qualification actual completion, remaining replay and independent acceptance",
+    "New exact release revision and source/tool/input pins",
+    "Qualified LAB-005/LAB-006 real-input pilots with unchanged resource limits",
+    "Independent raw evidence review and selected-result replay",
+    "LAB-007 dependency admission and separately reviewed emulator implementation"
+  ],
+  "limitations": [
+    "No original executable or capture was opened by this review",
+    "No original instructions executed; no build, pilot, service mutation or heavy workload was run",
+    "This reviewer authored LAB-006 and does not independently approve that implementation",
+    "Future changes to any hashed file require affected re-review"
+  ]
+}

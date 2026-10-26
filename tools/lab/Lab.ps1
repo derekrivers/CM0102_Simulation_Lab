@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('Menu','Setup','Start','Status','Stop','Resume','Report','Replay','Restart')]
+    [ValidateSet('Menu','Setup','Start','Status','Stop','Resume','Report','Replay','Restart','Readiness')]
     [string]$Action = 'Menu',
     [string]$Value,
     [string]$Campaign,
@@ -8,10 +8,13 @@ param(
     [string]$Repo = '/home/derek/cm0102-lab',
     [string]$StateRoot = '/home/derek/.local/share/cm0102-lab',
     [string]$ConfigFile,
+    [string]$LauncherDirectory,
     [switch]$Qualification
 )
 $ErrorActionPreference = 'Stop'
 $launcherDir = Join-Path $env:LOCALAPPDATA 'CM0102Lab'
+if (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'launcher.json')) { $launcherDir = $PSScriptRoot }
+if ($LauncherDirectory) { $launcherDir = [IO.Path]::GetFullPath($LauncherDirectory) }
 $launcherFile = Join-Path $launcherDir 'launcher.json'
 if ($Action -eq 'Setup') {
     $settings = @{ distro=$Distro; user=$WslUser; repo=$Repo; state=$StateRoot }

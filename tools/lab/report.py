@@ -57,7 +57,9 @@ def write_report(root, campaign_id, snapshot):
                         "rng-native-wasm-v1": "Repeated qualified regression",
                         "original-r10-regression-v1": "Repeated qualified regression",
                         "bosman-same-save-v1": "Repeated qualified regression",
-                        "research-squad-members-v1": "New structural observation; review required"}
+                        "research-squad-members-v1": "New structural observation; review required",
+                        "research-squad-anomalies-v1": "LAB-005 candidate; release and evidence review required",
+                        "research-member-consumers-v1": "LAB-006 candidate; release and evidence review required"}
     for job in jobs:
         spec = job["spec"] if isinstance(job["spec"], dict) else {}
         template = spec.get("template_id")
