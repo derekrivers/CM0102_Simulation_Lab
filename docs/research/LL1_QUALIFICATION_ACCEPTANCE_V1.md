@@ -1,6 +1,41 @@
 # LL1 retained qualification audit and acceptance procedure
 
-25 October 2026. **Decision: incomplete.** The independent read-only audit at
+## Final acceptance — 26 October 2026
+
+**Decision: passed for scoped LL1.** The original campaign actually completed at
+14:56:45.275969 London after **86,400.014999163 monotonic seconds**, with
+`observation_qualified=1`, no stop reason and all three intended jobs succeeded.
+All four attempts, including the interrupted first Bosman attempt, remain retained.
+Independent final inspection reverified all ninety source/tool/input pins,
+configuration identity, boot identity, forty-eight complete inventory entries,
+four canonical result publications and the terminal report's exact snapshot.
+The original holder recorded its completed `worker-terminal` outcome.
+
+The preserved Windows launcher then ran selected RNG replay
+`ll1-24h-20261025-replay-d5be48069850` at 16:02:52.346617 London, after actual
+completion. Its one successful attempt completed with `equal`; all eleven
+artifact entries and its publication verified. Both native and WASM artifacts
+were directly byte-compared to their original counterparts: 75,952 bytes each,
+the frozen `1c8d5c5b...97ce0d16` SHA-256 and `[1023,61,2447,123]` controls.
+The replay holder also reached `worker-terminal`.
+
+The [final independent evidence](evidence/ll1-qualification-final-20261026-v1.json)
+records exact hashes, resource measurements and the private acceptance receipt
+digest. The unchanged native admission validator accepted the complete private
+receipt and evidence references. This releases the single slot for the separately
+approved sequential LAB-005/006 pilots; it does not accept their future results.
+
+Final accounting retains 182.659605 seconds active, 85,172.874857 seconds idle and
+1,044.480537 seconds uncredited orchestration, polling, publication and restart
+intervals. The residual is not all restart downtime. The original interrupted
+attempt's final CPU/memory sample remains unknown. Raw R10 receipt equality,
+eleven successful/four censored calls, twelve controls and the fixed Bosman endpoint
+were verified; Bosman original-process comparison remains `not-run`. Full P01/P03
+and the separate seventy-two-hour gate remain open.
+
+## Historical interim audit — 25 October 2026
+
+25 October 2026. **Decision at that time: incomplete.** The independent read-only audit at
 15:56:30 London found the original campaign running, with 3,584.025 of 86,400
 monotonic observation seconds recorded. This is neither a pass nor a release of
 the heavy-work slot. The earliest horizon is **26 October 2026 at
