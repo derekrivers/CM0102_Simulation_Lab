@@ -1,8 +1,38 @@
 # Programme progress
 
-Updated 25 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
+Updated 26 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
 
 ## Demonstrated evidence
+
+### LL1 and LAB-005/006 executed and independently accepted — 26 October 2026
+
+LL1 completed 86,400.014999163 actual monotonic seconds and its post-horizon
+selected RNG replay reproduced the original native/WASM artifacts exactly.
+Independent final decision: **passed for scoped LL1**. All original/replay
+publications, complete inventories, input/tool/source pins, retained recovery
+and active/idle/uncredited accounting were reviewed; the implementer cross-reviewed.
+Full P01/P03 and the seventy-two-hour requirement remain open.
+
+LAB-005 and LAB-006 then ran sequentially through independently reviewed source
+`70def124`, frozen manifests and the isolated Windows launcher/holder. Both pilots
+and both selected replays succeeded/equal in one attempt each within frozen
+resources. LAB-005 completely accounted for fifty slots, 9,520 staff and 7,214
+players; its forty-three reciprocal list candidates equal the inverse set, with
+all sixty-one associations and seven slot anomalies retained. Both complete
+ledgers, controls and comparison reproduced byte-for-byte. LAB-006 reproduced
+all thirty-eight bounded static instruction facts, seven anchors and eleven
+controls, with byte-identical private/public replay results and zero original
+instruction execution. Independent raw review accepted both scoped findings.
+
+The [delivery record](../research/LAB_005_007_DELIVERY_V1.md) preserves exact
+campaign identities, measured resources, private evidence locations and limits.
+The accepted qualification/pilot checkouts remain clean and fixed. PR #48 is
+being refreshed and checked for merge; no merge is claimed by this entry.
+LAB-007's narrow same-two-member slot extension is justified for implementation
+and independent review; all120cases/twelvejobs remain unstarted until its new
+reset, evidence, instruction-boundary and resource admission pass. Complete squad,
+production lineup/save, full eligibility, UI, R9b and LAB-008 remain outside scope.
+
 
 ### LAB-005/006 operational admission reviewed; execution waiting — 25 October 2026
 
