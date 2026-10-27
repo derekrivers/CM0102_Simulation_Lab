@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "kind": "lab007-campaign-decision-v1",
+  "decision": "failed",
+  "reviewer": "qualification-review-agent",
+  "reviewed_at_utc": "2026-10-27T16:27:28.793981+00:00",
+  "source_revision": "0e71831805afeb438328b4a86b5eeb084ae4db21",
+  "campaign_id": "lab007-matrix-v1",
+  "manifest_sha256": "16c234eca645bc29ad9f9e53f1a867802e0125901a9c1da7bb7e6bb0518c8001",
+  "attempt_id": "1396e1eb521f4170979b4b114659ab84",
+  "execution_state": "stopped",
+  "stop_reason": "stop-condition",
+  "execution_status": "failed",
+  "comparison_verdict": "not-comparable",
+  "scientific_hypothesis": "unresolved",
+  "failure": {
+    "class": "adapter-cli-type-contract-before-emulator-construction",
+    "type": "AttributeError",
+    "reason": "'str' object has no attribute 'read_bytes'",
+    "explanation": "CLI strings reached checked(), whose contract requires Path objects. Failure preceded adapter input loading, snapshot admission and emulator construction; controller pin hashing had already occurred.",
+    "review_gap": "Original operational fixtures covered helpers and mocked admission boundaries but did not exercise actual CLI argument conversion. Operational approval did not establish empirical success."
+  },
+  "accounting": {
+    "physical_attempts": 1,
+    "failed_logical_jobs": 1,
+    "unstarted_logical_jobs": 11,
+    "planned_cases": 120,
+    "unstarted_cases": 120,
+    "planned_calls": 320,
+    "unstarted_calls": 320,
+    "first_job_unstarted_calls": 26,
+    "original_instructions_executed": 0
+  },
+  "retained_evidence": {
+    "inventory_entries_verified": 12,
+    "inventory_bytes": 193556,
+    "full_attempt_directory_bytes": 196275,
+    "full_snapshot_sha256": "ea8aaa8076213b878d6ced2d8c130ebc96a4450aaaa3872c8c6289648383398e",
+    "full_report_sha256": "ea8aaa8076213b878d6ced2d8c130ebc96a4450aaaa3872c8c6289648383398e",
+    "holder_sha256": "38c465450f7544e2a88d54047bc8e8f479d0b0d4deefb1c3f9fa52d66c2d0237",
+    "report_equals_snapshot": true,
+    "all_files_match_inventory_and_result_publication": true,
+    "holder_outcome": "worker-terminal",
+    "holder_state": "stopped",
+    "worker_active": false,
+    "source_clean_and_preserved": true,
+    "reservation_consumed_attempts": 1
+  },
+  "resources": {
+    "attempt_wall_seconds": 5.001034259796143,
+    "service_cpu_seconds_delta": 4.793953,
+    "service_memory_peak_bytes": 325795840,
+    "stream_bytes": 0,
+    "oom_events": 0,
+    "scope": "CPU is the service counter delta over the measured attempt interval; this includes controller pin checks and adapter startup. No scientific case ran."
+  },
+  "disposition": {
+    "failed_campaign_resumed_or_rewritten": false,
+    "failed_source_and_raw_artifacts_retained": true,
+    "selected_replay_performed": false,
+    "remedy": "Normalize executable/capture CLI arguments to Path. Test real CLI identity rejection and capture Path contract without emulator construction. Independently review and freeze a separate campaign.",
+    "new_reviewed_revision": "152de802baa0d88fdfec2f1db153df492d90f955",
+    "new_campaign_id": "lab007-matrix-v2",
+    "same_frozen_matrix": true,
+    "no_empirical_acceptance": true
+  }
+}

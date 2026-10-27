@@ -26,7 +26,9 @@ LIMITS = dict(max_jobs=1, elapsed_seconds=300, stall_seconds=120,
 # Extra margin covers sampled disk overshoot; it is not a filesystem quota.
 ATTEMPT_RESERVE = LIMITS['disk_bytes'] + LIMITS['output_bytes'] + 64*1024**2
 METADATA_RESERVE = 16*1024**2
-TOTAL_RESERVE = 4*ATTEMPT_RESERVE + METADATA_RESERVE
+MAX_PHYSICAL_ATTEMPTS = 4
+RESERVE_JOB_IDENTITIES = False
+TOTAL_RESERVE = MAX_PHYSICAL_ATTEMPTS*ATTEMPT_RESERVE + METADATA_RESERVE
 
 
 def require(condition, reason):
@@ -265,22 +267,27 @@ def reservation(manifest, create=False, attempt=None):
         require(data['subject_sha256'] == key and data['total_bytes'] == TOTAL_RESERVE
                 and data['per_attempt_bytes'] == ATTEMPT_RESERVE, 'reservation identity changed')
         consumed = data['consumed']
-        require(isinstance(consumed, dict) and len(consumed) <= 4, 'invalid consumed reservation')
+        require(isinstance(consumed, dict) and len(consumed) <= MAX_PHYSICAL_ATTEMPTS, 'invalid consumed reservation')
         if attempt is not None:
             require(Path(attempt['directory']).resolve().is_relative_to(root/'attempts'),
                     'attempt outside reserved state root')
             identity = {'campaign_id': attempt['campaign_id'], 'ordinal': attempt['ordinal']}
+            if RESERVE_JOB_IDENTITIES:
+                require(attempt.get('job_id') in {j['job_id'] for j in manifest['jobs']}, 'unreserved job')
+                identity['job_id'] = attempt['job_id']
+                require(not any(value == identity and key != attempt['attempt_id'] for key, value in consumed.items()),
+                        'duplicate job attempt ordinal')
             require(1 <= attempt['ordinal'] <= 2, 'attempt budget exceeded')
             role = 'replay_campaign' if manifest['provenance'].get('replay_of') else 'pilot_campaign'
             require(data.get(role, attempt['campaign_id']) == attempt['campaign_id'], 'only one pilot and one replay are reserved')
             data[role] = attempt['campaign_id']
             if attempt['attempt_id'] not in consumed:
-                require(len(consumed) < 4, 'pilot and selected replay reservation exhausted')
+                require(len(consumed) < MAX_PHYSICAL_ATTEMPTS, 'pilot and selected replay reservation exhausted')
                 consumed[attempt['attempt_id']] = identity
                 _atomic(record, data)
             require(consumed[attempt['attempt_id']] == identity, 'reservation attempt identity changed')
         remaining = TOTAL_RESERVE - len(consumed)*ATTEMPT_RESERVE
-        require(0 <= len(consumed) <= 4 and allocation.is_file() and not allocation.is_symlink(), 'invalid reservation')
+        require(0 <= len(consumed) <= MAX_PHYSICAL_ATTEMPTS and allocation.is_file() and not allocation.is_symlink(), 'invalid reservation')
         require(allocation.stat().st_size >= remaining, 'reserved bytes missing')
         require(allocation.stat().st_blocks * 512 >= allocation.stat().st_size, 'reservation is sparse or unallocated')
         # A journaled consume may have been interrupted before truncation.
@@ -290,4 +297,4 @@ def reservation(manifest, create=False, attempt=None):
                 os.fsync(stream.fileno())
         require(shutil.disk_usage(root).free >= LIMITS['min_free_bytes'], 'free-space floor unavailable')
         return {'subject_sha256': key, 'reserved_bytes': remaining, 'consumed_attempts': len(consumed),
-                'pilot_and_replay_attempts': 4, 'path': str(allocation)}
+                'pilot_and_replay_attempts': MAX_PHYSICAL_ATTEMPTS, 'path': str(allocation)}

@@ -100,13 +100,14 @@ def main():
     setup.add_argument("--config", type=Path, required=True)
     sub.add_parser("readiness", help="Read candidate research gates and source identities; no execution")
     freeze = sub.add_parser("freeze", help="Freeze and reserve a candidate pilot; never configure or execute")
-    freeze.add_argument("profile", choices=["research-anomalies", "research-consumers"])
+    freeze.add_argument("profile", choices=["research-anomalies", "research-consumers", "research-assignment"])
     freeze.add_argument("--campaign", required=True)
     freeze.add_argument("--out", type=Path, required=True)
     admit = sub.add_parser("admit", help="Validate independent receipts and configure a frozen pilot; no launch")
     admit.add_argument("manifest", type=Path)
     admit.add_argument("--operational-review", type=Path, required=True)
     admit.add_argument("--qualification-acceptance", type=Path, required=True)
+    admit.add_argument("--precursor-acceptance", type=Path)
     start = sub.add_parser("start", help="Start an approved built-in profile")
     start.add_argument("profile", choices=["synthetic", "regression", "research-squad",
                                           "research-anomalies", "research-consumers"])
@@ -135,13 +136,16 @@ def main():
         return
     if args.command in {"freeze", "admit"}:
         from workloads import build_profile, admission_module, validate
-        admission = admission_module()
+        admission = admission_module(args.profile if args.command == 'freeze' else
+                                     json.loads(args.manifest.read_text()).get('profile_id'))
         if args.command == "freeze":
             from core import IDENTIFIER
             if not IDENTIFIER.fullmatch(args.campaign):
                 raise ValueError("Invalid campaign identifier")
             if args.out.exists():
                 raise ValueError("Frozen manifest already exists; it is never replaced")
+            if not args.out.resolve().is_relative_to(root):
+                raise ValueError('Frozen manifest must stay inside its private state root')
             config = json.loads((root / 'config.json').read_text())
             manifest = build_profile(args.profile, config, REPO, args.campaign, research_state_root=root)
             reserved = admission.reservation(manifest, create=True)
@@ -162,6 +166,10 @@ def main():
             manifest['provenance']['pilot_admission'] = {
                 'operational_review': admission.reference(args.operational_review),
                 'qualification_acceptance': admission.reference(args.qualification_acceptance)}
+            if manifest.get('profile_id') == 'research-assignment':
+                if args.precursor_acceptance is None:
+                    raise ValueError('LAB-007 requires accepted LAB-005/006 raw evidence')
+                manifest['provenance']['pilot_admission']['precursor_acceptance'] = admission.reference(args.precursor_acceptance)
             validate(manifest, REPO, json.loads((root/'config.json').read_text()))
             from core import configure
             campaign = configure(root, REPO, manifest)

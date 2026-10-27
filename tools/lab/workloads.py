@@ -8,10 +8,11 @@ import struct
 import subprocess
 import sys
 import time
+import types
 
 TEMPLATES = {'synthetic-progress-v1', 'rng-native-wasm-v1', 'original-r10-regression-v1',
              'bosman-same-save-v1', 'research-squad-members-v1',
-             'research-squad-anomalies-v1', 'research-member-consumers-v1'}
+             'research-squad-anomalies-v1', 'research-member-consumers-v1', 'research-retained-assignment-v1'}
 # Ordinary start remains blocked. Only frozen, independently reviewed pilot
 # manifests with accepted qualification evidence can enter the controlled route.
 RESEARCH_CANDIDATES = {
@@ -25,21 +26,22 @@ RESEARCH_RELEASE_BLOCKER = ('Research release blocked: use freeze then admit wit
                             'measurement and selected-result raw review follow admission.')
 
 
-def admission_module():
+def admission_module(profile=None):
     # Also works under python -I, which excludes the script directory from sys.path.
-    spec = importlib.util.spec_from_file_location('research_admission', Path(__file__).with_name('admission.py'))
+    name = 'lab007_admission.py' if profile == 'research-assignment' else 'admission.py'
+    spec = importlib.util.spec_from_file_location('research_admission', Path(__file__).with_name(name))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
 def is_research(manifest):
-    return any(job.get('template_id') in {c['template'] for c in RESEARCH_CANDIDATES.values()}
+    return any(job.get('template_id') in ({c['template'] for c in RESEARCH_CANDIDATES.values()} | {'research-retained-assignment-v1'})
                for job in manifest.get('jobs', []) if isinstance(job, dict))
 
 
 def ensure_released_profile(profile):
-    if profile in RESEARCH_CANDIDATES:
+    if profile in RESEARCH_CANDIDATES or profile == 'research-assignment':
         raise ValueError(RESEARCH_RELEASE_BLOCKER)
 
 
@@ -57,11 +59,11 @@ def research_readiness(repo_root):
                                          'output_bytes': 2*1024**2, 'disk_bytes': 64*1024**2,
                                          'min_free_bytes': 1024**3, 'max_attempts': 2}})
     case_file = repo / 'docs/research/LAB_007_CASES_V1.json'
-    rows.append({'campaign': 'LAB-007', 'profile': None, 'execution_approved': False,
+    rows.append({'campaign': 'LAB-007', 'profile': 'research-assignment', 'execution_approved': False,
                  'executed': False, 'independently_accepted': False,
                  'planned_cases': 120, 'planned_jobs': 12, 'unstarted_cases': 120,
                  'case_file_sha256': sha(case_file),
-                 'blocker': 'LAB-005/LAB-006 raw evidence and R10 extension admission require independent review; no executable adapter admitted.'})
+                 'blocker': 'Exact adapter revision and frozen manifest require independent operational review and accepted prerequisite receipts through freeze/admit.'})
     return rows
 RNG_SHA = '1c8d5c5b3443386e18f2124f19dcebbde7999124e3b557b71f78507597ce0d16'
 IMAGE_SHA = 'ae11ce3ef6267ad55be6aa6387f676704b1bb8a6310507db6c5ccfe494d45c3a'
@@ -94,7 +96,13 @@ def _path(config, key):
 
 def _files(template, config, repo):
     result = [repo/'tools/lab/workloads.py', _path(config, 'python')]
-    if template == 'research-squad-anomalies-v1':
+    if template == 'research-retained-assignment-v1':
+        result += _files('original-r10-regression-v1', config, repo)
+        result += [repo/p for p in ('scripts/lab007.py', 'scripts/lab007_cases.py', 'scripts/lab007_test.py',
+                   'tools/lab/lab007_admission.py', 'docs/research/LAB_007_CASES_V1.json',
+                   'docs/research/LAB_007_ADMISSION_V1.md',
+                   'docs/research/evidence/lab005-006-executed-acceptance-v1.json')]
+    elif template == 'research-squad-anomalies-v1':
         capture = _path(config, 'retained_capture')
         result += [capture/'image.bin', capture/'heap.bin', repo/'docs/research/LAB_005_V1.md']
         result += [repo/'scripts'/name for name in ('lab005.py', 'lab005_decoder_a.py', 'lab005_decoder_b.py', 'lab005_tests.py')]
@@ -149,7 +157,7 @@ def validate(manifest, repo_root, config=None):
     """Global policy; bad individual jobs are accounted as rejected."""
     require(manifest.get('schema_version') == 1, 'unsupported manifest schema')
     if is_research(manifest):
-        admission_module().validate(manifest, repo_root)
+        admission_module(manifest.get('profile_id')).validate(manifest, repo_root)
     require(manifest.get('provenance', {}).get('config_sha256') == _config_digest(config),
             'local configuration changed; freeze a new campaign')
     pins = _pin_map(manifest)
@@ -161,6 +169,9 @@ def validate(manifest, repo_root, config=None):
 def validate_job(manifest, job, repo_root, config=None):
     template, params = job.get('template_id'), job.get('parameters', {})
     require(template in TEMPLATES, 'unapproved template')
+    if template == 'research-retained-assignment-v1':
+        admission_module('research-assignment').validate(manifest, repo_root)
+        require(job in manifest['jobs'], 'matrix job differs from frozen manifest')
     if template in {item['template'] for item in RESEARCH_CANDIDATES.values()}:
         admission_module().validate(manifest, repo_root)
         require(job == manifest['jobs'][0], 'research job differs from frozen pilot')
@@ -175,10 +186,10 @@ def validate_job(manifest, job, repo_root, config=None):
     pins = _pin_map(manifest, job)
     for path in _files(template, config, Path(repo_root).resolve()):
         require(path.is_file() and str(path) in pins and pins[str(path)] == sha(path), 'template input/tool not pinned')
-    if template in ('original-r10-regression-v1','research-squad-members-v1','research-squad-anomalies-v1'):
+    if template in ('original-r10-regression-v1','research-squad-members-v1','research-squad-anomalies-v1', 'research-retained-assignment-v1'):
         capture = _path(config,'retained_capture')
         require(sha(capture/'image.bin')==IMAGE_SHA and sha(capture/'heap.bin')==HEAP_SHA, 'unapproved retained capture')
-        if template=='original-r10-regression-v1':
+        if template in ('original-r10-regression-v1', 'research-retained-assignment-v1'):
             require(sha(_path(config,'original_executable'))==SPECIMEN_SHA, 'unapproved original specimen')
     if template == 'research-member-consumers-v1':
         require(sha(_path(config,'original_executable'))==SPECIMEN_SHA, 'unapproved original specimen')
@@ -226,6 +237,9 @@ def result(manifest,job,attempt_dir,returncode):
 
 def build_profile(profile,config,repo_root,campaign_id,*,research_state_root=None):
     repo=Path(repo_root).resolve()
+    if profile == 'research-assignment':
+        return admission_module(profile).build_profile(config, repo, campaign_id, research_state_root,
+                                                       types.SimpleNamespace(**globals()))
     if research_state_root is None:
         ensure_released_profile(profile)
     if profile in RESEARCH_CANDIDATES:
@@ -293,7 +307,7 @@ def build_profile(profile,config,repo_root,campaign_id,*,research_state_root=Non
 
 def reserve_attempt(manifest, attempt):
     if is_research(manifest):
-        return admission_module().reservation(manifest, attempt=attempt)
+        return admission_module(manifest.get('profile_id')).reservation(manifest, attempt=attempt)
 
 def _progress(attempt,sequence):
     temp=attempt/'progress.tmp'
@@ -500,6 +514,13 @@ def _execute(task):
             (attempt/'research-observations.json').write_text(json.dumps(observations,indent=2)+'\n')
             require(len(observations['controls'])==6 and all(observations['controls'].values()),'research controls did not discriminate')
             outcome.update(execution_status='succeeded',comparison_verdict='not-run',details=observations)
+        elif template == 'research-retained-assignment-v1':
+            code = _run([str(_path(config, 'oracle_python')), '-I', str(repo/'scripts/lab007.py'),
+                         str(_path(config, 'original_executable')), str(_path(config, 'retained_capture')),
+                         str(attempt), task['job_id']], attempt, 'research', require_success=False)
+            endpoint = json.loads((attempt/'lab007-result.json').read_text())
+            require(code == 0 or endpoint['execution_status'] != 'succeeded', 'matrix endpoint/process mismatch')
+            outcome.update({key: endpoint[key] for key in ('execution_status', 'comparison_verdict', 'details')})
         elif template in ('research-squad-anomalies-v1', 'research-member-consumers-v1'):
             # validate_job above requires immutable operational/qualification receipts.
             number = '005' if template == 'research-squad-anomalies-v1' else '006'

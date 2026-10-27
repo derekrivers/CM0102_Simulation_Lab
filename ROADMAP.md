@@ -1,6 +1,6 @@
 # Roadmap
 
-Updated 25 October 2026. **The first bounded Rust RNG and stateful browser workflow now pass their scoped acceptance checks.** The full objective remains a faithful, playable and extensible reconstruction of the entire game.
+Updated 27 October 2026. **The first bounded Rust RNG and stateful browser workflow now pass their scoped acceptance checks.** The full objective remains a faithful, playable and extensible reconstruction of the entire game.
 
 ## Current delivery sequence
 
@@ -13,9 +13,13 @@ local milestone. Browser feature expansion and complete squad/lineup delivery
 remain future work. Existing squad unknowns and failed R9b provenance evidence
 remain open; neither blocks unrelated qualified workloads.
 
-Delivery order: executable campaign foundation; unattended recovery and limits;
-approved regression/research adapters; Windows operator entry point and reports;
-then a reviewed short integrated pilot and an actual 24-hour qualification.
+The local 24-hour qualification and LAB-005/006 pilots plus selected replays
+have passed independent raw-evidence acceptance and were delivered in PR #48.
+LAB-007 then executed its frozen 120 cases in twelve jobs: 114 passed and six
+censored; its preselected job-012 replay passed with exact scientific equality.
+The full LAB-007 decision remains censored. A two-call synthetic diagnostic is
+proposed for the observed execution-limit blocker, pending a new owner decision;
+see the [recorded decision](docs/research/LAB_007_BLOCKERS_V1.md).
 Full P01 and P03 gates remain unchanged, including P01 scenario coverage and
 P03's separate 72-hour and evidence-domain requirements. SQLite for this bounded
 single-worker milestone does not qualify PostgreSQL or distributed leases.
@@ -62,9 +66,8 @@ Scope includes setup, databases/assets, players/staff, contracts/transfers, fina
 ## Deferred work and re-evaluation
 
 VPS capacity purchases, distributed workers, PostgreSQL deployment, dashboards
-and Jev trials are not immediate dependencies. A real 24-hour local qualification
-is now required after reviewed integration and a short pilot; the separate
-72-hour P03 gate remains open. Retained designs are reference material, not
+and Jev trials are not immediate dependencies. The scoped real 24-hour local qualification
+has passed independent acceptance; the separate 72-hour P03 gate remains open. Retained designs are reference material, not
 instructions to implement all services. Existing dormant Windows launcher
 retirement needs a separate reviewed verification-policy transition; do not
 bypass its guards.
