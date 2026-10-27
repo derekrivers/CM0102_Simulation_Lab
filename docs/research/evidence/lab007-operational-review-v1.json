@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "kind": "lab007-operational-review-v1",
+  "decision": "approved-for-frozen-bounded-execution",
+  "reviewer": "qualification-review-agent",
+  "implementation_author": "implementation-agent",
+  "reviewed_at_utc": "2026-10-27T16:20:23.364780+00:00",
+  "source_revision": "0e71831805afeb438328b4a86b5eeb084ae4db21",
+  "source_clean_at_review": true,
+  "source_sha256": {
+    "scripts/lab007.py": "db8abe1995cbc2be1f20436045f28bd4f216329a30a747dd0fc7a62ef3469185",
+    "scripts/lab007_test.py": "7e76ecd1ef85090cdc8407eea8b996042b7a3f7fe653b22ea8f0dda78f24a5f1",
+    "scripts/lab007_cases.py": "cefe6a1bd923a65da14da4267fece7a7d59eae10fb2f036a4b84a6d56cb6a60e",
+    "scripts/qualify_pc_r10_command.py": "7788a09dc60eca4ca5d650067491135022785c4f46181db25c858a58cd91f26d",
+    "scripts/qualify_human_registry.py": "c26600217794ebaf39759fe0408b7d51bfef2a10f612c82fbe7b62676ffa3a39",
+    "scripts/qualify_manager_bound_plan.py": "3fd127ff7aa71b3f16f78daabcd7977d0dbcb4b8bdcd6815bf2312413b5b18d2",
+    "tools/lab/admission.py": "70fa52f2c56238c0281d31adb61c427f2c90e5f7442ef52e77f95f65bd30a44b",
+    "tools/lab/lab007_admission.py": "c2d962115442f4a9391aa2e3000251a4c489072fcfb908fdb505615c8605df9a",
+    "tools/lab/workloads.py": "91718d36ce7f38fb663a20ee4a8e6723f4d810163f8b37b6d7be0ddcf2b118ea",
+    "tools/lab/lab.py": "8cc869bd08e22c6f511aade07b7c7abbde0885e3c1ab7ca701bbf1d54611d478",
+    "tools/lab/core.py": "65fde966b8823d070e9e6b940109410931df0c1cfb3574c3280b6b43f71c718d",
+    "docs/research/LAB_007_ADMISSION_V1.md": "4a6d336143d1f9231721e847e4a397179c4b2f481e536006d28437025641436b",
+    "docs/research/LAB_007_CASES_V1.json": "a75643084faa9ced9c7125625be35f5cec80b5d765943fe76433e326c7c79151"
+  },
+  "campaign": {
+    "campaign_id": "lab007-matrix-v1",
+    "case_list_sha256": "62ea04732223472ccf649eadaba9159b79f550c53dceb6faaa0b84c06eee97e2",
+    "original_cases": 120,
+    "original_jobs": 12,
+    "cases_per_job": 10,
+    "original_calls": 320,
+    "original_assignments": 200,
+    "original_final_reads": 120,
+    "selected_replay_job": "012-retained-assignment",
+    "replay_cases_separately_counted": 10,
+    "replay_calls_separately_counted": 27
+  },
+  "frozen_identity": {
+    "frozen_file_sha256": "a24d5a4bb9edb7e9b02a47c86b1f8fcbbf315553e209c65b5264d20c7e6ebf27",
+    "frozen_canonical_sha256": "826967e16147beb76520e1fe802b0f8145c8184538627f8b77d6df49002211af",
+    "frozen_subject_sha256": "7096d69595c1bd6a6f04443b32c1b8ddb1dc64417a8c7925d2443a899d1d88de",
+    "config_sha256": "9f3a8bf1a70c2247c9f92341b88fdacec7482b28e24c777b07ef38fd81ce1924"
+  },
+  "pins": {
+    "global": 10,
+    "each_job": 78,
+    "distinct_verified": 86,
+    "all_twelve_job_pin_sets_equal": true,
+    "versions": {
+      "python": "3.12.3",
+      "oracle_python": "3.12.3",
+      "unicorn": "2.1.4",
+      "capstone": "5.0.7"
+    }
+  },
+  "prerequisites": {
+    "qualification": "passed",
+    "qualification_receipt_sha256": "5ab5c5ef4a92884f808b5c5b1bbab1d3ca0ed0020f549e11e9494c4aa852d35f",
+    "lab005_006": "passed",
+    "lab005_006_receipt_sha256": "49e4f1eedfa8216a93a5d75ad9cb7d5f2305f5568c04bf5164cd0d0eac8ae262",
+    "retained_source_config_manifest_and_full_publication_inventories_revalidated": true
+  },
+  "reservation": {
+    "logical_bytes": 15774777344,
+    "allocated_bytes": 15774781440,
+    "per_attempt_bytes": 606076928,
+    "maximum_physical_attempts": 26,
+    "original_attempt_budget": 24,
+    "selected_replay_attempt_budget": 2,
+    "metadata_bytes": 16777216,
+    "consumed_at_review": 0,
+    "additional_free_space_floor_bytes": 1073741824,
+    "independently_observed_windows_host_free_bytes": 206973435904,
+    "scope": "Physically allocated growth reserve with sampled watchdog, not a filesystem quota."
+  },
+  "limits": {
+    "attempt_elapsed_seconds": 600,
+    "stall_seconds": 120,
+    "streams_bytes": 2097152,
+    "artifacts_bytes": 536870912,
+    "cpu_count": 1,
+    "memory_bytes": 2147483648,
+    "swap_bytes": 0,
+    "tasks": 128,
+    "call_timeout_microseconds": 2000000,
+    "call_instruction_ceiling": 3000
+  },
+  "independent_tests": {
+    "exact_source_new_fixture_tests": 19,
+    "new_fixture_elapsed_seconds": 3.599,
+    "representative_301_instruction_150_read_trace_seconds": 1.015693,
+    "new_fixture_output_sha256": "2a270982da4f8c8b15142629ddc04b64de71be214b18266aac606c773257dd88",
+    "existing_admission_tests": 9,
+    "existing_workload_tests": 7,
+    "regression_output_sha256": {
+      "test_admission.py": "cba4633e509bb9b49cc22ab79b2bb5d666f1224272af9cf65916c0aefe854669",
+      "test_workloads.py": "6b2fa38a0c3afd81721452f2757aa339fbecf9b29b737024a33929079454362b"
+    },
+    "coverage": [
+      "all mapped extents, padding and permissions; extra mapping rejected",
+      "lossless deltas; omitted, duplicated, misordered and malformed pages rejected",
+      "full raw CPU reset and EAX/EFLAGS/XMM mutation detection",
+      "full CPU payload deterministic across three fresh processes on exact checked-in fixture",
+      "forbidden instruction, call, read and write stop before effects; earlier permitted effects retained",
+      "invalid initial fetch censored; actual entry captured after ABI setup",
+      "timeout and instruction ceiling censor with partial effects",
+      "real core selected-result replay constructor and altered review subject rejection",
+      "all 26 physical reservation allocations, duplicate ordinal and second replay fences",
+      "initial case/call denominator and durable boundary trace retention"
+    ]
+  },
+  "instrumentation_evidence": {
+    "retained_failed_100ms_source_sha256": "e54a6598883ebb63e024d7f3f7ed700a86adc52c0350c80a6661385dc53662bf",
+    "retained_failed_100ms_stderr_sha256": "ad98eb98a03d128cce9013fb5b2c12c49a2b97e3f1b1586056669b7457f0cf84",
+    "retained_failed_2s_per_event_source_sha256": "ae1b0e60239ad092068614f47fa01cefdc40c7fb647a090ccf8075876790ad90",
+    "retained_failed_2s_per_event_stderr_sha256": "7bf643bf253c5510a413204c9158189dd4d0a359a780156627db6b7bd081717a",
+    "accepted_policy": "Every event flushed to OS; each sixteen-event prefix and every boundary/completion fsynced with atomic sequence/length/hash durability receipt.",
+    "interruption_limit": "Acknowledged prefix can lag by one sixteen-event batch including an in-flight flush/receipt update. Events are pre-execution observations; final volatile CPU/memory and the uncommitted suffix remain unknown.",
+    "earlier_bespoke_probe_provenance": "Retained source is reconstructed equivalent and its hash is not claimed as executed source. Final independent approval uses the exact checked-in fixture run."
+  },
+  "cpu_evidence": {
+    "raw_context_bytes": 5608,
+    "cpu_payload_bytes": 5568,
+    "cross_process_excluded_header_offsets_inclusive": [
+      20,
+      31
+    ],
+    "excluded_semantics": "Inactive CPU-only ramblock flag, C padding and host RAMBlock pointer; no CPU payload field masked.",
+    "strict_checks": [
+      "Unicorn 2.1.4, little-endian 64-bit host ABI",
+      "context size, architecture/mode, zero snapshot level and null FlatView"
+    ],
+    "full_raw_context_retained": true,
+    "same_instance_reset_compares_every_raw_byte": true,
+    "replay_requires_all_payload_bytes_and_every_mapped_byte": true
+  },
+  "resolved_review_findings": [
+    "durable initial denominator, per-call/per-case receipts and checkpoints",
+    "actual prepared entry state and explicit ABI expectations/observations",
+    "terminal failed-call status and error retention",
+    "scientific baseline includes mapping extents and permissions",
+    "core replay preserves original limits and admits only selected job 012",
+    "exact frozen case grouping and initial-fetch boundary attribution",
+    "preflight memory/stack access prevents unsupported instruction effects"
+  ],
+  "actual_gate_validation": {
+    "global_admitted_manifest": "passed",
+    "first_and_last_jobs": "passed",
+    "database_created": false,
+    "operational_receipt_sha256": "a9b9972dcf4ea3fd7b5035c787045ae160171642f28892ef51551741949743f9"
+  },
+  "state_at_review": {
+    "execution_status": "unstarted",
+    "physical_attempts": 0,
+    "unstarted_original_cases": 120,
+    "comparison_verdict": "not-run",
+    "scientific_acceptance": "pending",
+    "production_admission": "none"
+  },
+  "scope": "Operational admission for exact frozen matrix and separately counted selected replay. Same two R10-admitted members; no wider eligibility, UI, save, original-process CPU/RNG or production claims. Lead must use isolated lifetime holder and obtain independent complete raw-evidence/replay acceptance."
+}
