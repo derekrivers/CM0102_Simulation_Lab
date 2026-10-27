@@ -1,0 +1,653 @@
+{
+  "censored_cases": [
+    {
+      "boundary_kind": "execution-limit",
+      "boundary_reason": "no-return-before-time-or-instruction-limit",
+      "call_index": 1,
+      "candidate": 0,
+      "case_id": "002",
+      "instruction_events": 22,
+      "job_id": "001-retained-assignment",
+      "kind": "assign",
+      "partial_nonstack_writes": 0,
+      "passed_calls": 1,
+      "planned_calls": 3,
+      "sequence": "repeat-read",
+      "slot": 0,
+      "total_events": 32,
+      "unstarted_calls": 1
+    },
+    {
+      "boundary_kind": "execution-limit",
+      "boundary_reason": "no-return-before-time-or-instruction-limit",
+      "call_index": 2,
+      "candidate": 0,
+      "case_id": "056",
+      "instruction_events": 83,
+      "job_id": "006-retained-assignment",
+      "kind": "read",
+      "partial_nonstack_writes": 0,
+      "passed_calls": 2,
+      "planned_calls": 3,
+      "sequence": "repeat-read",
+      "slot": 9,
+      "total_events": 128,
+      "unstarted_calls": 0
+    },
+    {
+      "boundary_kind": "execution-limit",
+      "boundary_reason": "no-return-before-time-or-instruction-limit",
+      "call_index": 1,
+      "candidate": 1,
+      "case_id": "057",
+      "instruction_events": 105,
+      "job_id": "006-retained-assignment",
+      "kind": "assign",
+      "partial_nonstack_writes": 0,
+      "passed_calls": 1,
+      "planned_calls": 3,
+      "sequence": "replace-read",
+      "slot": 9,
+      "total_events": 160,
+      "unstarted_calls": 1
+    },
+    {
+      "boundary_kind": "execution-limit",
+      "boundary_reason": "no-return-before-time-or-instruction-limit",
+      "call_index": 0,
+      "candidate": 1,
+      "case_id": "058",
+      "instruction_events": 11,
+      "job_id": "006-retained-assignment",
+      "kind": "assign",
+      "partial_nonstack_writes": 0,
+      "passed_calls": 0,
+      "planned_calls": 2,
+      "sequence": "assign-read",
+      "slot": 9,
+      "total_events": 16,
+      "unstarted_calls": 1
+    },
+    {
+      "boundary_kind": "execution-limit",
+      "boundary_reason": "no-return-before-time-or-instruction-limit",
+      "call_index": 1,
+      "candidate": 1,
+      "case_id": "059",
+      "instruction_events": 11,
+      "job_id": "006-retained-assignment",
+      "kind": "assign",
+      "partial_nonstack_writes": 0,
+      "passed_calls": 1,
+      "planned_calls": 3,
+      "sequence": "repeat-read",
+      "slot": 9,
+      "total_events": 16,
+      "unstarted_calls": 1
+    },
+    {
+      "boundary_kind": "execution-limit",
+      "boundary_reason": "no-return-before-time-or-instruction-limit",
+      "call_index": 2,
+      "candidate": 0,
+      "case_id": "084",
+      "instruction_events": 150,
+      "job_id": "009-retained-assignment",
+      "kind": "read",
+      "partial_nonstack_writes": 0,
+      "passed_calls": 2,
+      "planned_calls": 3,
+      "sequence": "replace-read",
+      "slot": 13,
+      "total_events": 224,
+      "unstarted_calls": 0
+    }
+  ],
+  "censorship_interpretation": {
+    "all_instruction_event_counts_below_3000": true,
+    "all_total_event_counts_divisible_by_16": true,
+    "cause": "unresolved",
+    "observed_alignment": "Boundaries align with durability batches; this does not establish fsync, I/O, CPU throttling or memory pressure as the cause.",
+    "partial_effects": "All six censored calls have zero nonstack writes. Prior passed calls and complete censored entry/exit states remain retained; four later calls remain unstarted.",
+    "per_call_elapsed_time_retained": false,
+    "scope": "No full 120-case result is inferred from 114 passed cases or from the separate selected replay.",
+    "unicorn_timeout_indicator_retained": false
+  },
+  "complementary_author_review": {
+    "all_20_initial_slots_empty_and_cache_zero": true,
+    "baseline": "Independently rebuilt official PE plus exactly seven admitted captured globals, complete heap and zero alignment/stack/return regions; hashes/extents/permissions agree across all 13 attempts.",
+    "decision": "passed-complementary-integrity-checks",
+    "event_counts_all_original_and_replay_calls": {
+      "calls": 1145,
+      "instructions": 45429,
+      "reads": 14023,
+      "writes": 8082
+    },
+    "exact_decoded_instruction_boundaries_call_operands_and_read_write_allowlists": "passed",
+    "no_emulation": true,
+    "player_ids_verified": 7214,
+    "reviewer": "implementation",
+    "same_two_r10_record_pairs_verified": true,
+    "scope": "Author complementary review of sealed inputs and every instruction/read/write/call event; independent qualification reviewer separately performed complete raw hashing/state reconstruction and retained-context ABI review."
+  },
+  "denominators": {
+    "all_preserved_lab007_physical_attempts_including_v1": 14,
+    "original_calls": {
+      "censored": 6,
+      "failed": 0,
+      "passed": 310,
+      "planned": 320,
+      "unstarted": 4
+    },
+    "original_cases": {
+      "censored": 6,
+      "failed": 0,
+      "passed": 114,
+      "planned": 120,
+      "unstarted": 0
+    },
+    "original_jobs": 12,
+    "original_ordered_trace_events": 63220,
+    "original_passed_control_checks": 2530,
+    "selected_replay_calls": {
+      "passed": 27,
+      "planned": 27
+    },
+    "selected_replay_cases": {
+      "passed": 10,
+      "planned": 10
+    },
+    "selected_replay_jobs": 1,
+    "selected_replay_ordered_trace_events": 5459,
+    "selected_replay_passed_control_checks": 220,
+    "v2_physical_attempts": 13
+  },
+  "evidence_integrity_decision": "passed",
+  "execution": {
+    "all_13_jobs": "succeeded with one published attempt each",
+    "both_terminal_holders": "worker-terminal, worker inactive",
+    "comparison_separate_from_execution": true,
+    "original_and_replay_campaign_states": "completed",
+    "original_and_replay_stop_reasons": null,
+    "replay_started_after_original_completion": true
+  },
+  "full_matrix_scientific_acceptance": false,
+  "identity": {
+    "case_matrix_sha256": "62ea04732223472ccf649eadaba9159b79f550c53dceb6faaa0b84c06eee97e2",
+    "configuration_unchanged": true,
+    "distinct_source_input_tool_pins_rehashed": 86,
+    "frozen_subject_sha256": "a0ddd15261a8d6c72718161e5cb33dcc7c0cd26747ca3cdcf44aeb9527dfa30b",
+    "original_campaign": "lab007-matrix-v2",
+    "original_manifest_sha256": "b0daf93e0f6c9a783f6729affaeb3c3bf46f0e02db6662c4132c65c3537062e2",
+    "replay_campaign": "lab007-matrix-v2-replay-384c7adc89e3",
+    "replay_manifest_sha256": "7a19a9f8feb321dad1f0543463f0cf59c9d4b110e54b10511cd65d9fa73d937d",
+    "selected_replay_job": "012-retained-assignment",
+    "source_clean": true
+  },
+  "implementation_author": "implementation",
+  "job_results": [
+    {
+      "attempt_id": "6d6c3a3690be4068a9ebb340961d0d6e",
+      "call_statuses": {
+        "censored": 1,
+        "passed": 24,
+        "unstarted": 1
+      },
+      "case_statuses": {
+        "censored": 1,
+        "passed": 9
+      },
+      "controls": 195,
+      "events": 4889,
+      "inventory_bytes": 122521688,
+      "inventory_entries": 223,
+      "job_id": "001-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122552222,
+      "role": "original",
+      "scientific_sha256": "fd84197143c57313d6cde4e9a0b193ac6ad337e7941c2501816ddd27594385b9",
+      "service_cpu_seconds_delta": 86.339706,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1187422208,
+      "stream_bytes": 0,
+      "wall_seconds": 115.52344989776611
+    },
+    {
+      "attempt_id": "b16733158032436c9372d2501c1475cc",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122859252,
+      "inventory_entries": 237,
+      "job_id": "002-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122891676,
+      "role": "original",
+      "scientific_sha256": "b50228fb3e0f365fa562686825e1c391d4b222d75b2f9b883f0371d154f4150d",
+      "service_cpu_seconds_delta": 95.188222,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1318088704,
+      "stream_bytes": 0,
+      "wall_seconds": 113.64402437210083
+    },
+    {
+      "attempt_id": "0439ddfef2004f7499abc7bcc84e3d84",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122859256,
+      "inventory_entries": 237,
+      "job_id": "003-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122891685,
+      "role": "original",
+      "scientific_sha256": "9fda7ed8843d9c10fce773d086e529dc12e8c11e2ba4a0baf5bc7e4e2e0e54d1",
+      "service_cpu_seconds_delta": 90.355679,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1447542784,
+      "stream_bytes": 0,
+      "wall_seconds": 94.24637627601624
+    },
+    {
+      "attempt_id": "a7447b6670b34d6ab8e6004599675fbf",
+      "call_statuses": {
+        "passed": 26
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 210,
+      "events": 5272,
+      "inventory_bytes": 122732099,
+      "inventory_entries": 230,
+      "job_id": "004-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122763592,
+      "role": "original",
+      "scientific_sha256": "1af4f485a6d14e6bd61b544b8292376b07ea9e66749bdd0be5e7477ee00fa850",
+      "service_cpu_seconds_delta": 84.336434,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1575673856,
+      "stream_bytes": 0,
+      "wall_seconds": 89.02705407142639
+    },
+    {
+      "attempt_id": "dd3a44a5d1834c059f3e7587f0abfc64",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122859252,
+      "inventory_entries": 237,
+      "job_id": "005-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122891682,
+      "role": "original",
+      "scientific_sha256": "9c81b8ba9990da5cfbf9290beacd60bcbfa186cc8df1f4406e8136ed5dc28378",
+      "service_cpu_seconds_delta": 93.506265,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1703534592,
+      "stream_bytes": 0,
+      "wall_seconds": 120.95561528205872
+    },
+    {
+      "attempt_id": "32591a1158a7423c9ab4d96ada0f8fa1",
+      "call_statuses": {
+        "censored": 4,
+        "passed": 20,
+        "unstarted": 3
+      },
+      "case_statuses": {
+        "censored": 4,
+        "passed": 6
+      },
+      "controls": 170,
+      "events": 4306,
+      "inventory_bytes": 122221161,
+      "inventory_entries": 216,
+      "job_id": "006-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122250780,
+      "role": "original",
+      "scientific_sha256": "1fd5349e63132c97748c46f1beb8ef2645cbfbf27fa8df4a85c34c96882a91c1",
+      "service_cpu_seconds_delta": 101.189338,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1830817792,
+      "stream_bytes": 0,
+      "wall_seconds": 173.5923557281494
+    },
+    {
+      "attempt_id": "12189954df85473d81a7c3ea7027e433",
+      "call_statuses": {
+        "passed": 26
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 210,
+      "events": 5272,
+      "inventory_bytes": 122732269,
+      "inventory_entries": 230,
+      "job_id": "007-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122763764,
+      "role": "original",
+      "scientific_sha256": "cbdf19350831d2e42c65cea9eb0706e8a8729a843d36f8166ade75e43e64a534",
+      "service_cpu_seconds_delta": 97.525718,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 1960599552,
+      "stream_bytes": 0,
+      "wall_seconds": 128.58303880691528
+    },
+    {
+      "attempt_id": "2e3bd636cc0146d1b33fcf4d6ffd858f",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122859427,
+      "inventory_entries": 237,
+      "job_id": "008-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122891859,
+      "role": "original",
+      "scientific_sha256": "07d32998d99d50a3032872205e311a69664187f3f456a66a0e860c5fa997966f",
+      "service_cpu_seconds_delta": 93.31333,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 2089332736,
+      "stream_bytes": 0,
+      "wall_seconds": 111.08266353607178
+    },
+    {
+      "attempt_id": "2d33fb0b0c14412e9a257ef12e2e9275",
+      "call_statuses": {
+        "censored": 1,
+        "passed": 26
+      },
+      "case_statuses": {
+        "censored": 1,
+        "passed": 9
+      },
+      "controls": 215,
+      "events": 5455,
+      "inventory_bytes": 122856321,
+      "inventory_entries": 237,
+      "job_id": "009-retained-assignment",
+      "memory_max_events_delta": 649,
+      "oom_events": 0,
+      "retained_directory_bytes": 122888762,
+      "role": "original",
+      "scientific_sha256": "78a7a58484c1a5092ae3ab957927bc839bc54392f0fcddcda775adb8c9c88ed3",
+      "service_cpu_seconds_delta": 90.410395,
+      "service_lifetime_memory_max_events": 649,
+      "service_lifetime_memory_peak_bytes": 2147483648,
+      "stream_bytes": 0,
+      "wall_seconds": 105.59244418144226
+    },
+    {
+      "attempt_id": "614578e887c6487fb7b1afb3a0f84b57",
+      "call_statuses": {
+        "passed": 26
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 210,
+      "events": 5272,
+      "inventory_bytes": 122732269,
+      "inventory_entries": 230,
+      "job_id": "010-retained-assignment",
+      "memory_max_events_delta": 1227,
+      "oom_events": 0,
+      "retained_directory_bytes": 122763771,
+      "role": "original",
+      "scientific_sha256": "c004077f16920f14fb7daac9d33f4ef9c352103533c6e31df9074185282c8459",
+      "service_cpu_seconds_delta": 91.263649,
+      "service_lifetime_memory_max_events": 1876,
+      "service_lifetime_memory_peak_bytes": 2147483648,
+      "stream_bytes": 0,
+      "wall_seconds": 114.38844013214111
+    },
+    {
+      "attempt_id": "30ecf1bd247f4000a278ade2e04cb3e2",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122859427,
+      "inventory_entries": 237,
+      "job_id": "011-retained-assignment",
+      "memory_max_events_delta": 580,
+      "oom_events": 0,
+      "retained_directory_bytes": 122891868,
+      "role": "original",
+      "scientific_sha256": "a58154f678cde1f5c2d3cd8f7ee3ee8b4ec983da6b72ec0c47de4bad54230f84",
+      "service_cpu_seconds_delta": 91.028006,
+      "service_lifetime_memory_max_events": 2456,
+      "service_lifetime_memory_peak_bytes": 2147483648,
+      "stream_bytes": 0,
+      "wall_seconds": 105.98301982879639
+    },
+    {
+      "attempt_id": "aa48c2d36c2342759027bc61d4abec76",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122859431,
+      "inventory_entries": 237,
+      "job_id": "012-retained-assignment",
+      "memory_max_events_delta": 598,
+      "oom_events": 0,
+      "retained_directory_bytes": 122891873,
+      "role": "original",
+      "scientific_sha256": "066ecd28ed5ecc9c3b370508321f5a94305b54a34aab027ca61f44037300fa35",
+      "service_cpu_seconds_delta": 90.316221,
+      "service_lifetime_memory_max_events": 3054,
+      "service_lifetime_memory_peak_bytes": 2147483648,
+      "stream_bytes": 0,
+      "wall_seconds": 105.92440366744995
+    },
+    {
+      "attempt_id": "43b6261db1dd4604b1a239eb28f896b9",
+      "call_statuses": {
+        "passed": 27
+      },
+      "case_statuses": {
+        "passed": 10
+      },
+      "controls": 220,
+      "events": 5459,
+      "inventory_bytes": 122717571,
+      "inventory_entries": 237,
+      "job_id": "012-retained-assignment",
+      "memory_max_events_delta": 0,
+      "oom_events": 0,
+      "retained_directory_bytes": 122749972,
+      "role": "replay",
+      "scientific_sha256": "066ecd28ed5ecc9c3b370508321f5a94305b54a34aab027ca61f44037300fa35",
+      "service_cpu_seconds_delta": 94.033448,
+      "service_lifetime_memory_max_events": 0,
+      "service_lifetime_memory_peak_bytes": 905515008,
+      "stream_bytes": 0,
+      "wall_seconds": 117.71369171142578
+    }
+  ],
+  "kind": "lab007-executed-censored-review-v1",
+  "merge_qualification": {
+    "basis": "No remaining source or raw-evidence integrity blocker after independent raw review and complementary author audit. Censorship is the scientific outcome; this does not certify every matrix case passed.",
+    "decision": "qualified-for-censored-outcome-delivery-subject-to-final-exact-head-and-required-checks",
+    "scope": "Bounded adapter and honest censored outcome delivery; no complete matrix pass, production rule, changed policy or new original campaign is approved."
+  },
+  "preserved_v1_failure": {
+    "all_calls_unstarted": 320,
+    "all_cases_unstarted": 120,
+    "campaign": "lab007-matrix-v1",
+    "decision": "failed before adapter input loading/emulator construction due CLI string/Path mismatch",
+    "jobs_failed": 1,
+    "jobs_queued": 11,
+    "original_instructions_executed": 0,
+    "physical_attempts": 1,
+    "preserved_unchanged": true,
+    "public_record": "lab007-campaign-v1-failure-v1.json",
+    "public_record_sha256": "e7dc6399a3f2e8997443979673127653518c34d4dcac85735b8d9787d1df9c68",
+    "review_gap": "The first source review missed the real CLI path. The replacement normalizes both paths and adds actual subprocess CLI and capture-boundary regression tests; no failed evidence was replaced.",
+    "source_revision": "0e71831805afeb438328b4a86b5eeb084ae4db21"
+  },
+  "private_audit_evidence_hashes": {
+    "audit-final-r2-v2.py": "77d04a90a2f8c4206ad663d68a4f831cda189399a925fd028e6c2f181a3ee3b6",
+    "audit-output-v2.txt": "08397e5adba1dd65bf84d65b7de19d51c3e4d221676f8cb31d859d77f6e604fc",
+    "audit.json": "beec09cab65cdf83927461157075d0052ad10b35d9a1ef54be651adf7590b21d",
+    "complementary-baseline-allowlist-r2.json": "84157f4d951271058bb80fc8229840a351c98d0f429d26a48b6b8c439b1b7786",
+    "complete-raw-audit.json": "be648e32be599cabb48e5788c5f1a78c940e887b87e8cdb6d459eea782a15a67",
+    "lab007-matrix-v2-holder.json": "ba1614d350c18dc070e41c242d5bbd711c9a96691e9391c7bb110d54e07a415b",
+    "lab007-matrix-v2-replay-384c7adc89e3-holder.json": "9b168ea5ff1a70c0a76787ae28fc2d26f14dc221507f6c60c4348bf4d67b5010",
+    "lab007-matrix-v2-replay-384c7adc89e3-snapshot.json": "c5a0f2b321bd349a3ca344355826a070b1cddc7bb428bb4e0d34e02d1c2f4a53",
+    "lab007-matrix-v2-snapshot.json": "28e0de48ce227171c4462abbf04edb903d6e346e7ac912eb712801862c6cfff6",
+    "monitor-pressure-20261027T164217Z.json": "f98fb2a0c206ffccb71de5050d890d8edcab0b6a6b934ecc0f2a0325f5def458"
+  },
+  "private_scientific_decision_sha256": "50cedf7d762320b13ca05c6713920de2fdf426aa77add0079f0c422b24f4fcef",
+  "raw_audit": {
+    "auditor_correction": "An initial audit assertion assumed every memory event was zero and stopped on late memory.max events. The retained corrected audit records those cap events and requires zero OOM events. Campaign evidence and source were unchanged.",
+    "baseline_bytes": 119021568,
+    "baseline_identity_equal_all_13_attempts": true,
+    "baseline_mapped_regions": 4,
+    "complete_mapped_and_cpu_states_verified": 816,
+    "distinct_reconstructed_region_states": 167,
+    "interruption_limit": "This run terminated normally. The protocol retains an acknowledged durable trace prefix; an interrupted unknown suffix of up to one 16-event batch is not asserted to reconstruct final CPU/memory effects.",
+    "inventory_entries_verified": 3025,
+    "method": [
+      "Read-only terminal SQLite snapshots equal complete retained reports; manifest/job linkage and full publication hashes verified.",
+      "Independently parsed ordered page deltas, extents, overlaps, page hashes, unused bytes and reconstructed complete region hashes. Cached reconstructions only by exact baseline hash plus ordered patch identities.",
+      "Compared every nonstack state against immutable baseline plus the intended selected-member DWORD; retained complete stack. Verified both admitted staff/player pairs from baseline bytes.",
+      "Validated all 5608 raw CPU bytes at every case reset. Decoded architectural register values from retained contexts without emulation and verified actual entry/exit ABI, return, EAX and saved-register facts.",
+      "Compared every immutable case/call receipt to complete checkpoint/evidence, every canonical ordered trace to final durability sequence/length/hash, all controls and all allowed target writes.",
+      "Rehashed all 86 distinct source/input/tool pins and reconciled reservation job/campaign/ordinal identities."
+    ],
+    "result_publications_verified": 13
+  },
+  "reservation": {
+    "consumed_attempts": 13,
+    "initial_logical_reserved_bytes": 15774777344,
+    "one_selected_replay_only": true,
+    "planned_physical_attempt_capacity": 26,
+    "remaining_logical_bytes": 7895777280,
+    "remaining_physical_allocation_at_least_logical": true,
+    "v1_failed_attempt_reservation_retained_separately": true
+  },
+  "resources": {
+    "all_attempt_walls_artifacts_streams_within_limits": true,
+    "limits": {
+      "artifact_bytes": 536870912,
+      "attempt_seconds": 600,
+      "call_deadline_seconds": 2,
+      "call_instruction_ceiling": 3000,
+      "cpu_quota_cores": 1,
+      "memory_bytes": 2147483648,
+      "semantic_stall_seconds": 120,
+      "stream_bytes": 2097152,
+      "swap_bytes": 0,
+      "tasks": 128
+    },
+    "memory_cap_context": "Original service first records memory.max events in job009 and reaches 3054 by job012, without OOM. Earlier censorship in jobs001 and006 occurred before that cap peak; one common memory cause is not established.",
+    "original": {
+      "attempt_wall_seconds_max": 173.5923557281494,
+      "attempt_wall_seconds_min": 89.02705407142639,
+      "attempt_wall_seconds_sum": 1378.5428857803345,
+      "attempts": 12,
+      "inventoried_bytes": 1472951852,
+      "memory_max_event_deltas_sum": 3054,
+      "oom_events": 0,
+      "retained_attempt_directory_bytes": 1473333534,
+      "service_cpu_counter_deltas_seconds_sum": 1104.772963,
+      "service_lifetime_memory_peak_bytes_max": 2147483648,
+      "stream_bytes": 0
+    },
+    "scope": "Memory peaks are cgroup service-lifetime values including cache, not isolated per-job RSS. CPU values are per-attempt differences of service counters. Full retained directory bytes include result publication; inventory byte totals do not.",
+    "selected_replay": {
+      "attempt_wall_seconds_max": 117.71369171142578,
+      "attempt_wall_seconds_min": 117.71369171142578,
+      "attempt_wall_seconds_sum": 117.71369171142578,
+      "attempts": 1,
+      "inventoried_bytes": 122717571,
+      "memory_max_event_deltas_sum": 0,
+      "oom_events": 0,
+      "retained_attempt_directory_bytes": 122749972,
+      "service_cpu_counter_deltas_seconds_sum": 94.033448,
+      "service_lifetime_memory_peak_bytes_max": 905515008,
+      "stream_bytes": 0
+    },
+    "supplementary_pressure_context": {
+      "cpu_some_pressure_seconds": 33.988735,
+      "cpu_throttled_seconds": 55.859514,
+      "cpu_usage_seconds": 708.803747,
+      "io_some_pressure_seconds": 65.810809,
+      "memory_pressure_seconds": 0,
+      "observed_at_utc": "2026-10-27T16:42:17.460447+00:00",
+      "scope": "Cumulative service observation only, not per-call attribution."
+    }
+  },
+  "reviewed_at_utc": "2026-10-27T17:04:56.644081+00:00",
+  "reviewer": "qualification_review",
+  "schema_version": 1,
+  "scientific_decision": "censored",
+  "scope_limits": [
+    "Only the same two R10-admitted members, captured club context and twenty direct assignment slots are covered.",
+    "The static sixteen-iteration caller and the direct twenty-slot matrix remain distinct.",
+    "No whole-squad eligibility, original UI positions, nonzero cache/mode, production squad/save rules, P01/P03 or R9b acceptance."
+  ],
+  "selected_replay": {
+    "byte_identical_memory_delta_trace_and_durability_files": 122,
+    "cpu_comparison": "All 5568 payload bytes and admitted scalar header fields equal. Only declared inactive metadata/header bytes 20:32 differ across processes; all raw 5608-byte contexts retained. No CPU field excluded.",
+    "cpu_context_files_compared": 65,
+    "does_not_resolve_original_censorship": true,
+    "scientific_bytes_equal": true,
+    "scientific_sha256": "066ecd28ed5ecc9c3b370508321f5a94305b54a34aab027ca61f44037300fa35"
+  },
+  "smallest_next_diagnostic": {
+    "interpretation": "Tests instrumentation/resource pressure as a hypothesis. Nonreproduction is inconclusive; no limit increase or new original-input campaign is authorized by this receipt.",
+    "measure": [
+      "Monotonic fsync, replace, directory fsync, state publication/reconstruction, callback and emulation timings",
+      "Thread/process CPU deltas, cgroup throttling, CPU/memory/I/O pressure, memory events and process I/O",
+      "Exact instruction count and Unicorn timeout indicator"
+    ],
+    "policy": "Keep existing 2s/3000 call, 16-event durability, CPU/memory/attempt/stall/artifact/stream limits and the installed launcher/holder worker lifecycle.",
+    "scope": "One synthetic job and two repeat calls using invented instructions/data, matching mapped extent and publication sizes and observed instruction/read/write counts; no original bytes or new original cases.",
+    "status": "proposed, unexecuted; owner decision required"
+  },
+  "source_revision": "152de802baa0d88fdfec2f1db153df492d90f955"
+}
