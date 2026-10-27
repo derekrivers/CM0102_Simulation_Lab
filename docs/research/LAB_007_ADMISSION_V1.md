@@ -1,9 +1,13 @@
 # LAB-007 operational admission and evidence v1
 
-Status: executable candidate, pending independent exact-revision review and
-materialized admission. No execution follows from this document. LAB-005/006
-and LL1 were independently accepted; their immutable private receipts and raw
-publications are checked again at admission and each physical attempt.
+Status, 27 October 2026: independently reviewed and executed. The corrected
+campaign completed all 120 cases in twelve jobs with 114 passed and six censored
+cases; its preselected job-012 replay passed and reproduced the full scientific
+result exactly. See the [decision and diagnostic boundary](LAB_007_BLOCKERS_V1.md)
+and [delivery record](LAB_005_007_DELIVERY_V1.md). This runbook preserves the
+reviewed operational contract, not permission to repeat a censored campaign.
+LAB-005/006 and LL1 were independently accepted; their immutable private receipts
+and raw publications were checked again at admission and each physical attempt.
 
 The experiment is exactly `LAB_007_CASES_V1.json`: 120 cases, twelve consecutive
 ten-case jobs, 200 assignments and 120 final reads. Every failed, censored,
@@ -133,6 +137,17 @@ verifying their complete immutable raw publications. Receipts are independent
 attestations in the local trust boundary, not cryptographic identity proofs.
 
 ## Supported sequence
+
+The commands below retain the original v1 admission procedure for provenance.
+That campaign failed before input loading. Its source/root remain preserved.
+The reviewed replacement used source `152de802baa0d88fdfec2f1db153df492d90f955`
+in `/home/derek/cm0102-lab007-r2`, private state
+`/home/derek/.local/share/cm0102-lab007-r2`, campaign `lab007-matrix-v2` and
+isolated Windows launcher `%LOCALAPPDATA%/CM0102Lab007R2`. Its frozen subject is
+`a0ddd15261a8d6c72718161e5cb33dcc7c0cd26747ca3cdcf44aeb9527dfa30b`.
+The [replacement operational review](evidence/lab007-operational-review-v2.json)
+binds the actual materialized pins and physical reservation. Do not run these
+commands again against either retained campaign.
 
 The lead creates clean detached `/home/derek/cm0102-lab007` at the independently
 reviewed source revision. Development stays in `/home/derek/cm0102-lab007-dev`.

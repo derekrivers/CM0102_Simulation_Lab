@@ -1,6 +1,65 @@
 # LAB-007 admission decision v1
 
-## Updated decision — 26 October 2026
+## Executed outcome — 27 October 2026
+
+The admitted extension completed its frozen **120 cases in twelve jobs** on
+reviewed source `152de802baa0d88fdfec2f1db153df492d90f955`. The scientific
+outcome is **censored**: 114 cases passed and six stopped at the frozen execution
+limit. All twelve jobs completed and published evidence. Job execution success
+is separate from this scientific decision; no complete 120-case acceptance or
+production squad rule follows from it.
+
+The preselected job `012-retained-assignment` then replayed in its own campaign.
+All ten replay cases and twenty-seven calls passed. Its complete scientific JSON
+is byte-identical to the original selected job, SHA-256
+`066ecd28ed5ecc9c3b370508321f5a94305b54a34aab027ca61f44037300fa35`.
+This selected equality does not replace the six censored original cases.
+Independent complete raw-evidence review is recorded in the
+[executed decision](evidence/lab007-executed-censored-review-v1.json).
+
+The first campaign, `lab007-matrix-v1`, is separately retained as a failed
+startup: one physical attempt failed on a CLI path-type error before input
+loading or emulator construction; all 120 cases and 320 calls stayed unstarted.
+A reviewed path normalization and two regression tests produced the corrected
+source, new frozen manifest, new state root and independent operational admission
+for `lab007-matrix-v2`. The failed attempt was not rewritten or classified as an
+infrastructure retry. Both execution checkouts and their private evidence remain
+fixed; the reviewed source has twenty-one passing synthetic tests.
+
+## Observed blocker and smallest next experiment
+
+The six original calls stopped without reaching the return boundary under the
+unchanged two-second/3,000-instruction per-call ceiling. Their partial traces,
+actual entry/exit memory and CPU state, and unstarted remaining calls are retained.
+The retained facts do not establish why the limit was reached. Event counts at
+observed boundaries align with sixteen-event durability batches, but alignment
+is not proof that fsync caused censorship. Cumulative cgroup I/O pressure and
+CPU throttling are context, not per-call causal measurements. The adapter did
+not capture per-call elapsed time or Unicorn's timeout indicator.
+
+The smallest proposed diagnostic is **one synthetic job with two repeat calls**,
+using invented bytes and instructions and the same mapped-region sizes and
+publication structure. Run through the installed Windows launcher, holder and
+single systemd worker. Preserve the existing two-second/3,000-instruction call
+limits, sixteen-event durability, complete reset, 600-second attempt deadline,
+120-second semantic stall ceiling, 512 MiB artifact and 2 MiB stream ceilings,
+one CPU, 2 GiB memory, zero swap and 128 tasks. Match the successful observed
+instruction/read/write counts without copying original input contents.
+
+Measure monotonic time for each fsync, atomic durability-receipt replacement and
+directory fsync, state publication/reconstruction, callbacks and emulator entry/
+return. Retain thread/process CPU time, before/after cgroup throttling and
+CPU/memory/I/O pressure, memory events, process I/O, exact instruction count and
+`UC_QUERY_TIMEOUT`. The two calls test instrumentation/resource pressure as a
+hypothesis. Failure to reproduce remains inconclusive; it does not rule out that
+cause. This diagnostic has **not run**. A new owner decision and independent
+review are required before a changed policy or another original-input campaign.
+No deadline is increased and no censored case is silently retried.
+
+Full P01/P03, whole-squad eligibility, original UI positions, production lineup/
+save semantics and R9b remain open. No new research card or LAB-008 work is added.
+
+## Historical admission decision — 26 October 2026
 
 **The frozen extension is justified for implementation and independent review.**
 It is not yet admitted to execution: no LAB-007 adapter has been reviewed, and

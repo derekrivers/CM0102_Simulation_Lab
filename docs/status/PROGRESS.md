@@ -1,8 +1,42 @@
 # Programme progress
 
-Updated 26 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
+Updated 27 October 2026. Current task queue: [PC delivery plan](../roadmap/PC_FIRST.md). Earlier merges and detailed attempts remain in the [pre-reset Git record](../history/README.md); they are historical evidence, not a requirement to repeat all setup.
 
 ## Demonstrated evidence
+
+### LAB-007 frozen matrix completed; scientific outcome censored — 27 October 2026
+
+The accepted LAB-005/006 and R10 findings justified the narrow same-two-member
+extension. Its adapter and materialized operational admission received independent
+review, then the isolated Windows launcher ran exactly 120 cases in twelve jobs
+on clean fixed source `152de802`. Result: **114 passed cases and six censored**;
+320 planned calls comprise 310 passed, six censored and four unstarted after an
+earlier call stopped. All jobs published complete retained evidence. Execution
+success does not turn the scientific outcome into a full-matrix pass.
+
+Only the preselected final job replayed: ten cases and twenty-seven calls passed,
+and its full scientific JSON matched the original byte for byte. The earlier
+v1 startup failure remains retained separately with all cases/calls unstarted;
+a reviewed CLI path fix and fresh admission produced v2. No failed attempt was
+overwritten or silently retried. Execution sources and private state stay fixed.
+
+Independent raw review verified 3,025 inventory entries, thirteen publications
+and 816 full mapped-memory/CPU states. Reciprocal review rebuilt the sealed-input
+baseline and independently decoded all ordered instruction/read/write/call
+boundaries. Evidence integrity and selected replay pass; the full scientific
+decision stays censored. Delivery is tracked in
+[PR #49](https://github.com/derekrivers/CM0102_Simulation_Lab/pull/49), with frozen
+CI and exact-head review required before merge. Execution source `152de802`
+remains fixed when documentation advances.
+
+The six calls hit their frozen execution boundary. Later service memory-limit
+events and cumulative I/O/CPU pressure do not establish the cause. The proposed
+next diagnostic is one synthetic job with two repeat calls and direct timing/
+pressure measurements under unchanged limits; it has not run. See the
+[decision](../research/LAB_007_BLOCKERS_V1.md) and
+[delivery record](../research/LAB_005_007_DELIVERY_V1.md). No new research cards,
+LAB-008, full P01/P03 closure, production squad/UI semantics or R9b acceptance
+follow from this work.
 
 ### LL1 and LAB-005/006 executed and independently accepted — 26 October 2026
 
