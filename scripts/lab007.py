@@ -345,6 +345,7 @@ def controls(observed, kind, candidate, expected):
 
 
 def execute(binary, capture, output, job_id):
+    binary, capture = Path(binary), Path(capture)
     out = Path(output)
     planned = next((j['cases'] for j in definition()['jobs'] if j['job_id'] == job_id), None)
     require(planned is not None, 'job outside frozen matrix')

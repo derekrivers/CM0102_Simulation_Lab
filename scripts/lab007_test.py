@@ -288,6 +288,47 @@ class FrozenAdmissionTests(unittest.TestCase):
 
 
 class InterruptedAccountingTests(unittest.TestCase):
+    def test_real_cli_rejects_invented_input_at_identity_boundary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            specimen, capture, output = root/'invented.exe', root/'capture', root/'output'
+            specimen.write_bytes(b'invented non-game input')
+            capture.mkdir(); output.mkdir()
+            result = subprocess.run([sys.executable, '-B', '-I', str(Path(lab.__file__).resolve()),
+                                     str(specimen), str(capture), str(output), '001-retained-assignment'],
+                                    capture_output=True)
+            self.assertEqual(result.returncode, 1)
+            evidence = json.loads((output/'lab007-evidence.json').read_text())
+            self.assertEqual(evidence['error'], {'type': 'ValueError',
+                                               'reason': 'input identity mismatch: invented.exe'})
+            self.assertEqual(len(evidence['cases']), 10)
+            self.assertEqual(sum(len(c['calls']) for c in evidence['cases']), 26)
+            self.assertTrue(all(c['status'] == 'unstarted' for c in evidence['cases']))
+            endpoint = json.loads((output/'lab007-result.json').read_text())
+            self.assertEqual((endpoint['execution_status'], endpoint['comparison_verdict']),
+                             ('failed', 'not-comparable'))
+
+    def test_string_arguments_reach_capture_boundary_as_paths_without_emulation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def checked(path, expected):
+                self.assertEqual(path, root/'invented.exe')
+                self.assertIsInstance(path, Path)
+                self.assertEqual(expected, lab.SPECIMEN)
+                return b'invented bytes never decoded'
+            def capture(path):
+                self.assertEqual(path, root/'capture')
+                self.assertIsInstance(path, Path)
+                raise ValueError('invented capture boundary')
+            with patch.object(lab, 'checked', checked), patch.object(lab, 'Snapshot', capture), \
+                    patch.object(lab, 'MatrixOracle') as oracle:
+                self.assertEqual(lab.execute(str(root/'invented.exe'), str(root/'capture'), str(root),
+                                             '001-retained-assignment'), 1)
+                oracle.assert_not_called()
+            evidence = json.loads((root/'lab007-evidence.json').read_text())
+            self.assertEqual(evidence['error'], {'type': 'ValueError', 'reason': 'invented capture boundary'})
+            self.assertTrue(all(c['status'] == 'unstarted' for c in evidence['cases']))
+
     def test_initial_denominator_survives_input_failure(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(lab, 'checked', side_effect=ValueError('invented failure')):
             self.assertEqual(lab.execute('never-read', 'never-read', directory, '012-retained-assignment'), 1)
