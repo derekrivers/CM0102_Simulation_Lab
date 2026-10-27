@@ -26,8 +26,9 @@ instruction execution. Independent raw review accepted both scoped findings.
 
 The [delivery record](../research/LAB_005_007_DELIVERY_V1.md) preserves exact
 campaign identities, measured resources, private evidence locations and limits.
-The accepted qualification/pilot checkouts remain clean and fixed. PR #48 is
-being refreshed and checked for merge; no merge is claimed by this entry.
+The accepted qualification/pilot checkouts remain clean and fixed. PR #48
+merged as `2f1e2230fdbf921ad3bd380e1677372ec2c80a8a` after independent exact-head
+review of `4afb847`, target-branch refresh and all four required checks passing.
 LAB-007's narrow same-two-member slot extension is justified for implementation
 and independent review; all120cases/twelvejobs remain unstarted until its new
 reset, evidence, instruction-boundary and resource admission pass. Complete squad,

@@ -42,6 +42,8 @@ Each launch used the isolated Windows launcher at `%LOCALAPPDATA%\CM0102Lab00500
 
 ## Delivery and next decision
 
-Source and materialized admission had independent exact-revision review before execution. Qualification and research raw evidence received independent acceptance and reciprocal author review. PR #48 is being refreshed and checked for delivery; its final merge identity belongs in programme progress after the actual merge. The research execution source remains fixed even when documentation advances.
+Source and materialized admission had independent exact-revision review before execution. Qualification and research raw evidence received independent acceptance and reciprocal author review. PR #48 merged as `2f1e2230fdbf921ad3bd380e1677372ec2c80a8a` after final exact-head review of `4afb847`, target refresh and all four required checks passing. The research execution source remains fixed even when documentation advances.
 
 Use [the LAB-007 admission decision](LAB_007_BLOCKERS_V1.md) with the immutable [120-case definition](LAB_007_CASES_V1.json). A new emulator adapter must preserve complete reset, first-boundary censorship, all cases and physical attempts, full before/after state through reviewed lossless representation, exact read/call/write bounds and captured RNG/untouched-region checks. No production squad/lineup/save semantics, complete eligibility, sentinel/loan interpretation, original UI path or LAB-008 work is admitted.
+
+The selected LAB-007 replay is frozen in advance to job 012, the final ten cases spanning direct slots 18 and 19. Its replay has a separate campaign identity and denominator; it does not add cases to or replace any of the 120 original cases. The complete admitted memory and CPU-state evidence must replay under explicitly documented nonsemantic context-header exclusions only.
