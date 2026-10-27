@@ -86,8 +86,11 @@ The main checkpoint follows the file publications; its atomic replacement and
 parent-directory fsync commit the whole bundle before case progress advances.
 Trace instruction/write events describe pre-execution
 observations, so even the last durable event may precede its instruction's
-effect. Power loss can also lose the uncommitted suffix of at most fifteen
-events. Neither prefix is asserted to reconstruct an interrupted final state.
+effect. The last acknowledged durable prefix can lag by one sixteen-event batch,
+including the sixteenth event while its flush or durability-receipt publication
+is in flight. Power loss can lose that uncommitted suffix. Neither prefix is
+asserted to reconstruct an interrupted final state. This wording clarifies the
+fixed execution revision's batching behavior; it does not change its adapter.
 First-boundary results retain full entry/exit state, PC, missing dependency and
 partial effects. If the host/process disappears mid-instruction, the last
 checkpoint and trace remain; unavailable final CPU/memory state is explicitly
